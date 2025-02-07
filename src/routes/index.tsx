@@ -1,20 +1,26 @@
-import { createSignal, For, onCleanup, onMount } from "solid-js";
+import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { parseJson } from "~/utils";
 
 const hrefToWs = (location: Location) =>
   `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/_ws/`;
 
 export default function Home() {
-  // State to hold the WebSocket instance and messages
   const [socket, setSocket] = createSignal<WebSocket | null>(null);
-  const [messages, setMessages] = createSignal<string[]>([]);
   const [ping, setPing] = createSignal(0);
+
+  createEffect(() => {
+    console.log(socket()?.readyState);
+    console.log(socket());
+  });
   const pingInterval = setInterval(() => {
-    socket()?.send(JSON.stringify({ type: "ping", ts: Date.now() }));
+    console.log(socket());
+    if (socket()?.readyState === WebSocket.OPEN) {
+      socket()!.send(JSON.stringify({ type: "ping", ts: Date.now() }));
+    }
   }, 1000);
 
   const pingState = () => {
-    if (!ping()) return { color: "#888888", type: "disconnected" };
+    if (!ping()) return { color: "#888888", type: "Disconnected" };
     if (ping() <= 10) return { color: "#00E676", type: "Professional" };
     if (ping() < 20) return { color: "#76FF03", type: "Pretty decent" };
     if (ping() < 50) return { color: "#FFEB3B", type: "Perfectly average" };
@@ -35,7 +41,6 @@ export default function Home() {
       if (message.type === "pong") {
         setPing(Date.now() - message.ts);
       }
-      setMessages((prev) => [...prev, event.data]);
     };
 
     ws.onclose = (event) => {
