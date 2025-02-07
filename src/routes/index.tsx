@@ -14,15 +14,11 @@ export default function Home() {
   }, 1000);
 
   const pingState = () => {
-    if (ping() <= 10) {
-      return { color: "#00E676", type: "Professional" };
-    } else if (ping() < 20) {
-      return { color: "#76FF03", type: "Pretty decent" };
-    } else if (ping() < 50) {
-      return { color: "#FFEB3B", type: "Perfectly average" };
-    } else if (ping() < 100) {
-      return { color: "#FF9800", type: "Poor" };
-    }
+    if (!ping()) return { color: "#888888", type: "disconnected" };
+    if (ping() <= 10) return { color: "#00E676", type: "Professional" };
+    if (ping() < 20) return { color: "#76FF03", type: "Pretty decent" };
+    if (ping() < 50) return { color: "#FFEB3B", type: "Perfectly average" };
+    if (ping() < 100) return { color: "#FF9800", type: "Poor" };
     return { color: "#F44336", type: "Unplayable" };
   };
 
