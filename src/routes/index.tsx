@@ -8,12 +8,7 @@ export default function Home() {
   const [socket, setSocket] = createSignal<WebSocket | null>(null);
   const [ping, setPing] = createSignal(0);
 
-  createEffect(() => {
-    console.log(socket()?.readyState);
-    console.log(socket());
-  });
   const pingInterval = setInterval(() => {
-    console.log(socket());
     if (socket()?.readyState === WebSocket.OPEN) {
       socket()!.send(JSON.stringify({ type: "ping", ts: Date.now() }));
     }

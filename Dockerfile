@@ -45,6 +45,16 @@ RUN bun run build
 # Final stage for app image
 FROM base
 
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential curl ca-certificates pkg-config python-is-python3
+
+# Install Node.js
+ARG NODE_VERSION=20.9.0
+ENV PATH=/usr/local/node/bin:$PATH
+RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz -C /tmp/ && \
+    /tmp/node-build-master/bin/node-build "${NODE_VERSION}" /usr/local/node && \
+    rm -rf /tmp/node-build-master
+
 # Copy built application
 COPY --from=build /app /app
 
