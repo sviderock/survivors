@@ -4,6 +4,9 @@ import { parseJson } from './utils';
 export default eventHandler({
   handler() { },
   websocket: {
+    async upgrade(req) {
+      console.log(req)
+    },
     async open(peer) {
       console.log('User connected!');
     },
