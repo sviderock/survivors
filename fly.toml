@@ -6,6 +6,8 @@
 app = 'survivors'
 primary_region = 'arn'
 
+[env]
+
 [build]
 
 [http_service]
