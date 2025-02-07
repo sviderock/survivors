@@ -2,7 +2,7 @@ import { createEffect, createSignal, For, onCleanup, onMount } from "solid-js";
 import { parseJson } from "~/utils";
 
 const hrefToWs = (location: Location) =>
-  `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/_ws/`;
+  `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}:${location.port}/_ws/`;
 
 export default function Home() {
   const [socket, setSocket] = createSignal<WebSocket | null>(null);
