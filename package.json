@@ -7,16 +7,15 @@
     "start": "vinxi start"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.10",
-    "@types/node": "^20.14.8",
-    "drizzle-kit": "^0.22.7"
+    "@types/node": "^22.13.1",
+    "drizzle-kit": "^0.30.4"
   },
   "dependencies": {
-    "@solidjs/router": "^0.15.0",
+    "@solidjs/router": "^0.15.3",
     "@solidjs/start": "^1.0.11",
-    "better-sqlite3": "^11.0.0",
-    "drizzle-orm": "^0.31.2",
-    "solid-js": "^1.9.2",
+    "drizzle-orm": "^0.39.2",
+    "mysql2": "^3.12.0",
+    "solid-js": "^1.9.4",
     "vinxi": "^0.4.3"
   },
   "overrides": {

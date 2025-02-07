@@ -1,9 +1,7 @@
-export default {
-  dialect: "sqlite",
+import type { Config } from "drizzle-kit";
+
+export default ({
+  dialect: "singlestore",
   schema: "./drizzle/schema.ts",
-  out: "./drizzle/migrations/",
-  // driver: "better-sqlite",
-  dbCredentials: {
-    url: './drizzle/db.sqlite',
-  },
-};
+  dbCredentials: { url: process.env.DB_URL }
+}) satisfies Config;

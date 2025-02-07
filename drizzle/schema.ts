@@ -1,7 +1,5 @@
-import { integer, text, sqliteTable } from "drizzle-orm/sqlite-core";
+import { singlestoreTable, int } from "drizzle-orm/singlestore-core";
 
-export const Users = sqliteTable("users", {
-  id: integer("id").primaryKey().unique().notNull(),
-  username: text("username").notNull().default(""),
-  password: text("password").notNull().default(""),
+export const Test = singlestoreTable("test", {
+  id: int("id").primaryKey().autoincrement()
 });

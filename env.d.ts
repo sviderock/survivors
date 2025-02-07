@@ -1,12 +1,18 @@
 /// <reference types="vinxi/types/client" />
 
 interface ImportMetaEnv {
-  DB_URL: string;
-  DB_MIGRATIONS_URL: string;
-  SITE_NAME: string;
   SESSION_SECRET: string;
+  DB_URL: string;
 }
-  
+
 interface ImportMeta {
   readonly env: ImportMetaEnv
+}
+
+
+declare namespace NodeJS {
+  interface ProcessEnv {
+    readonly SESSION_SECRET: string;
+    readonly DB_URL: string;
+  }
 }
