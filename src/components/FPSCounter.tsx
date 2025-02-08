@@ -8,7 +8,8 @@ export default function FPSCounter() {
 		interval = setInterval(() => {
 			let prevTime = Date.now();
 			let frames = 0;
-			requestAnimationFrame(function loop() {
+
+			function loop() {
 				const time = Date.now();
 				frames++;
 				if (time > prevTime + 1000) {
@@ -19,7 +20,9 @@ export default function FPSCounter() {
 				}
 
 				requestAnimationFrame(loop);
-			});
+			}
+
+			requestAnimationFrame(loop);
 		}, 1000);
 	});
 

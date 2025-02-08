@@ -27,11 +27,10 @@ export default function Ping(props: { explicit?: boolean }) {
 		const ws = new WebSocket(hrefToWs(location));
 
 		ws.onopen = () => {
-			console.log('WebSocket connection opened');
+			// console.log('WebSocket connection opened');
 		};
 
 		ws.onmessage = (event) => {
-			console.log('Received message:');
 			const message = parseJson(event.data);
 			if (message.type === 'pong') {
 				setPing(Date.now() - message.ts);
@@ -39,12 +38,12 @@ export default function Ping(props: { explicit?: boolean }) {
 		};
 
 		ws.onclose = (event) => {
-			console.log('WebSocket connection closed', event);
+			// console.log('WebSocket connection closed', event);
 			setPing(0);
 		};
 
 		ws.onerror = (error) => {
-			console.error('WebSocket encountered an error:', error);
+			// console.error('WebSocket encountered an error:', error);
 		};
 
 		setSocket(ws);
