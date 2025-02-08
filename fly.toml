@@ -14,7 +14,9 @@ primary_region = "waw"
   # This is the internal port your app listens on.
   internal_port = 8080
   protocol = "tcp"
-  min_machines_running = 1
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
 
   [services.concurrency]
     type = "connections"
