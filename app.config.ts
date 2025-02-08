@@ -3,8 +3,9 @@ import { defineConfig } from "@solidjs/start/config";
 export default defineConfig({
   server: {
     experimental: {
-      websocket: true
-    }
+      websocket: true,
+    },
+
   },
   vite: {
     ssr: { external: ["drizzle-orm"] },
