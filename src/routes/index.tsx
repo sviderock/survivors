@@ -1,7 +1,5 @@
-import { clientOnly } from '@solidjs/start';
-
-const ClientOnly = clientOnly(() => import('../components/GameField'));
+import Game from '~/components/Game';
 
 export default function Index() {
-	return <ClientOnly />;
+	return <Game />;
 }

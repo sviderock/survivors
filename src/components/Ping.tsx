@@ -1,10 +1,10 @@
-import { createSignal, onCleanup, onMount } from 'solid-js';
+import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { parseJson } from '~/utils';
 
 const hrefToWs = (location: Location) =>
 	`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/_ws/`;
 
-export default function GameField() {
+export default function Ping(props: { explicit?: boolean }) {
 	const [socket, setSocket] = createSignal<WebSocket | null>(null);
 	const [ping, setPing] = createSignal(0);
 
@@ -57,31 +57,18 @@ export default function GameField() {
 	});
 
 	return (
-		<div class="p-4">
-			<h1 class="mb-4 flex w-full justify-center text-7xl font-bold">SolidJS WebSocket Client</h1>
-			<div class="flex flex-row items-center justify-center gap-3">
-				<div
-					style={{
-						display: 'flex',
-						gap: '10px',
-						'align-items': 'center',
-						'justify-content': 'center',
-						'font-size': '32px',
-					}}
-				>
-					<span>Ping is {ping()}ms</span>
-					<span
-						style={{
-							width: '15px',
-							height: '15px',
-							'border-radius': '100%',
-							'background-color': pingState().color,
-						}}
-					/>
-				</div>
-
-				<span style={{ 'font-size': '24px', color: pingState().color }}>({pingState().type})</span>
+		<div
+			class="flex flex-row items-center justify-center gap-3"
+			style={{ color: pingState().color }}
+		>
+			<div class="flex items-center justify-center gap-2 text-base">
+				<span class="h-2 w-2 rounded-full bg-current" />
+				<span>{ping()}ms</span>
 			</div>
+
+			<Show when={props.explicit}>
+				<span class="text-base text-current">({pingState().type})</span>
+			</Show>
 		</div>
 	);
 }

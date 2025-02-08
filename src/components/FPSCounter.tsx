@@ -1,0 +1,31 @@
+import { createSignal, onCleanup, onMount } from 'solid-js';
+
+export default function FPSCounter() {
+	const [fps, setFps] = createSignal(0);
+	let interval: NodeJS.Timeout;
+
+	onMount(() => {
+		interval = setInterval(() => {
+			let prevTime = Date.now();
+			let frames = 0;
+			requestAnimationFrame(function loop() {
+				const time = Date.now();
+				frames++;
+				if (time > prevTime + 1000) {
+					const storedFps = Math.round((frames * 1000) / (time - prevTime));
+					prevTime = time;
+					frames = 0;
+					setFps(storedFps);
+				}
+
+				requestAnimationFrame(loop);
+			});
+		}, 1000);
+	});
+
+	onCleanup(() => {
+		clearInterval(interval);
+	});
+
+	return <span class="text-base text-zinc-500">{fps()} FPS</span>;
+}
