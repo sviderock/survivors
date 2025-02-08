@@ -17,6 +17,7 @@ primary_region = "waw"
   auto_stop_machines = "stop"
   auto_start_machines = true
   min_machines_running = 0
+  
 
   [services.concurrency]
     type = "connections"
@@ -39,9 +40,11 @@ primary_region = "waw"
 
   # Optional health check endpoint – adjust the path if necessary.
   [[services.http_checks]]
+    grace_period = "5s"
     path = "/health"
-    interval = 10000  # in milliseconds
-    timeout = 2000    # in milliseconds
+    interval = "10s"  # in milliseconds
+    timeout = "2s"    # in milliseconds
+
 
 [[vm]]
   memory = "1gb"
