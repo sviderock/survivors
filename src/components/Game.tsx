@@ -1,9 +1,10 @@
-import { createSignal, Match, onCleanup, onMount, Switch } from 'solid-js';
+import { createEffect, createSignal, Match, onCleanup, onMount, Show, Switch } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
 import Ping from '~/components/Ping';
 import FaSolidArrowRightLong from '~/icons/FaSolidArrowRightLong';
+import { cn } from '~/utils';
 
 type RectSides = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'>;
 type Rect = RectSides & Pick<DOMRect, 'x' | 'y' | 'width' | 'height'>;
@@ -42,10 +43,10 @@ function gameLoop() {
 
 	let newX = worldPos().x;
 	let newY = worldPos().y;
-	if (keyPressed().w) newY += PLAYER_SPEED;
-	if (keyPressed().s) newY -= PLAYER_SPEED;
-	if (keyPressed().a) newX += PLAYER_SPEED;
-	if (keyPressed().d) newX -= PLAYER_SPEED;
+	if (keyPressed.w) newY += PLAYER_SPEED;
+	if (keyPressed.s) newY -= PLAYER_SPEED;
+	if (keyPressed.a) newX += PLAYER_SPEED;
+	if (keyPressed.d) newX -= PLAYER_SPEED;
 	setWorldPos({ x: newX, y: newY });
 
 	const relativePlayerPos = {
@@ -110,40 +111,38 @@ const [gameState, setGameState] = createStore({
 	status: 'in_progress' as 'idle' | 'won' | 'lost' | 'in_progress',
 });
 
-const [keyPressed, setKeyPressed] = createSignal({ w: false, s: false, a: false, d: false });
-const [lastPressedKey, setLastPressedKey] = createSignal<keyof ReturnType<typeof keyPressed>>();
+const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, d: false });
 const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
 const [playerPos, setPlayerPos] = createSignal<Rect>(getInitialRect());
 const [enemyPos, setEnemyPos] = createSignal<Rect>(getInitialRect());
+
+const pressedCombination = () => {
+	if (keyPressed.w && keyPressed.a) return 'wa';
+	if (keyPressed.w && keyPressed.d) return 'wd';
+	if (keyPressed.s && keyPressed.a) return 'sa';
+	if (keyPressed.s && keyPressed.d) return 'sd';
+	if (keyPressed.w) return 'w';
+	if (keyPressed.s) return 's';
+	if (keyPressed.a) return 'a';
+	if (keyPressed.d) return 'd';
+};
 
 export default function Game() {
 	let worldRef: HTMLDivElement | undefined;
 
 	onMount(() => {
 		function onKeyDown(e: KeyboardEvent) {
-			if (e.key === 'w') {
-				setLastPressedKey('w');
-				return setKeyPressed((keyPressed) => ({ ...keyPressed, w: true }));
-			}
-			if (e.key === 's') {
-				setLastPressedKey('s');
-				return setKeyPressed((keyPressed) => ({ ...keyPressed, s: true }));
-			}
-			if (e.key === 'a') {
-				setLastPressedKey('a');
-				return setKeyPressed((keyPressed) => ({ ...keyPressed, a: true }));
-			}
-			if (e.key === 'd') {
-				setLastPressedKey('d');
-				return setKeyPressed((keyPressed) => ({ ...keyPressed, d: true }));
-			}
+			if (e.key === 'w') return setKeyPressed('w', true);
+			if (e.key === 's') return setKeyPressed('s', true);
+			if (e.key === 'a') return setKeyPressed('a', true);
+			if (e.key === 'd') return setKeyPressed('d', true);
 		}
 
 		function onKeyUp(e: KeyboardEvent) {
-			if (e.key === 'w') return setKeyPressed((keyPressed) => ({ ...keyPressed, w: false }));
-			if (e.key === 's') return setKeyPressed((keyPressed) => ({ ...keyPressed, s: false }));
-			if (e.key === 'a') return setKeyPressed((keyPressed) => ({ ...keyPressed, a: false }));
-			if (e.key === 'd') return setKeyPressed((keyPressed) => ({ ...keyPressed, d: false }));
+			if (e.key === 'w') return setKeyPressed('w', false);
+			if (e.key === 's') return setKeyPressed('s', false);
+			if (e.key === 'a') return setKeyPressed('a', false);
+			if (e.key === 'd') return setKeyPressed('d', false);
 		}
 
 		runGameLoop();
@@ -193,22 +192,21 @@ function Player() {
 			ref={ref}
 			class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border-2 border-red-800 bg-red-500 text-white transition-none"
 		>
-			<span>{gameState.experience}</span>
+			<strong>{gameState.experience}</strong>
 			<span>EXP</span>
-			<Switch>
-				<Match when={lastPressedKey() === 'w'}>
-					<FaSolidArrowRightLong class="" style={{ rotate: '-90deg' }} />
-				</Match>
-				<Match when={lastPressedKey() === 's'}>
-					<FaSolidArrowRightLong />
-				</Match>
-				<Match when={lastPressedKey() === 'a'}>
-					<FaSolidArrowRightLong />
-				</Match>
-				<Match when={lastPressedKey() === 'd'}>
-					<FaSolidArrowRightLong />
-				</Match>
-			</Switch>
+			<FaSolidArrowRightLong
+				class={cn(
+					!pressedCombination() && 'opacity-0',
+					pressedCombination() === 'wa' && '-rotate-[135deg]',
+					pressedCombination() === 'wd' && '-rotate-45',
+					pressedCombination() === 'sa' && '-rotate-90',
+					pressedCombination() === 'sd' && 'rotate-45',
+					pressedCombination() === 'w' && '-rotate-90',
+					pressedCombination() === 'a' && 'rotate-180',
+					pressedCombination() === 's' && 'rotate-90',
+					pressedCombination() === 'sa' && 'rotate-[135deg]'
+				)}
+			/>
 		</div>
 	);
 }
