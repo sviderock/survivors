@@ -1,4 +1,4 @@
-import { createEffect, createSignal, Match, onCleanup, onMount, Show, Switch } from 'solid-js';
+import { createSignal, onCleanup, onMount } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
@@ -37,6 +37,17 @@ const getInitialRect = () => ({
 	width: 0,
 	height: 0,
 });
+
+function getRotationClass(comb: ReturnType<typeof pressedCombination>) {
+	if (comb === 'wa') return '-rotate-45';
+	if (comb === 'wd') return 'rotate-45';
+	if (comb === 'sa') return '-rotate-[135deg]';
+	if (comb === 'sd') return 'rotate-[135deg]';
+	if (comb === 'w') return 'flex';
+	if (comb === 'a') return '-rotate-90';
+	if (comb === 's') return 'rotate-180';
+	if (comb === 'd') return 'rotate-90';
+}
 
 function gameLoop() {
 	if (gameState.status !== 'in_progress') return;
@@ -115,6 +126,7 @@ const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, 
 const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
 const [playerPos, setPlayerPos] = createSignal<Rect>(getInitialRect());
 const [enemyPos, setEnemyPos] = createSignal<Rect>(getInitialRect());
+const [bulletPos, setBulletPos] = createSignal<Rect>(getInitialRect());
 
 const pressedCombination = () => {
 	if (keyPressed.w && keyPressed.a) return 'wa';
@@ -128,7 +140,7 @@ const pressedCombination = () => {
 };
 
 export default function Game() {
-	let worldRef: HTMLDivElement | undefined;
+	let worldRef: HTMLDivElement;
 
 	onMount(() => {
 		function onKeyDown(e: KeyboardEvent) {
@@ -156,7 +168,7 @@ export default function Game() {
 	});
 
 	return (
-		<div class="relative h-lvh w-full overflow-hidden" ref={worldRef}>
+		<div class="relative h-lvh w-full overflow-hidden" ref={worldRef!}>
 			<GameField />
 			<UIStats />
 			<Player />
@@ -172,7 +184,6 @@ function UIStats() {
 			<MemoryUsage />
 			<div class="flex gap-2">
 				<Ping />
-
 				<FPSCounter />
 			</div>
 		</div>
@@ -180,34 +191,38 @@ function UIStats() {
 }
 
 function Player() {
-	let ref: HTMLDivElement | undefined;
+	let playerRef: HTMLDivElement;
+	let bulletRef: HTMLDivElement;
 
 	onMount(() => {
-		const rect = getRect(ref!);
-		setPlayerPos(rect);
+		const playerRect = getRect(playerRef!);
+		setPlayerPos(playerRect);
+
+		const bulletRect = getRect(bulletRef!);
+		setBulletPos(bulletRect);
 	});
 
 	return (
-		<div
-			ref={ref}
-			class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border-2 border-red-800 bg-red-500 text-white transition-none"
-		>
-			<strong>{gameState.experience}</strong>
-			<span>EXP</span>
-			<FaSolidArrowRightLong
+		<>
+			<div
+				ref={playerRef!}
+				class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border-2 border-red-800 bg-red-500 text-white transition-none"
+			>
+				<strong>{gameState.experience}</strong>
+				<span>EXP</span>
+				<FaSolidArrowRightLong
+					class={cn(!pressedCombination() && 'opacity-0', getRotationClass(pressedCombination()))}
+				/>
+			</div>
+
+			<span
+				ref={bulletRef!}
 				class={cn(
-					!pressedCombination() && 'opacity-0',
-					pressedCombination() === 'wa' && '-rotate-[135deg]',
-					pressedCombination() === 'wd' && '-rotate-45',
-					pressedCombination() === 'sa' && '-rotate-90',
-					pressedCombination() === 'sd' && 'rotate-45',
-					pressedCombination() === 'w' && '-rotate-90',
-					pressedCombination() === 'a' && 'rotate-180',
-					pressedCombination() === 's' && 'rotate-90',
-					pressedCombination() === 'sa' && 'rotate-[135deg]'
+					'absolute left-1/2 top-1/2 flex h-8 w-2 -translate-x-1/2 -translate-y-1/2 bg-purple-700',
+					getRotationClass(pressedCombination())
 				)}
 			/>
-		</div>
+		</>
 	);
 }
 
@@ -237,17 +252,15 @@ function GameField() {
 
 function Banner() {
 	return (
-		<Switch>
-			<Match when={gameState.status === 'won'}>
-				<div class="absolute left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-green-500/50 text-9xl">
-					WON
-				</div>
-			</Match>
-			<Match when={gameState.status === 'lost'}>
-				<div class="absolute left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-red-500/50 text-9xl">
-					LOST
-				</div>
-			</Match>
-		</Switch>
+		<div
+			class={cn(
+				'absolute left-0 top-0 z-50 flex h-full w-full items-center justify-center text-9xl uppercase',
+				gameState.status !== 'won' && gameState.status !== 'lost' && 'hidden',
+				gameState.status === 'won' && 'bg-green-500/50',
+				gameState.status === 'lost' && 'bg-red-500/50'
+			)}
+		>
+			{gameState.status}
+		</div>
 	);
 }

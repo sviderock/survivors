@@ -2,7 +2,7 @@
 	"name": "survivors",
 	"type": "module",
 	"scripts": {
-		"dev": "vinxi dev --web --isolate=\"fa\"",
+		"dev": "vinxi dev",
 		"build": "vinxi build",
 		"start": "PORT=8080 vinxi start"
 	},
