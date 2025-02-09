@@ -1,9 +1,16 @@
-import { createSignal, onCleanup, onMount } from 'solid-js';
+import { createSignal, Match, onCleanup, onMount, Switch } from 'solid-js';
+import { createStore } from 'solid-js/store';
 import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
 import Ping from '~/components/Ping';
+import FaSolidArrowRightLong from '~/icons/FaSolidArrowRightLong';
 
-type Rect = Omit<DOMRect, 'toJSON'>;
+type RectSides = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'>;
+type Rect = RectSides & Pick<DOMRect, 'x' | 'y' | 'width' | 'height'>;
+
+function collisionDetected<T extends RectSides>(a: T, b: T) {
+	return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+}
 
 function getRect<T extends HTMLElement>(ref: T): Rect {
 	const rect = ref.getBoundingClientRect();
@@ -19,41 +26,117 @@ function getRect<T extends HTMLElement>(ref: T): Rect {
 	};
 }
 
+const getInitialRect = () => ({
+	x: 0,
+	y: 0,
+	bottom: 0,
+	top: 0,
+	left: 0,
+	right: 0,
+	width: 0,
+	height: 0,
+});
+
+function gameLoop() {
+	if (gameState.status !== 'in_progress') return;
+
+	let newX = worldPos().x;
+	let newY = worldPos().y;
+	if (keyPressed().w) newY += PLAYER_SPEED;
+	if (keyPressed().s) newY -= PLAYER_SPEED;
+	if (keyPressed().a) newX += PLAYER_SPEED;
+	if (keyPressed().d) newX -= PLAYER_SPEED;
+	setWorldPos({ x: newX, y: newY });
+
+	const relativePlayerPos = {
+		left: playerPos().left - newX,
+		right: playerPos().right - newX,
+		top: playerPos().top - newY,
+		bottom: playerPos().bottom - newY,
+	};
+
+	const enemyCenter = {
+		x: enemyPos().x + enemyPos().width / 2,
+		y: enemyPos().y + enemyPos().height / 2,
+	};
+
+	let newEnemyX = enemyPos().x;
+	let newEnemyY = enemyPos().y;
+	switch (true) {
+		case enemyCenter.x < relativePlayerPos.left:
+			newEnemyX += ENEMY_SPEED;
+			break;
+
+		case enemyCenter.x > relativePlayerPos.right:
+			newEnemyX -= ENEMY_SPEED;
+			break;
+	}
+
+	switch (true) {
+		case enemyCenter.y < relativePlayerPos.top:
+			newEnemyY += ENEMY_SPEED;
+			break;
+
+		case enemyCenter.y > relativePlayerPos.bottom:
+			newEnemyY -= ENEMY_SPEED;
+			break;
+	}
+	setEnemyPos((pos) => ({
+		...pos,
+		x: newEnemyX,
+		y: newEnemyY,
+		left: newEnemyX,
+		right: newEnemyX + pos.width,
+		top: newEnemyY,
+		bottom: newEnemyY + pos.height,
+	}));
+
+	if (collisionDetected(enemyPos(), relativePlayerPos)) {
+		setGameState('status', 'lost');
+	}
+
+	requestAnimationFrame(gameLoop);
+}
+
+function runGameLoop() {
+	requestAnimationFrame(gameLoop);
+}
+
 const PLAYER_SPEED = 5;
 const ENEMY_SPEED = 1;
 
+const [gameState, setGameState] = createStore({
+	experience: 0,
+	status: 'in_progress' as 'idle' | 'won' | 'lost' | 'in_progress',
+});
+
 const [keyPressed, setKeyPressed] = createSignal({ w: false, s: false, a: false, d: false });
+const [lastPressedKey, setLastPressedKey] = createSignal<keyof ReturnType<typeof keyPressed>>();
 const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
-const [playerPos, setPlayerPos] = createSignal<Rect>({
-	x: 0,
-	y: 0,
-	bottom: 0,
-	top: 0,
-	left: 0,
-	right: 0,
-	width: 0,
-	height: 0,
-});
-const [enemyPos, setEnemyPos] = createSignal<Rect>({
-	x: 0,
-	y: 0,
-	bottom: 0,
-	top: 0,
-	left: 0,
-	right: 0,
-	width: 0,
-	height: 0,
-});
+const [playerPos, setPlayerPos] = createSignal<Rect>(getInitialRect());
+const [enemyPos, setEnemyPos] = createSignal<Rect>(getInitialRect());
 
 export default function Game() {
 	let worldRef: HTMLDivElement | undefined;
 
 	onMount(() => {
 		function onKeyDown(e: KeyboardEvent) {
-			if (e.key === 'w') return setKeyPressed((keyPressed) => ({ ...keyPressed, w: true }));
-			if (e.key === 's') return setKeyPressed((keyPressed) => ({ ...keyPressed, s: true }));
-			if (e.key === 'a') return setKeyPressed((keyPressed) => ({ ...keyPressed, a: true }));
-			if (e.key === 'd') return setKeyPressed((keyPressed) => ({ ...keyPressed, d: true }));
+			if (e.key === 'w') {
+				setLastPressedKey('w');
+				return setKeyPressed((keyPressed) => ({ ...keyPressed, w: true }));
+			}
+			if (e.key === 's') {
+				setLastPressedKey('s');
+				return setKeyPressed((keyPressed) => ({ ...keyPressed, s: true }));
+			}
+			if (e.key === 'a') {
+				setLastPressedKey('a');
+				return setKeyPressed((keyPressed) => ({ ...keyPressed, a: true }));
+			}
+			if (e.key === 'd') {
+				setLastPressedKey('d');
+				return setKeyPressed((keyPressed) => ({ ...keyPressed, d: true }));
+			}
 		}
 
 		function onKeyUp(e: KeyboardEvent) {
@@ -63,54 +146,7 @@ export default function Game() {
 			if (e.key === 'd') return setKeyPressed((keyPressed) => ({ ...keyPressed, d: false }));
 		}
 
-		function animate() {
-			let newX = worldPos().x;
-			let newY = worldPos().y;
-			if (keyPressed().w) newY += PLAYER_SPEED;
-			if (keyPressed().s) newY -= PLAYER_SPEED;
-			if (keyPressed().a) newX += PLAYER_SPEED;
-			if (keyPressed().d) newX -= PLAYER_SPEED;
-			setWorldPos({ x: newX, y: newY });
-
-			const relativePlayerPos = {
-				left: playerPos().left - newX,
-				right: playerPos().right - newX,
-				top: playerPos().top - newY,
-				bottom: playerPos().bottom - newY,
-			};
-
-			const enemyCenter = {
-				x: enemyPos().x + enemyPos().width / 2,
-				y: enemyPos().y + enemyPos().height / 2,
-			};
-
-			let newEnemyX = enemyPos().x;
-			let newEnemyY = enemyPos().y;
-			switch (true) {
-				case enemyCenter.x < relativePlayerPos.left:
-					newEnemyX += ENEMY_SPEED;
-					break;
-
-				case enemyCenter.x > relativePlayerPos.right:
-					newEnemyX -= ENEMY_SPEED;
-					break;
-			}
-
-			switch (true) {
-				case enemyCenter.y < relativePlayerPos.top:
-					newEnemyY += ENEMY_SPEED;
-					break;
-
-				case enemyCenter.y > relativePlayerPos.bottom:
-					newEnemyY -= ENEMY_SPEED;
-					break;
-			}
-			setEnemyPos((pos) => ({ ...pos, x: newEnemyX, y: newEnemyY }));
-
-			requestAnimationFrame(animate);
-		}
-
-		requestAnimationFrame(animate);
+		runGameLoop();
 
 		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('keyup', onKeyUp);
@@ -125,6 +161,8 @@ export default function Game() {
 			<GameField />
 			<UIStats />
 			<Player />
+
+			<Banner />
 		</div>
 	);
 }
@@ -143,7 +181,7 @@ function UIStats() {
 }
 
 function Player() {
-	let ref: HTMLSpanElement | undefined;
+	let ref: HTMLDivElement | undefined;
 
 	onMount(() => {
 		const rect = getRect(ref!);
@@ -151,10 +189,27 @@ function Player() {
 	});
 
 	return (
-		<span
+		<div
 			ref={ref}
-			class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 bg-red-500 transition-none"
-		/>
+			class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border-2 border-red-800 bg-red-500 text-white transition-none"
+		>
+			<span>{gameState.experience}</span>
+			<span>EXP</span>
+			<Switch>
+				<Match when={lastPressedKey() === 'w'}>
+					<FaSolidArrowRightLong class="" style={{ rotate: '-90deg' }} />
+				</Match>
+				<Match when={lastPressedKey() === 's'}>
+					<FaSolidArrowRightLong />
+				</Match>
+				<Match when={lastPressedKey() === 'a'}>
+					<FaSolidArrowRightLong />
+				</Match>
+				<Match when={lastPressedKey() === 'd'}>
+					<FaSolidArrowRightLong />
+				</Match>
+			</Switch>
+		</div>
 	);
 }
 
@@ -179,5 +234,22 @@ function GameField() {
 				style={{ transform: `translate3d(${enemyPos().x}px, ${enemyPos().y}px, 0)` }}
 			/>
 		</div>
+	);
+}
+
+function Banner() {
+	return (
+		<Switch>
+			<Match when={gameState.status === 'won'}>
+				<div class="absolute left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-green-500/50 text-9xl">
+					WON
+				</div>
+			</Match>
+			<Match when={gameState.status === 'lost'}>
+				<div class="absolute left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-red-500/50 text-9xl">
+					LOST
+				</div>
+			</Match>
+		</Switch>
 	);
 }
