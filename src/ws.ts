@@ -9,7 +9,7 @@ export default eventHandler({
     },
     async message(peer, msg) {
       const message = parseJson(msg.text());
-      console.log(message)
+      // console.log(message)
       if (message.type === 'ping') {
         peer.send(JSON.stringify({ type: 'pong', ts: message.ts }))
         return

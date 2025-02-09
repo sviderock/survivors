@@ -3,77 +3,114 @@ import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
 import Ping from '~/components/Ping';
 
-const SPEED = 1;
-const MOVEMENT_INTERVAL_MS = 1;
+type Rect = Omit<DOMRect, 'toJSON'>;
+
+function getRect<T extends HTMLElement>(ref: T): Rect {
+	const rect = ref.getBoundingClientRect();
+	return {
+		x: rect.x,
+		y: rect.y,
+		bottom: rect.bottom,
+		top: rect.top,
+		left: rect.left,
+		right: rect.right,
+		width: rect.width,
+		height: rect.height,
+	};
+}
+
+const PLAYER_SPEED = 5;
+const ENEMY_SPEED = 1;
+
+const [keyPressed, setKeyPressed] = createSignal({ w: false, s: false, a: false, d: false });
+const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
+const [playerPos, setPlayerPos] = createSignal<Rect>({
+	x: 0,
+	y: 0,
+	bottom: 0,
+	top: 0,
+	left: 0,
+	right: 0,
+	width: 0,
+	height: 0,
+});
+const [enemyPos, setEnemyPos] = createSignal<Rect>({
+	x: 0,
+	y: 0,
+	bottom: 0,
+	top: 0,
+	left: 0,
+	right: 0,
+	width: 0,
+	height: 0,
+});
 
 export default function Game() {
-	const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
-	let intervalW: NodeJS.Timeout | undefined;
-	let intervalS: NodeJS.Timeout | undefined;
-	let intervalA: NodeJS.Timeout | undefined;
-	let intervalD: NodeJS.Timeout | undefined;
 	let worldRef: HTMLDivElement | undefined;
 
 	onMount(() => {
 		function onKeyDown(e: KeyboardEvent) {
-			switch (e.key) {
-				case 'w':
-					if (intervalW) return;
-					setWorldPos((pos) => ({ x: pos.x, y: pos.y + SPEED }));
-					intervalW = setInterval(() => {
-						setWorldPos((pos) => ({ x: pos.x, y: pos.y + SPEED }));
-					}, MOVEMENT_INTERVAL_MS);
-					break;
-				case 's':
-					if (intervalS) return;
-					setWorldPos((pos) => ({ x: pos.x, y: pos.y - SPEED }));
-					intervalS = setInterval(() => {
-						setWorldPos((pos) => ({ x: pos.x, y: pos.y - SPEED }));
-					}, MOVEMENT_INTERVAL_MS);
-					break;
-				case 'a':
-					if (intervalA) return;
-					setWorldPos((pos) => ({ x: pos.x + SPEED, y: pos.y }));
-					intervalA = setInterval(() => {
-						setWorldPos((pos) => ({ x: pos.x + SPEED, y: pos.y }));
-					}, MOVEMENT_INTERVAL_MS);
-					break;
-				case 'd':
-					if (intervalD) return;
-					setWorldPos((pos) => ({ x: pos.x - SPEED, y: pos.y }));
-					intervalD = setInterval(() => {
-						setWorldPos((pos) => ({ x: pos.x - SPEED, y: pos.y }));
-					}, MOVEMENT_INTERVAL_MS);
-					break;
-			}
+			if (e.key === 'w') return setKeyPressed((keyPressed) => ({ ...keyPressed, w: true }));
+			if (e.key === 's') return setKeyPressed((keyPressed) => ({ ...keyPressed, s: true }));
+			if (e.key === 'a') return setKeyPressed((keyPressed) => ({ ...keyPressed, a: true }));
+			if (e.key === 'd') return setKeyPressed((keyPressed) => ({ ...keyPressed, d: true }));
 		}
 
 		function onKeyUp(e: KeyboardEvent) {
-			switch (e.key) {
-				case 'w':
-					clearInterval(intervalW);
-					intervalW = undefined;
-					break;
-				case 's':
-					clearInterval(intervalS);
-					intervalS = undefined;
-					break;
-				case 'a':
-					clearInterval(intervalA);
-					intervalA = undefined;
-					break;
-				case 'd':
-					clearInterval(intervalD);
-					intervalD = undefined;
-					break;
-			}
+			if (e.key === 'w') return setKeyPressed((keyPressed) => ({ ...keyPressed, w: false }));
+			if (e.key === 's') return setKeyPressed((keyPressed) => ({ ...keyPressed, s: false }));
+			if (e.key === 'a') return setKeyPressed((keyPressed) => ({ ...keyPressed, a: false }));
+			if (e.key === 'd') return setKeyPressed((keyPressed) => ({ ...keyPressed, d: false }));
 		}
 
-		// function animate() {
-		// 	requestAnimationFrame(animate);
-		// }
+		function animate() {
+			let newX = worldPos().x;
+			let newY = worldPos().y;
+			if (keyPressed().w) newY += PLAYER_SPEED;
+			if (keyPressed().s) newY -= PLAYER_SPEED;
+			if (keyPressed().a) newX += PLAYER_SPEED;
+			if (keyPressed().d) newX -= PLAYER_SPEED;
+			setWorldPos({ x: newX, y: newY });
 
-		// requestAnimationFrame(animate);
+			const relativePlayerPos = {
+				left: playerPos().left - newX,
+				right: playerPos().right - newX,
+				top: playerPos().top - newY,
+				bottom: playerPos().bottom - newY,
+			};
+
+			const enemyCenter = {
+				x: enemyPos().x + enemyPos().width / 2,
+				y: enemyPos().y + enemyPos().height / 2,
+			};
+
+			let newEnemyX = enemyPos().x;
+			let newEnemyY = enemyPos().y;
+			switch (true) {
+				case enemyCenter.x < relativePlayerPos.left:
+					newEnemyX += ENEMY_SPEED;
+					break;
+
+				case enemyCenter.x > relativePlayerPos.right:
+					newEnemyX -= ENEMY_SPEED;
+					break;
+			}
+
+			switch (true) {
+				case enemyCenter.y < relativePlayerPos.top:
+					newEnemyY += ENEMY_SPEED;
+					break;
+
+				case enemyCenter.y > relativePlayerPos.bottom:
+					newEnemyY -= ENEMY_SPEED;
+					break;
+			}
+			setEnemyPos((pos) => ({ ...pos, x: newEnemyX, y: newEnemyY }));
+
+			requestAnimationFrame(animate);
+		}
+
+		requestAnimationFrame(animate);
 
 		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('keyup', onKeyUp);
@@ -85,7 +122,7 @@ export default function Game() {
 
 	return (
 		<div class="relative h-lvh w-full overflow-hidden" ref={worldRef}>
-			<Terrain worldPos={worldPos()} />
+			<GameField />
 			<UIStats />
 			<Player />
 		</div>
@@ -109,7 +146,8 @@ function Player() {
 	let ref: HTMLSpanElement | undefined;
 
 	onMount(() => {
-		console.log(ref?.getBoundingClientRect());
+		const rect = getRect(ref!);
+		setPlayerPos(rect);
 	});
 
 	return (
@@ -120,13 +158,26 @@ function Player() {
 	);
 }
 
-function Terrain(props: { worldPos: { x: number; y: number } }) {
+function GameField() {
+	let enemyRef: HTMLSpanElement | undefined;
+
+	onMount(() => {
+		const rect = getRect(enemyRef!);
+		setEnemyPos(rect);
+	});
+
 	return (
 		<div
 			class="bg-forest bg-size absolute h-[2000px] w-[2000px] bg-[100px_100px]"
 			style={{
-				transform: `translate3d(${props.worldPos.x}px, ${props.worldPos.y}px, 0)`,
+				transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)`,
 			}}
-		/>
+		>
+			<span
+				ref={enemyRef}
+				class="absolute h-8 w-8 bg-blue-500"
+				style={{ transform: `translate3d(${enemyPos().x}px, ${enemyPos().y}px, 0)` }}
+			/>
+		</div>
 	);
 }
