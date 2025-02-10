@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
+import { createEffect, createSignal, For, onCleanup, onMount } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
@@ -121,39 +121,40 @@ function gameLoop() {
 		bottom: playerPos().bottom - newY,
 	};
 
-	const enemyCenter = {
-		x: enemyPos().x + enemyPos().width / 2,
-		y: enemyPos().y + enemyPos().height / 2,
-	};
+	for (let i = 0; i < enemies().length; i++) {
+		const [enemy, setEnemy] = enemies()[i];
 
-	let newEnemyX = enemyPos().x;
-	let newEnemyY = enemyPos().y;
-	switch (true) {
-		case enemyCenter.x < relPlayerPos.left:
-			newEnemyX += ENEMY_SPEED;
-			break;
+		const enemyCenter = {
+			x: enemy().x + enemy().width / 2,
+			y: enemy().y + enemy().height / 2,
+		};
 
-		case enemyCenter.x > relPlayerPos.right:
-			newEnemyX -= ENEMY_SPEED;
-			break;
-	}
+		let newEnemyX = enemy().x;
+		let newEnemyY = enemy().y;
+		switch (true) {
+			case enemyCenter.x < relPlayerPos.left:
+				newEnemyX += ENEMY_SPEED;
+				break;
 
-	switch (true) {
-		case enemyCenter.y < relPlayerPos.top:
-			newEnemyY += ENEMY_SPEED;
-			break;
+			case enemyCenter.x > relPlayerPos.right:
+				newEnemyX -= ENEMY_SPEED;
+				break;
+		}
 
-		case enemyCenter.y > relPlayerPos.bottom:
-			newEnemyY -= ENEMY_SPEED;
-			break;
-	}
-	setEnemyPos((pos) => ({
-		...pos,
-		...getNewPos({ x: newEnemyX, y: newEnemyY, width: pos.width, height: pos.height }),
-	}));
+		switch (true) {
+			case enemyCenter.y < relPlayerPos.top:
+				newEnemyY += ENEMY_SPEED;
+				break;
 
-	if (collisionDetected(enemyPos(), relPlayerPos)) {
-		// setGameState('status', 'lost');
+			case enemyCenter.y > relPlayerPos.bottom:
+				newEnemyY -= ENEMY_SPEED;
+				break;
+		}
+
+		setEnemy((pos) => ({
+			...pos,
+			...getNewPos({ x: newEnemyX, y: newEnemyY, width: pos.width, height: pos.height }),
+		}));
 	}
 
 	if (bulletPos().firedAt) {
@@ -199,13 +200,31 @@ function gameLoop() {
 				...getNewPos({ x: newBulletX, y: newBulletY, width: pos.width, height: pos.height }),
 			}));
 		}
+
+		for (let i = 0; i < enemies().length; i++) {
+			const [enemy] = enemies()[i];
+			if (collisionDetected(bulletPos(), enemy())) {
+				setEnemies((prev) => prev.filter((_, idx) => idx !== i));
+				setGameState('experience', (exp) => exp + 1);
+			}
+		}
 	}
+
+	// if (collisionDetected(enemyPos(), relPlayerPos)) {
+	// 	// setGameState('status', 'lost');
+	// }
 
 	requestAnimationFrame(gameLoop);
 }
 
 function runGameLoop() {
 	requestAnimationFrame(gameLoop);
+}
+
+function createEnemies() {
+	const [enemy, setEnemy] = createSignal(getInitialRect());
+	const [enemies, setEnemies] = createSignal([[enemy, setEnemy] as const]);
+	return [enemies, setEnemies] as const;
 }
 
 const PLAYER_SPEED = 5;
@@ -218,10 +237,10 @@ const [gameState, setGameState] = createStore({
 	status: 'in_progress' as 'idle' | 'won' | 'lost' | 'in_progress',
 });
 
+const [enemies, setEnemies] = createEnemies();
 const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, d: false });
 const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
 const [playerPos, setPlayerPos] = createSignal(getInitialRect());
-const [enemyPos, setEnemyPos] = createSignal(getInitialRect());
 const [bulletPos, setBulletPos] = createSignal({
 	...getInitialRect(),
 	rotation: getRotationDeg('w') as ReturnType<typeof getRotationDeg>,
@@ -324,11 +343,13 @@ function Player() {
 }
 
 function GameField() {
-	let enemyRef: HTMLSpanElement | undefined;
+	const enemyRefs: HTMLSpanElement[] = [];
 
 	onMount(() => {
-		const rect = getRect(enemyRef!);
-		setEnemyPos(rect);
+		enemies().forEach(([, setEnemy], idx) => {
+			const rect = getRect(enemyRefs[idx]);
+			setEnemy(rect);
+		});
 	});
 
 	return (
@@ -338,11 +359,15 @@ function GameField() {
 				transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)`,
 			}}
 		>
-			<span
-				ref={enemyRef}
-				class="absolute h-8 w-8 bg-blue-500"
-				style={{ transform: `translate3d(${enemyPos().x}px, ${enemyPos().y}px, 0)` }}
-			/>
+			<For each={enemies()}>
+				{([enemy], idx) => (
+					<span
+						ref={enemyRefs[idx()]}
+						class="absolute h-8 w-8 bg-blue-500"
+						style={{ transform: `translate3d(${enemy().x}px, ${enemy().y}px, 0)` }}
+					/>
+				)}
+			</For>
 
 			<Bullet />
 		</div>
