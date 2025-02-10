@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount } from 'solid-js';
+import { createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
@@ -7,7 +7,14 @@ import FaSolidArrowRightLong from '~/icons/FaSolidArrowRightLong';
 import { cn } from '~/utils';
 
 type RectSides = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'>;
-type Rect = RectSides & Pick<DOMRect, 'x' | 'y' | 'width' | 'height'>;
+type RectCoords = Pick<DOMRect, 'x' | 'y'>;
+type RectSize = Pick<DOMRect, 'width' | 'height'>;
+type RectCenter = { centerX: number; centerY: number };
+type Rect = RectSides & RectCoords & RectSize & RectCenter;
+
+function getDiagonalDistance(distance: number) {
+	return distance * (1 / Math.sqrt(2));
+}
 
 function collisionDetected<T extends RectSides>(a: T, b: T) {
 	return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
@@ -24,10 +31,35 @@ function getRect<T extends HTMLElement>(ref: T): Rect {
 		right: rect.right,
 		width: rect.width,
 		height: rect.height,
+		centerX: rect.x + rect.width / 2,
+		centerY: rect.y + rect.height / 2,
 	};
 }
 
-const getInitialRect = () => ({
+function getNewPos({
+	x,
+	y,
+	width,
+	height,
+}: {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}): RectSides & RectCoords & RectCenter {
+	return {
+		x: x,
+		y: y,
+		left: x,
+		right: x + width,
+		top: y,
+		bottom: y + height,
+		centerX: x + width / 2,
+		centerY: y + height / 2,
+	};
+}
+
+const getInitialRect = (): Rect => ({
 	x: 0,
 	y: 0,
 	bottom: 0,
@@ -36,18 +68,40 @@ const getInitialRect = () => ({
 	right: 0,
 	width: 0,
 	height: 0,
+	centerX: 0,
+	centerY: 0,
 });
 
-function getRotationClass(comb: ReturnType<typeof pressedCombination>) {
+function getRotationDeg(comb: ReturnType<typeof lastPressedCombination>) {
+	if (comb === 'wa') return -45;
+	if (comb === 'wd') return 45;
+	if (comb === 'sa') return -135;
+	if (comb === 'sd') return 135;
+	if (comb === 'd') return 90;
+	if (comb === 'a') return -90;
+	if (comb === 's') return 180;
+	return 0;
+}
+
+function getRotationClass(comb: ReturnType<typeof lastPressedCombination>) {
 	if (comb === 'wa') return '-rotate-45';
 	if (comb === 'wd') return 'rotate-45';
 	if (comb === 'sa') return '-rotate-[135deg]';
 	if (comb === 'sd') return 'rotate-[135deg]';
-	if (comb === 'w') return 'flex';
+	if (comb === 'd') return 'rotate-90';
 	if (comb === 'a') return '-rotate-90';
 	if (comb === 's') return 'rotate-180';
-	if (comb === 'd') return 'rotate-90';
+	return 'flex';
 }
+
+const relativePlayerPos = () => ({
+	left: playerPos().left - worldPos().x,
+	right: playerPos().right - worldPos().x,
+	top: playerPos().top - worldPos().y,
+	bottom: playerPos().bottom - worldPos().y,
+	centerX: playerPos().left - worldPos().x + playerPos().width / 2,
+	centerY: playerPos().top - worldPos().y + playerPos().height / 2,
+});
 
 function gameLoop() {
 	if (gameState.status !== 'in_progress') return;
@@ -60,7 +114,7 @@ function gameLoop() {
 	if (keyPressed.d) newX -= PLAYER_SPEED;
 	setWorldPos({ x: newX, y: newY });
 
-	const relativePlayerPos = {
+	const relPlayerPos = {
 		left: playerPos().left - newX,
 		right: playerPos().right - newX,
 		top: playerPos().top - newY,
@@ -75,36 +129,76 @@ function gameLoop() {
 	let newEnemyX = enemyPos().x;
 	let newEnemyY = enemyPos().y;
 	switch (true) {
-		case enemyCenter.x < relativePlayerPos.left:
+		case enemyCenter.x < relPlayerPos.left:
 			newEnemyX += ENEMY_SPEED;
 			break;
 
-		case enemyCenter.x > relativePlayerPos.right:
+		case enemyCenter.x > relPlayerPos.right:
 			newEnemyX -= ENEMY_SPEED;
 			break;
 	}
 
 	switch (true) {
-		case enemyCenter.y < relativePlayerPos.top:
+		case enemyCenter.y < relPlayerPos.top:
 			newEnemyY += ENEMY_SPEED;
 			break;
 
-		case enemyCenter.y > relativePlayerPos.bottom:
+		case enemyCenter.y > relPlayerPos.bottom:
 			newEnemyY -= ENEMY_SPEED;
 			break;
 	}
 	setEnemyPos((pos) => ({
 		...pos,
-		x: newEnemyX,
-		y: newEnemyY,
-		left: newEnemyX,
-		right: newEnemyX + pos.width,
-		top: newEnemyY,
-		bottom: newEnemyY + pos.height,
+		...getNewPos({ x: newEnemyX, y: newEnemyY, width: pos.width, height: pos.height }),
 	}));
 
-	if (collisionDetected(enemyPos(), relativePlayerPos)) {
-		setGameState('status', 'lost');
+	if (collisionDetected(enemyPos(), relPlayerPos)) {
+		// setGameState('status', 'lost');
+	}
+
+	if (bulletPos().firedAt) {
+		if (bulletPos().x === bulletPos().firedAt!.x && bulletPos().y === bulletPos().firedAt!.y) {
+			setBulletPos((pos) => ({
+				...pos,
+				...getNewPos({
+					x: relativePlayerPos().centerX - pos.width / 2,
+					y: relativePlayerPos().centerY - pos.height / 2,
+					width: pos.width,
+					height: pos.height,
+				}),
+				firedAt: null,
+			}));
+		} else {
+			let newBulletX = bulletPos().x;
+			let newBulletY = bulletPos().y;
+
+			const deltaX = Math.abs(bulletPos().x - bulletPos().firedAt!.x);
+			if (deltaX) {
+				switch (true) {
+					case bulletPos().x < bulletPos().firedAt!.x:
+						newBulletX += deltaX < BULLET_SPEED ? deltaX : BULLET_SPEED;
+						break;
+					case bulletPos().x > bulletPos().firedAt!.x:
+						newBulletX -= deltaX <= BULLET_SPEED ? deltaX : BULLET_SPEED;
+						break;
+				}
+			}
+
+			const deltaY = Math.abs(bulletPos().y - bulletPos().firedAt!.y);
+			switch (true) {
+				case bulletPos().y < bulletPos().firedAt!.y:
+					newBulletY += deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED;
+					break;
+				case bulletPos().y > bulletPos().firedAt!.y:
+					newBulletY -= deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED;
+					break;
+			}
+
+			setBulletPos((pos) => ({
+				...pos,
+				...getNewPos({ x: newBulletX, y: newBulletY, width: pos.width, height: pos.height }),
+			}));
+		}
 	}
 
 	requestAnimationFrame(gameLoop);
@@ -116,6 +210,8 @@ function runGameLoop() {
 
 const PLAYER_SPEED = 5;
 const ENEMY_SPEED = 1;
+const BULLET_SPEED = 7;
+const BULLET_DISTANCE = 500;
 
 const [gameState, setGameState] = createStore({
 	experience: 0,
@@ -124,20 +220,19 @@ const [gameState, setGameState] = createStore({
 
 const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, d: false });
 const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
-const [playerPos, setPlayerPos] = createSignal<Rect>(getInitialRect());
-const [enemyPos, setEnemyPos] = createSignal<Rect>(getInitialRect());
-const [bulletPos, setBulletPos] = createSignal<Rect>(getInitialRect());
-
-const pressedCombination = () => {
-	if (keyPressed.w && keyPressed.a) return 'wa';
-	if (keyPressed.w && keyPressed.d) return 'wd';
-	if (keyPressed.s && keyPressed.a) return 'sa';
-	if (keyPressed.s && keyPressed.d) return 'sd';
-	if (keyPressed.w) return 'w';
-	if (keyPressed.s) return 's';
-	if (keyPressed.a) return 'a';
-	if (keyPressed.d) return 'd';
-};
+const [playerPos, setPlayerPos] = createSignal(getInitialRect());
+const [enemyPos, setEnemyPos] = createSignal(getInitialRect());
+const [bulletPos, setBulletPos] = createSignal({
+	...getInitialRect(),
+	rotation: getRotationDeg('w') as ReturnType<typeof getRotationDeg>,
+	firedAt: null as {
+		x: number;
+		y: number;
+	} | null,
+});
+const [lastPressedCombination, setLastPressedCombination] = createSignal(
+	'w' as 'wa' | 'wd' | 'sa' | 'sd' | 'w' | 's' | 'a' | 'd'
+);
 
 export default function Game() {
 	let worldRef: HTMLDivElement;
@@ -167,13 +262,24 @@ export default function Game() {
 		});
 	});
 
+	createEffect(() => {
+		if (keyPressed.w && keyPressed.a) return setLastPressedCombination('wa');
+		if (keyPressed.w && keyPressed.d) return setLastPressedCombination('wd');
+		if (keyPressed.s && keyPressed.a) return setLastPressedCombination('sa');
+		if (keyPressed.s && keyPressed.d) return setLastPressedCombination('sd');
+		if (keyPressed.w) return setLastPressedCombination('w');
+		if (keyPressed.s) return setLastPressedCombination('s');
+		if (keyPressed.a) return setLastPressedCombination('a');
+		if (keyPressed.d) return setLastPressedCombination('d');
+	});
+
 	return (
 		<div class="relative h-lvh w-full overflow-hidden" ref={worldRef!}>
 			<GameField />
 			<UIStats />
 			<Player />
 
-			<Banner />
+			{/* <Banner /> */}
 		</div>
 	);
 }
@@ -192,14 +298,10 @@ function UIStats() {
 
 function Player() {
 	let playerRef: HTMLDivElement;
-	let bulletRef: HTMLDivElement;
 
 	onMount(() => {
 		const playerRect = getRect(playerRef!);
 		setPlayerPos(playerRect);
-
-		const bulletRect = getRect(bulletRef!);
-		setBulletPos(bulletRect);
 	});
 
 	return (
@@ -211,17 +313,12 @@ function Player() {
 				<strong>{gameState.experience}</strong>
 				<span>EXP</span>
 				<FaSolidArrowRightLong
-					class={cn(!pressedCombination() && 'opacity-0', getRotationClass(pressedCombination()))}
+					class={cn(
+						!lastPressedCombination() && 'opacity-0',
+						getRotationClass(lastPressedCombination())
+					)}
 				/>
 			</div>
-
-			<span
-				ref={bulletRef!}
-				class={cn(
-					'absolute left-1/2 top-1/2 flex h-8 w-2 -translate-x-1/2 -translate-y-1/2 bg-purple-700',
-					getRotationClass(pressedCombination())
-				)}
-			/>
 		</>
 	);
 }
@@ -236,7 +333,7 @@ function GameField() {
 
 	return (
 		<div
-			class="bg-forest bg-size absolute h-[2000px] w-[2000px] bg-[100px_100px]"
+			class="bg-size absolute h-[2000px] w-[2000px] bg-forest bg-[100px_100px]"
 			style={{
 				transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)`,
 			}}
@@ -246,6 +343,8 @@ function GameField() {
 				class="absolute h-8 w-8 bg-blue-500"
 				style={{ transform: `translate3d(${enemyPos().x}px, ${enemyPos().y}px, 0)` }}
 			/>
+
+			<Bullet />
 		</div>
 	);
 }
@@ -262,5 +361,78 @@ function Banner() {
 		>
 			{gameState.status}
 		</div>
+	);
+}
+
+function getBulletDistance() {
+	if (lastPressedCombination() === 'w') return { x: 0, y: -BULLET_DISTANCE };
+	if (lastPressedCombination() === 's') return { x: 0, y: BULLET_DISTANCE };
+	if (lastPressedCombination() === 'a') return { x: -BULLET_DISTANCE, y: 0 };
+	if (lastPressedCombination() === 'd') return { x: BULLET_DISTANCE, y: 0 };
+	if (lastPressedCombination() === 'wa') {
+		return { x: -getDiagonalDistance(BULLET_DISTANCE), y: -getDiagonalDistance(BULLET_DISTANCE) };
+	}
+	if (lastPressedCombination() === 'wd') {
+		return { x: getDiagonalDistance(BULLET_DISTANCE), y: -getDiagonalDistance(BULLET_DISTANCE) };
+	}
+	if (lastPressedCombination() === 'sa') {
+		return { x: -getDiagonalDistance(BULLET_DISTANCE), y: getDiagonalDistance(BULLET_DISTANCE) };
+	}
+	// sd
+	return { x: getDiagonalDistance(BULLET_DISTANCE), y: getDiagonalDistance(BULLET_DISTANCE) };
+}
+
+function Bullet() {
+	let ref: HTMLDivElement;
+	let firingBulletInterval: NodeJS.Timeout;
+
+	onMount(() => {
+		const bulletRect = getRect(ref!);
+		const bulletStartX = playerPos().centerX - bulletRect.width / 2;
+		const bulletStartY = playerPos().centerY - bulletRect.height / 2;
+		setBulletPos((pos) => ({
+			...pos,
+			...getNewPos({
+				x: bulletStartX,
+				y: bulletStartY,
+				width: bulletRect.width,
+				height: bulletRect.height,
+			}),
+		}));
+
+		firingBulletInterval = setInterval(() => {
+			const bulletRect = getRect(ref!);
+			const bulletStartX = relativePlayerPos().centerX - bulletRect.width / 2;
+			const bulletStartY = relativePlayerPos().centerY - bulletRect.height / 2;
+			setBulletPos((pos) => ({
+				...pos,
+				...getNewPos({
+					x: bulletStartX,
+					y: bulletStartY,
+					width: bulletRect.width,
+					height: bulletRect.height,
+				}),
+				rotation: getRotationDeg(lastPressedCombination()),
+				firedAt: {
+					x: relativePlayerPos().centerX + getBulletDistance().x,
+					y: relativePlayerPos().centerY + getBulletDistance().y,
+				},
+			}));
+		}, 1000);
+	});
+
+	onCleanup(() => {
+		clearInterval(firingBulletInterval);
+	});
+
+	return (
+		<span
+			ref={ref!}
+			class={cn('absolute flex h-8 w-2 bg-purple-700', !bulletPos().firedAt && 'opacity-0')}
+			style={{
+				'transform-origin': 'center center',
+				transform: `translate3d(${bulletPos().x}px, ${bulletPos().y}px, 0) rotate(${bulletPos().rotation}deg)`,
+			}}
+		/>
 	);
 }
