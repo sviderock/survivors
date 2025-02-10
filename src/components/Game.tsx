@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, onCleanup, onMount } from 'solid-js';
+import { createEffect, createSignal, For, onCleanup, onMount, Signal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
@@ -59,17 +59,17 @@ function getNewPos({
 	};
 }
 
-const getInitialRect = (): Rect => ({
-	x: 0,
-	y: 0,
-	bottom: 0,
-	top: 0,
-	left: 0,
-	right: 0,
-	width: 0,
-	height: 0,
-	centerX: 0,
-	centerY: 0,
+const getInitialRect = ({ x, y }: { x: number; y: number }): Rect => ({
+	x,
+	y,
+	bottom: y + ENEMY_SIZE,
+	top: y,
+	left: x,
+	right: x + ENEMY_SIZE,
+	width: ENEMY_SIZE,
+	height: ENEMY_SIZE,
+	centerX: x + ENEMY_SIZE / 2,
+	centerY: y + ENEMY_SIZE / 2,
 });
 
 function getRotationDeg(comb: ReturnType<typeof lastPressedCombination>) {
@@ -102,6 +102,19 @@ const relativePlayerPos = () => ({
 	centerX: playerPos().left - worldPos().x + playerPos().width / 2,
 	centerY: playerPos().top - worldPos().y + playerPos().height / 2,
 });
+
+function resetBullet() {
+	setBulletPos((pos) => ({
+		...pos,
+		...getNewPos({
+			x: relativePlayerPos().centerX - pos.width / 2,
+			y: relativePlayerPos().centerY - pos.height / 2,
+			width: pos.width,
+			height: pos.height,
+		}),
+		firedAt: null,
+	}));
+}
 
 function gameLoop() {
 	if (gameState.status !== 'in_progress') return;
@@ -159,16 +172,7 @@ function gameLoop() {
 
 	if (bulletPos().firedAt) {
 		if (bulletPos().x === bulletPos().firedAt!.x && bulletPos().y === bulletPos().firedAt!.y) {
-			setBulletPos((pos) => ({
-				...pos,
-				...getNewPos({
-					x: relativePlayerPos().centerX - pos.width / 2,
-					y: relativePlayerPos().centerY - pos.height / 2,
-					width: pos.width,
-					height: pos.height,
-				}),
-				firedAt: null,
-			}));
+			resetBullet();
 		} else {
 			let newBulletX = bulletPos().x;
 			let newBulletY = bulletPos().y;
@@ -206,13 +210,14 @@ function gameLoop() {
 			if (collisionDetected(bulletPos(), enemy())) {
 				setEnemies((prev) => prev.filter((_, idx) => idx !== i));
 				setGameState('experience', (exp) => exp + 1);
+				resetBullet();
+			}
+
+			if (collisionDetected(relativePlayerPos(), enemy())) {
+				setGameState('status', 'lost');
 			}
 		}
 	}
-
-	// if (collisionDetected(enemyPos(), relPlayerPos)) {
-	// 	// setGameState('status', 'lost');
-	// }
 
 	requestAnimationFrame(gameLoop);
 }
@@ -221,9 +226,13 @@ function runGameLoop() {
 	requestAnimationFrame(gameLoop);
 }
 
+function createSingleEnemy({ x, y }: { x: number; y: number }): Signal<Rect> {
+	const [enemy, setEnemy] = createSignal(getInitialRect({ x, y }));
+	return [enemy, setEnemy];
+}
+
 function createEnemies() {
-	const [enemy, setEnemy] = createSignal(getInitialRect());
-	const [enemies, setEnemies] = createSignal([[enemy, setEnemy] as const]);
+	const [enemies, setEnemies] = createSignal<Signal<Rect>[]>([]);
 	return [enemies, setEnemies] as const;
 }
 
@@ -231,6 +240,7 @@ const PLAYER_SPEED = 5;
 const ENEMY_SPEED = 1;
 const BULLET_SPEED = 7;
 const BULLET_DISTANCE = 500;
+const ENEMY_SIZE = 32;
 
 const [gameState, setGameState] = createStore({
 	experience: 0,
@@ -240,14 +250,11 @@ const [gameState, setGameState] = createStore({
 const [enemies, setEnemies] = createEnemies();
 const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, d: false });
 const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
-const [playerPos, setPlayerPos] = createSignal(getInitialRect());
+const [playerPos, setPlayerPos] = createSignal(getInitialRect({ x: 0, y: 0 }));
 const [bulletPos, setBulletPos] = createSignal({
-	...getInitialRect(),
+	...getInitialRect({ x: 0, y: 0 }),
 	rotation: getRotationDeg('w') as ReturnType<typeof getRotationDeg>,
-	firedAt: null as {
-		x: number;
-		y: number;
-	} | null,
+	firedAt: null as { x: number; y: number } | null,
 });
 const [lastPressedCombination, setLastPressedCombination] = createSignal(
 	'w' as 'wa' | 'wd' | 'sa' | 'sd' | 'w' | 's' | 'a' | 'd'
@@ -255,6 +262,7 @@ const [lastPressedCombination, setLastPressedCombination] = createSignal(
 
 export default function Game() {
 	let worldRef: HTMLDivElement;
+	let enemiesInterval: NodeJS.Timeout;
 
 	onMount(() => {
 		function onKeyDown(e: KeyboardEvent) {
@@ -271,6 +279,22 @@ export default function Game() {
 			if (e.key === 'd') return setKeyPressed('d', false);
 		}
 
+		enemiesInterval = setInterval(() => {
+			setEnemies((prev) => [
+				...prev,
+				createSingleEnemy({
+					x:
+						Math.random() > 0.5
+							? relativePlayerPos().centerX + Math.floor(Math.random() * 500 + 500)
+							: relativePlayerPos().centerX - Math.floor(Math.random() * 500 + 500),
+					y:
+						Math.random() > 0.5
+							? relativePlayerPos().centerY + Math.floor(Math.random() * 500 + 500)
+							: relativePlayerPos().centerY - Math.floor(Math.random() * 500 + 500),
+				}),
+			]);
+		}, 500);
+
 		runGameLoop();
 
 		document.addEventListener('keydown', onKeyDown);
@@ -279,6 +303,10 @@ export default function Game() {
 			document.removeEventListener('keydown', onKeyDown);
 			document.removeEventListener('keyup', onKeyUp);
 		});
+	});
+
+	onCleanup(() => {
+		clearInterval(enemiesInterval);
 	});
 
 	createEffect(() => {
@@ -297,8 +325,7 @@ export default function Game() {
 			<GameField />
 			<UIStats />
 			<Player />
-
-			{/* <Banner /> */}
+			<Banner />
 		</div>
 	);
 }
@@ -329,14 +356,17 @@ function Player() {
 				ref={playerRef!}
 				class="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border-2 border-red-800 bg-red-500 text-white transition-none"
 			>
-				<strong>{gameState.experience}</strong>
-				<span>EXP</span>
+				<div class="flex w-full flex-row justify-between px-2">
+					<strong>{gameState.experience}</strong>
+					<span>EXP</span>
+				</div>
 				<FaSolidArrowRightLong
 					class={cn(
 						!lastPressedCombination() && 'opacity-0',
 						getRotationClass(lastPressedCombination())
 					)}
 				/>
+				<span class="flex text-center text-xs">WASD to move</span>
 			</div>
 		</>
 	);
@@ -354,7 +384,7 @@ function GameField() {
 
 	return (
 		<div
-			class="bg-size absolute h-[2000px] w-[2000px] bg-forest bg-[100px_100px]"
+			class="bg-size absolute h-[10000px] w-[10000px] bg-forest bg-[100px_100px]"
 			style={{
 				transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)`,
 			}}
@@ -363,8 +393,12 @@ function GameField() {
 				{([enemy], idx) => (
 					<span
 						ref={enemyRefs[idx()]}
-						class="absolute h-8 w-8 bg-blue-500"
-						style={{ transform: `translate3d(${enemy().x}px, ${enemy().y}px, 0)` }}
+						class="absolute border-2 border-blue-900 bg-blue-500"
+						style={{
+							transform: `translate3d(${enemy().x}px, ${enemy().y}px, 0)`,
+							width: `${ENEMY_SIZE}px`,
+							height: `${ENEMY_SIZE}px`,
+						}}
 					/>
 				)}
 			</For>
