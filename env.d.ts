@@ -4,8 +4,8 @@ interface ImportMetaEnv {
   SESSION_SECRET: string;
   DB_URL: string;
   VITE_REOWN_PROJECT_ID: string;
-  VITE_DEBANK_API: string;
-  VITE_DEBANK_API_KEY: string;
+  VITE_ZERION_API: string;
+  VITE_ZERION_API_KEY: string;
 }
 
 interface ImportMeta {
@@ -18,7 +18,7 @@ declare namespace NodeJS {
     readonly SESSION_SECRET: string;
     readonly DB_URL: string;
     readonly VITE_REOWN_PROJECT_ID: string
-    readonly VITE_DEBANK_API: string
-    readonly VITE_DEBANK_API_KEY: string
+    readonly VITE_ZERION_API: string
+    readonly VITE_ZERION_API_KEY: string
   }
 }

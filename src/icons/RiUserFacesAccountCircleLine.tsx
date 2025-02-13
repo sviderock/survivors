@@ -1,16 +1,14 @@
 import type { JSX } from 'solid-js';
 
-export default function RiUserFacesAccountCircleLine(
-	props: JSX.SvgSVGAttributes<SVGSVGElement> & { size?: number }
-) {
+export default function RiUserFacesAccountCircleLine(props: JSX.SvgSVGAttributes<SVGSVGElement>) {
 	return (
 		<svg
 			fill="currentColor"
 			stroke-width="0"
 			xmlns="http://www.w3.org/2000/svg"
 			viewBox={'0 0 24 24'}
-			height={`${props.size}px`}
-			width={`${props.size}px`}
+			height="1em"
+			width="1em"
 			class="visible text-current"
 			{...props}
 		>

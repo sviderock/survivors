@@ -1,6 +1,5 @@
 import { defineConfig } from "@solidjs/start/config";
-import crypto from "crypto"
-
+import tsconfigPaths from "vite-tsconfig-paths";
 
 
 export default defineConfig({
@@ -9,20 +8,13 @@ export default defineConfig({
       websocket: true,
     },
   },
+  solid: {
+    babel: {
+      compact: true
+    },
+  },
   vite: {
     ssr: { external: ["drizzle-orm"] },
-    css: {
-      modules: {
-        // Need to generate css module names based on only the file path and class name
-        // because the dev reloading doesn't work well when classes change when css contents change.
-        generateScopedName(name, filename, css) {
-          const hasher = crypto.createHash("sha256")
-          hasher.update(name + filename)
-          const hash = hasher.digest().toString("hex");
-          return `${name}__${hash.substring(0, 16)}`
-        },
-      }
-    }
   },
 }).addRouter({
   name: "_ws",
@@ -30,4 +22,5 @@ export default defineConfig({
   handler: "./src/ws.ts",
   target: "server",
   base: "/_ws",
+  plugins: () => [tsconfigPaths()]
 });;

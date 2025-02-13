@@ -1,6 +1,8 @@
 // @refresh reload
 import { Router } from '@solidjs/router';
 import { FileRoutes } from '@solidjs/start/router';
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query';
+import { SolidQueryDevtools } from '@tanstack/solid-query-devtools';
 import { Suspense } from 'solid-js';
 
 import '@fontsource/poppins/100-italic.css';
@@ -23,16 +25,22 @@ import '@fontsource/poppins/900-italic.css';
 import '@fontsource/poppins/900.css';
 import './app.css';
 
+const queryClient = new QueryClient();
+
 export default function App() {
 	return (
-		<Router
-			root={(props) => (
-				<>
-					<Suspense>{props.children}</Suspense>
-				</>
-			)}
-		>
-			<FileRoutes />
-		</Router>
+		<QueryClientProvider client={queryClient}>
+			<Router
+				root={(props) => (
+					<>
+						<Suspense>{props.children}</Suspense>
+					</>
+				)}
+			>
+				<FileRoutes />
+			</Router>
+
+			<SolidQueryDevtools initialIsOpen={false} />
+		</QueryClientProvider>
 	);
 }

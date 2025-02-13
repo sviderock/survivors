@@ -1,5 +1,5 @@
 import { eventHandler } from "vinxi/http";
-import { parseJson } from './utils';
+import { parseJson } from '~/utils';
 
 export default eventHandler({
   handler() { },
@@ -18,10 +18,10 @@ export default eventHandler({
       peer.send(message)
     },
     async close(peer, details) {
-      console.log("close", peer.id, peer.url);
+      console.log("close", peer.id);
     },
     async error(peer, error) {
-      console.log("error", peer.id, peer.url, error);
+      console.log("error", peer.id, error);
     },
   },
 });

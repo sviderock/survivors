@@ -1,8 +1,11 @@
 import { createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { parseJson } from '~/utils';
+import { clientOnly } from '@solidjs/start';
 
 const hrefToWs = (location: Location) =>
 	`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/_ws/`;
+
+export const PingClientOnly = clientOnly(() => import('~/components/Ping'));
 
 export default function Ping(props: { explicit?: boolean }) {
 	const [socket, setSocket] = createSignal<WebSocket | null>(null);
@@ -24,7 +27,6 @@ export default function Ping(props: { explicit?: boolean }) {
 	};
 
 	onMount(() => {
-		console.log('MOUNT');
 		const ws = new WebSocket(hrefToWs(location));
 
 		ws.onopen = () => {
