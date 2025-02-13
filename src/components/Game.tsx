@@ -1,9 +1,26 @@
-import { createEffect, createSignal, For, onCleanup, onMount, Signal } from 'solid-js';
+import { createAsync, query } from '@solidjs/router';
+import { createQuery } from '@tanstack/solid-query';
+import { watchAccount } from '@wagmi/core';
+import {
+	createEffect,
+	createSignal,
+	For,
+	Match,
+	onCleanup,
+	onMount,
+	Signal,
+	Switch,
+} from 'solid-js';
 import { createStore } from 'solid-js/store';
+import { appkitModal, wagmiConfig } from '~/appkit';
 import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
 import Ping from '~/components/Ping';
+import { Avatar } from '~/components/ui/avatar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import FaSolidArrowRightLong from '~/icons/FaSolidArrowRightLong';
+import { LoadingSpinner } from '~/icons/LoadingSpinner';
+import RiUserFacesAccountCircleLine from '~/icons/RiUserFacesAccountCircleLine';
 import { cn } from '~/utils';
 
 type RectSides = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'>;
@@ -247,6 +264,10 @@ const [gameState, setGameState] = createStore({
 	status: 'in_progress' as 'idle' | 'won' | 'lost' | 'in_progress',
 });
 
+const [appkitState, setAppkitState] = createSignal({
+	address: '',
+	status: 'disconnected' as 'connected' | 'isConnecting' | 'disconnected',
+});
 const [enemies, setEnemies] = createEnemies();
 const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, d: false });
 const [worldPos, setWorldPos] = createSignal({ x: 0, y: 0 });
@@ -260,9 +281,22 @@ const [lastPressedCombination, setLastPressedCombination] = createSignal(
 	'w' as 'wa' | 'wd' | 'sa' | 'sd' | 'w' | 's' | 'a' | 'd'
 );
 
+const getTransactionHistory = query(async () => {
+	'use server';
+	const data = await fetch(`${import.meta.env.VITE_DEBANK_API}/user/history_list`, {
+		headers: {
+			accept: 'application/json',
+			Authorization: `Bearer ${import.meta.env.VITE_DEBANK_API_KEY}`,
+		},
+	});
+	return data.json();
+}, 'transactions');
+
 export default function Game() {
 	let worldRef: HTMLDivElement;
 	let enemiesInterval: NodeJS.Timeout;
+
+	const txHistory = createAsync(() => getTransactionHistory());
 
 	onMount(() => {
 		function onKeyDown(e: KeyboardEvent) {
@@ -297,6 +331,22 @@ export default function Game() {
 
 		runGameLoop();
 
+		watchAccount(wagmiConfig, {
+			onChange: (data) => {
+				if (data.isConnected) {
+					return setAppkitState({ address: data.address || '', status: 'connected' });
+				}
+
+				if (data.isConnecting || data.isReconnecting) {
+					return setAppkitState((prev) => ({ ...prev, status: 'isConnecting' }));
+				}
+
+				if (data.isDisconnected) {
+					return setAppkitState((prev) => ({ ...prev, status: 'disconnected' }));
+				}
+			},
+		});
+
 		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('keyup', onKeyUp);
 		onCleanup(() => {
@@ -307,6 +357,13 @@ export default function Game() {
 
 	onCleanup(() => {
 		clearInterval(enemiesInterval);
+	});
+
+	createEffect(() => {
+		if (appkitState().address) {
+			console.log(appkitState().address);
+			console.log(txHistory());
+		}
 	});
 
 	createEffect(() => {
@@ -326,6 +383,30 @@ export default function Game() {
 			<UIStats />
 			<Player />
 			<Banner />
+
+			<Switch>
+				<Match when={appkitState().status === 'disconnected'}>
+					<Tooltip>
+						<TooltipTrigger>
+							<Avatar
+								class="p-2"
+								onClick={() => {
+									appkitModal.open();
+								}}
+							>
+								<RiUserFacesAccountCircleLine size={32} />
+							</Avatar>
+						</TooltipTrigger>
+						<TooltipContent>Connect your account</TooltipContent>
+					</Tooltip>
+				</Match>
+
+				<Match when={appkitState().status === 'isConnecting'}>
+					<Avatar>
+						<LoadingSpinner />
+					</Avatar>
+				</Match>
+			</Switch>
 		</div>
 	);
 }

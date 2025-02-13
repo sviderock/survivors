@@ -20,8 +20,15 @@
 	},
 	"dependencies": {
 		"@fontsource/poppins": "^5.1.1",
+		"@kobalte/core": "^0.13.8",
+		"@reown/appkit": "^1.6.8",
+		"@reown/appkit-adapter-wagmi": "^1.6.8",
+		"@reown/appkit-siwx": "^1.6.8",
+		"@solid-primitives/lifecycle": "^0.1.0",
 		"@solidjs/router": "^0.15.3",
 		"@solidjs/start": "^1.0.11",
+		"@tanstack/solid-query": "^5.66.0",
+		"@tanstack/solid-query-devtools": "^5.66.0",
 		"autoprefixer": "^10.4.20",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
@@ -33,7 +40,9 @@
 		"tailwindcss": "3",
 		"tailwindcss-animate": "^1.0.7",
 		"valibot": "^1.0.0-beta.15",
-		"vinxi": "^0.4.3"
+		"viem": "^2.23.1",
+		"vinxi": "^0.4.3",
+		"wagmi": "^2.14.11"
 	},
 	"overrides": {
 		"vite": "5.4.10"

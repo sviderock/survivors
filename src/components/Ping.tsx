@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js';
+import { createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { parseJson } from '~/utils';
 
 const hrefToWs = (location: Location) =>
@@ -24,6 +24,7 @@ export default function Ping(props: { explicit?: boolean }) {
 	};
 
 	onMount(() => {
+		console.log('MOUNT');
 		const ws = new WebSocket(hrefToWs(location));
 
 		ws.onopen = () => {
