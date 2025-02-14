@@ -100,3 +100,17 @@ export function getRotationClass(comb: LastPressedCombination) {
 	if (comb === 's') return 'rotate-180';
 	return 'flex';
 }
+
+export function getRandomBetween(min: number, max: number): number {
+	if (min > max) {
+		[min, max] = [max, min];
+	}
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+export function msToTime(ms: number) {
+	const totalSeconds = (ms / 1000) | 0;
+	const mm = (totalSeconds / 60) | 0;
+	const ss = totalSeconds % 60;
+	return (mm < 10 ? '0' + mm : mm) + ':' + (ss < 10 ? '0' + ss : ss);
+}
