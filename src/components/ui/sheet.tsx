@@ -39,14 +39,14 @@ type DialogOverlayProps<T extends ValidComponent = 'div'> = SheetPrimitive.Dialo
 };
 
 const SheetOverlay = <T extends ValidComponent = 'div'>(
-	props: PolymorphicProps<T, DialogOverlayProps<T>>
+	props: PolymorphicProps<T, DialogOverlayProps<T>>,
 ) => {
 	const [local, others] = splitProps(props as DialogOverlayProps, ['class']);
 	return (
 		<SheetPrimitive.Overlay
 			class={cn(
 				'fixed inset-0 z-50 bg-black/80 data-[expanded=]:animate-in data-[closed=]:animate-out data-[closed=]:fade-out-0 data-[expanded=]:fade-in-0',
-				local.class
+				local.class,
 			)}
 			{...others}
 		/>
@@ -69,14 +69,14 @@ const sheetVariants = cva(
 		defaultVariants: {
 			position: 'right',
 		},
-	}
+	},
 );
 
 type DialogContentProps<T extends ValidComponent = 'div'> = SheetPrimitive.DialogContentProps<T> &
 	VariantProps<typeof sheetVariants> & { class?: string | undefined; children?: JSX.Element };
 
 const SheetContent = <T extends ValidComponent = 'div'>(
-	props: PolymorphicProps<T, DialogContentProps<T>>
+	props: PolymorphicProps<T, DialogContentProps<T>>,
 ) => {
 	const [local, others] = splitProps(props as DialogContentProps, [
 		'position',
@@ -90,7 +90,7 @@ const SheetContent = <T extends ValidComponent = 'div'>(
 				class={cn(
 					sheetVariants({ position: local.position }),
 					local.class,
-					'max-h-screen overflow-y-auto'
+					'max-h-screen overflow-y-auto',
 				)}
 				{...others}
 			>
@@ -138,7 +138,7 @@ type DialogTitleProps<T extends ValidComponent = 'h2'> = SheetPrimitive.DialogTi
 };
 
 const SheetTitle = <T extends ValidComponent = 'h2'>(
-	props: PolymorphicProps<T, DialogTitleProps<T>>
+	props: PolymorphicProps<T, DialogTitleProps<T>>,
 ) => {
 	const [local, others] = splitProps(props as DialogTitleProps, ['class']);
 	return (
@@ -153,7 +153,7 @@ type DialogDescriptionProps<T extends ValidComponent = 'p'> =
 	SheetPrimitive.DialogDescriptionProps<T> & { class?: string | undefined };
 
 const SheetDescription = <T extends ValidComponent = 'p'>(
-	props: PolymorphicProps<T, DialogDescriptionProps<T>>
+	props: PolymorphicProps<T, DialogDescriptionProps<T>>,
 ) => {
 	const [local, others] = splitProps(props as DialogDescriptionProps, ['class']);
 	return (

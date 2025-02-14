@@ -11,7 +11,7 @@ type AvatarRootProps<T extends ValidComponent = 'span'> = ImagePrimitive.ImageRo
 };
 
 const Avatar = <T extends ValidComponent = 'span'>(
-	props: PolymorphicProps<T, AvatarRootProps<T>>
+	props: PolymorphicProps<T, AvatarRootProps<T>>,
 ) => {
 	const [local, others] = splitProps(props as AvatarRootProps, ['class']);
 	return (
@@ -27,7 +27,7 @@ type AvatarImageProps<T extends ValidComponent = 'img'> = ImagePrimitive.ImageIm
 };
 
 const AvatarImage = <T extends ValidComponent = 'img'>(
-	props: PolymorphicProps<T, AvatarImageProps<T>>
+	props: PolymorphicProps<T, AvatarImageProps<T>>,
 ) => {
 	const [local, others] = splitProps(props as AvatarImageProps, ['class']);
 	return <ImagePrimitive.Img class={cn('aspect-square size-full', local.class)} {...others} />;
@@ -37,7 +37,7 @@ type AvatarFallbackProps<T extends ValidComponent = 'span'> =
 	ImagePrimitive.ImageFallbackProps<T> & { class?: string | undefined };
 
 const AvatarFallback = <T extends ValidComponent = 'span'>(
-	props: PolymorphicProps<T, AvatarFallbackProps<T>>
+	props: PolymorphicProps<T, AvatarFallbackProps<T>>,
 ) => {
 	const [local, others] = splitProps(props as AvatarFallbackProps, ['class']);
 	return (

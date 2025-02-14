@@ -35,7 +35,7 @@ export default function Player() {
 				<FaSolidArrowRightLong
 					class={cn(
 						!lastPressedCombination() && 'opacity-0',
-						getRotationClass(lastPressedCombination())
+						getRotationClass(lastPressedCombination()),
 					)}
 				/>
 				<span class="flex text-center text-xs">WASD to move</span>
