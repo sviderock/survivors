@@ -100,3 +100,4 @@ export function getRotationClass(comb: LastPressedCombination) {
   if (comb === 's') return 'rotate-180';
   return 'flex';
 }
+

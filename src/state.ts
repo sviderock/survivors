@@ -1,7 +1,7 @@
 import { UseAppKitAccountReturn } from '@reown/appkit';
 import { createSignal, type Signal } from 'solid-js';
 import { createStore } from 'solid-js/store';
-import { getInitialRect, type GetRotationDeg, getRotationDeg } from '~/utils';
+import { getInitialRect } from '~/utils';
 
 export const [connectedUser, setConnectedUser] = createStore<UseAppKitAccountReturn>({
   address: undefined,
@@ -11,6 +11,8 @@ export const [connectedUser, setConnectedUser] = createStore<UseAppKitAccountRet
   status: undefined,
   embeddedWalletInfo: undefined,
 });
+
+
 
 export type LastPressedCombination = ReturnType<typeof lastPressedCombination>
 export const [lastPressedCombination, setLastPressedCombination] = createSignal(

@@ -1,4 +1,6 @@
-import { Match, onMount, Switch } from 'solid-js';
+import { createQuery, QueryClient } from '@tanstack/solid-query';
+import { createEffect, ErrorBoundary, Match, onMount, Suspense, Switch } from 'solid-js';
+import { getUser } from '~/api/users';
 import { appkitModal } from '~/appkit';
 import { Avatar } from '~/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
@@ -7,6 +9,8 @@ import RiUserFacesAccountCircleLine from '~/icons/RiUserFacesAccountCircleLine';
 import { connectedUser, setConnectedUser } from '~/state';
 
 export default function UserAccount() {
+	const userAddresses = () => connectedUser.allAccounts.map((acc) => acc.address);
+
 	onMount(() => {
 		appkitModal.subscribeAccount(setConnectedUser);
 	});
@@ -38,17 +42,35 @@ export default function UserAccount() {
 					</Avatar>
 				</Match>
 
-				<Match when={connectedUser.status === 'connected'}>
-					<Avatar
-						class="size-14 cursor-pointer items-center justify-center bg-green-500 p-2 text-4xl text-green-100"
-						onClick={() => {
-							appkitModal.open();
-						}}
-					>
-						<RiUserFacesAccountCircleLine />
-					</Avatar>
+				<Match when={connectedUser.status === 'connected' && !!userAddresses().length}>
+					<ConnectedUser addresses={userAddresses()} />
 				</Match>
 			</Switch>
 		</div>
+	);
+}
+
+async function getUserByAddresses(addresses: string[]) {
+	'use server';
+	const data = await getUser(addresses);
+	return data;
+}
+
+function ConnectedUser(props: { addresses: string[] }) {
+	const user = createQuery(() => ({
+		queryKey: ['currentUser', props.addresses],
+		queryFn: () => getUserByAddresses(props.addresses),
+		enabled: true,
+	}));
+
+	return (
+		<Avatar
+			class="size-14 cursor-pointer items-center justify-center bg-green-500 p-2 text-4xl text-green-100"
+			onClick={() => {
+				appkitModal.open();
+			}}
+		>
+			<RiUserFacesAccountCircleLine />
+		</Avatar>
 	);
 }
