@@ -1,12 +1,14 @@
 import { defineConfig } from "@solidjs/start/config";
+import dotenv from 'dotenv';
 import tsconfigPaths from "vite-tsconfig-paths";
+
+dotenv.config()
 
 export default defineConfig({
   server: {
     experimental: {
       websocket: true,
     },
-
   },
   solid: {
     babel: {
@@ -24,4 +26,4 @@ export default defineConfig({
   target: "server",
   base: "/_ws",
   plugins: () => [tsconfigPaths()]
-});;
+});
