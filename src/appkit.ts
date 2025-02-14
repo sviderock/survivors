@@ -6,7 +6,7 @@ import { celo, mainnet, optimism } from '@reown/appkit/networks';
 
 const wagmiAdapter = new WagmiAdapter({
   networks: [mainnet, celo, optimism],
-  projectId: import.meta.env.VITE_REOWN_PROJECT_ID,
+  projectId: process.env.VITE_REOWN_PROJECT_ID,
   ssr: true,
 
 })
@@ -14,7 +14,7 @@ const wagmiAdapter = new WagmiAdapter({
 export const appkitModal = createAppKit({
   adapters: [wagmiAdapter],
   networks: [mainnet, celo, optimism],
-  projectId: import.meta.env.VITE_REOWN_PROJECT_ID,
+  projectId: process.env.VITE_REOWN_PROJECT_ID,
   enableAuthLogger: false,
   features: {
     analytics: false,

@@ -60,7 +60,7 @@ function ConnectedUser(props: { addresses: string[] }) {
 	const user = createQuery(() => ({
 		queryKey: ['currentUser', props.addresses],
 		queryFn: () => getUserByAddresses(props.addresses),
-		enabled: true,
+		enabled: !!props.addresses.length,
 	}));
 
 	return (
