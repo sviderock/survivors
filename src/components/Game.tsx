@@ -1,4 +1,3 @@
-import { createAsync, query } from '@solidjs/router';
 import { createEffect, onCleanup, onMount } from 'solid-js';
 import Banner from '~/components/Banner';
 import GameField from '~/components/GameField';
@@ -21,23 +20,6 @@ function onKeyUp(e: KeyboardEvent) {
 	if (e.key === 'a') return setKeyPressed('a', false);
 	if (e.key === 'd') return setKeyPressed('d', false);
 }
-
-// const q = query(async () => {
-// 	'use server';
-// 	console.log(import.meta.env.VITE_ZERION_API_KEY);
-// 	const data = await fetch(
-// 		`${import.meta.env.VITE_ZERION_API}/wallets/0x68f78075cc9781f176ff5b0df5f2a2e654f5249e/transactions`,
-// 		{
-// 			headers: {
-// 				accept: 'application/json',
-// 				authorization: `Basic ${import.meta.env.VITE_ZERION_API_KEY}`,
-// 			},
-// 		}
-// 	);
-// 	const json = await data.json();
-// 	console.log(json);
-// 	return json;
-// }, 'tx_history');
 
 export default function Game() {
 	let worldRef: HTMLDivElement;

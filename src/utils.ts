@@ -36,7 +36,7 @@ export function getRect<T extends HTMLElement>(ref: T): Rect {
     width: rect.width,
     height: rect.height,
     centerX: rect.x + rect.width / 2,
-    centerY: rect.y + rect.height / 2,
+    centerY: rect.y + rect.height / 2
   };
 }
 
@@ -100,4 +100,6 @@ export function getRotationClass(comb: LastPressedCombination) {
   if (comb === 's') return 'rotate-180';
   return 'flex';
 }
+
+
 

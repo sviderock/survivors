@@ -31,7 +31,7 @@ export function createEnemies() {
 
 export const [gameState, setGameState] = createStore({
   experience: 0,
-  status: 'in_progress' as 'idle' | 'won' | 'lost' | 'in_progress',
+  status: 'not_started' as 'not_started' | 'in_progress' | 'paused' | 'won' | 'lost'
 });
 
 export const [enemies, setEnemies] = createEnemies();
