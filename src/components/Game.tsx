@@ -14,7 +14,6 @@ import {
 	setGameState,
 	setKeyPressed,
 	setLastPressedCombination,
-	speedModifier,
 	worldPos,
 } from '~/state';
 

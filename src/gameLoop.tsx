@@ -26,10 +26,10 @@ export let mainGameLoop: number | undefined;
 
 function gameLoop(timestamp: number) {
 	if (gameState.status !== 'in_progress') {
+		enemySpawnTimer = 0;
+		bulletSpawnTimer = 0;
 		if (gameState.status === 'paused') {
 			gameStageTimerStoppedAt = timestamp;
-			enemySpawnTimer = 0;
-			bulletSpawnTimer = 0;
 		}
 		return;
 	}
