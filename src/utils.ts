@@ -1,6 +1,5 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { ENEMY_SIZE } from '~/constants';
 import { type LastPressedCombination } from '~/state';
 
 export function cn(...inputs: ClassValue[]) {
@@ -63,18 +62,19 @@ export function getNewPos({
 	};
 }
 
-export function getInitialRect({ x, y }: { x: number; y: number }): Rect {
+type GetInitialRectProps = { x: number; y: number; width: number; height: number };
+export function getInitialRect({ x, y, width, height }: GetInitialRectProps): Rect {
 	return {
 		x,
 		y,
-		bottom: y + ENEMY_SIZE,
+		width,
+		height,
+		bottom: y + height,
 		top: y,
 		left: x,
-		right: x + ENEMY_SIZE,
-		width: ENEMY_SIZE,
-		height: ENEMY_SIZE,
-		centerX: x + ENEMY_SIZE / 2,
-		centerY: y + ENEMY_SIZE / 2,
+		right: x + width,
+		centerX: x + width / 2,
+		centerY: y + height / 2,
 	};
 }
 
@@ -101,11 +101,14 @@ export function getRotationClass(comb: LastPressedCombination) {
 	return 'flex';
 }
 
-export function getRandomBetween(min: number, max: number): number {
+export function getRandomBetween(min: number, max: number, randomSign?: boolean): number {
 	if (min > max) {
 		[min, max] = [max, min];
 	}
-	return Math.floor(Math.random() * (max - min + 1)) + min;
+	return (
+		(Math.floor(Math.random() * (max - min + 1)) + min) *
+		(randomSign ? (Math.random() > 0.5 ? 1 : -1) : 1)
+	);
 }
 
 export function msToTime(ms: number) {

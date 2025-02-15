@@ -1,11 +1,12 @@
-import { createEffect, onCleanup, onMount } from 'solid-js';
+import { createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import Banner from '~/components/Banner';
-import GameField from '~/components/GameField';
+import Enemies from '~/components/Enemies';
 import Player from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
 import UserAccount from '~/components/UserAccount';
-import { runGameLoop } from '~/gameLoop';
+import Bullet from '~/components/weapons/Bullets';
+import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	gameState,
 	keyPressed,
@@ -13,10 +14,12 @@ import {
 	setGameState,
 	setKeyPressed,
 	setLastPressedCombination,
+	speedModifier,
+	worldPos,
 } from '~/state';
 
 function onKeyDown(e: KeyboardEvent) {
-	if (e.code === 'Escape') {
+	if (e.code === 'Escape' || e.code === 'KeyP') {
 		setGameState('status', (status) => {
 			if (status === 'paused') return 'in_progress';
 			if (status === 'in_progress') return 'paused';
@@ -56,15 +59,16 @@ function onKeyUp(e: KeyboardEvent) {
 }
 
 export default function Game() {
-	let worldRef: HTMLDivElement;
-
 	onMount(async () => {
+		runGameLoop();
+
 		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('keyup', onKeyUp);
 
 		onCleanup(() => {
 			document.removeEventListener('keydown', onKeyDown);
 			document.removeEventListener('keyup', onKeyUp);
+			clearGameLoop();
 		});
 	});
 
@@ -86,13 +90,28 @@ export default function Game() {
 	});
 
 	return (
-		<div class="relative h-lvh w-full overflow-hidden" ref={worldRef!}>
-			<GameField />
-			<UIStats />
+		<div class="relative h-lvh w-full overflow-hidden">
+			<GameWorld>
+				<Enemies />
+				<Bullet />
+			</GameWorld>
+
 			<Player />
 			<Banner />
 			<UserAccount />
 			<StageTimer />
+			<UIStats />
+		</div>
+	);
+}
+
+function GameWorld(props: ParentProps) {
+	return (
+		<div
+			class="bg-size absolute h-[10000px] w-[10000px] bg-forest bg-[100px_100px]"
+			style={{ transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)` }}
+		>
+			{props.children}
 		</div>
 	);
 }

@@ -1,20 +1,28 @@
-import { For, onMount } from 'solid-js';
+import { createSignal, For, onMount } from 'solid-js';
+import { createStore, produce } from 'solid-js/store';
 import { relativePlayerPos } from '~/components/Player';
 import { ENEMY_SIZE } from '~/constants';
-import { enemies, setEnemies } from '~/state';
-import { getRandomBetween, getRect } from '~/utils';
+import { getInitialRect, getRandomBetween, getRect } from '~/utils';
 
-export function getNewEnemyPos() {
-	return {
-		x:
-			Math.random() > 0.5
-				? relativePlayerPos().centerX + getRandomBetween(500, 1500)
-				: relativePlayerPos().centerX - getRandomBetween(500, 1500),
-		y:
-			Math.random() > 0.5
-				? relativePlayerPos().centerY + getRandomBetween(500, 1500)
-				: relativePlayerPos().centerY - getRandomBetween(500, 1500),
-	};
+export const [enemies, setEnemies] = createStore<Enemy[]>([]);
+
+function createSingleEnemy(): Enemy {
+	const initialRect = getInitialRect({
+		width: ENEMY_SIZE,
+		height: ENEMY_SIZE,
+		x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
+		y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
+	});
+	const [rect, setRect] = createSignal(initialRect);
+	return { ref: undefined, rect, setRect };
+}
+
+export function spawnNewEnemy() {
+	setEnemies(produce((enemies) => enemies.push(createSingleEnemy())));
+}
+
+export function destroyEnemy(idx: number) {
+	setEnemies((prev) => prev.filter((_, i) => idx !== i));
 }
 
 export default function Enemies() {
