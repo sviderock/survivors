@@ -1,4 +1,4 @@
-import { createSignal, onMount } from 'solid-js';
+import { createMemo, createSignal, onMount } from 'solid-js';
 import {
 	PLAYER_SIZE,
 	XP_LVL_2,
@@ -25,19 +25,37 @@ export const relativePlayerPos = () => ({
 });
 
 export const playerLevel = () => {
-	if (gameState.experience < XP_LVL_2) return 1;
-
-	const boundaryLvl20 = 18 * XP_LVL_3_TO_20 + XP_LVL_2;
-	if (gameState.experience <= boundaryLvl20) {
-		return Math.floor(2 + (gameState.experience - XP_LVL_2) / XP_LVL_3_TO_20);
+	if (gameState.experience < XP_LVL_2) {
+		return { level: 1, exp: gameState.experience, xpToNextLevel: XP_LVL_2 };
 	}
 
-	const boundaryLvl40 = boundaryLvl20 + 20 * XP_LVL_21_TO_40;
-	if (gameState.experience <= boundaryLvl40) {
-		return Math.floor(20 + (gameState.experience - boundaryLvl20) / XP_LVL_21_TO_40);
+	if (gameState.experience === XP_LVL_2) {
+		return {
+			level: 2,
+			exp: gameState.experience - XP_LVL_2,
+			xpToNextLevel: XP_LVL_2 + XP_LVL_3_TO_20,
+		};
 	}
 
-	return Math.floor(40 + (gameState.experience - boundaryLvl40) / XP_LVL_41_AND_UP);
+	let accumulatedXP = gameState.experience - XP_LVL_2;
+	let level = 2;
+	let xpIncrease = XP_LVL_3_TO_20;
+	let xpToNextLevel = XP_LVL_2 + XP_LVL_3_TO_20;
+	while (accumulatedXP > 0) {
+		if (accumulatedXP < xpToNextLevel) break;
+
+		level++;
+		if (level >= 20 && level < 40) {
+			xpIncrease = XP_LVL_21_TO_40;
+		} else if (level >= 40) {
+			xpIncrease = XP_LVL_41_AND_UP;
+		}
+
+		accumulatedXP -= xpToNextLevel;
+		xpToNextLevel += xpIncrease;
+	}
+
+	return { level, xpToNextLevel, exp: accumulatedXP };
 };
 
 export default function Player() {
@@ -49,22 +67,12 @@ export default function Player() {
 		<>
 			<div
 				ref={(ref) => setPlayer((p) => ({ ...p, ref }))}
-				class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center border-2 border-red-800 bg-red-500 text-white opacity-50 transition-none"
+				class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2 border-2 border-red-800 bg-red-500 text-white transition-none"
 				style={{
 					width: `${player().rect.width}px`,
 					height: `${player().rect.height}px`,
 				}}
 			>
-				<div class="flex w-full flex-row justify-between px-2">
-					<strong>{gameState.experience}</strong>
-					<span>EXP</span>
-				</div>
-
-				<div class="flex w-full flex-row justify-between px-2">
-					<strong>{playerLevel()}</strong>
-					<span>LVL</span>
-				</div>
-
 				<FaSolidArrowRightLong
 					class={cn(
 						!lastPressedCombination() && 'opacity-0',

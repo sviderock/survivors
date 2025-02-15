@@ -1,5 +1,5 @@
 import { type UseAppKitAccountReturn } from '@reown/appkit';
-import { batch, createSignal } from 'solid-js';
+import { batch, createMemo, createRoot, createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { setEnemies } from '~/components/Enemies';
 import { setBullets } from '~/components/weapons/Bullets';
@@ -39,14 +39,18 @@ export function resetGameState() {
 	});
 }
 
-export const speedModifier = () => {
-	if (
-		lastPressedCombination() === 'wa' ||
-		lastPressedCombination() === 'wd' ||
-		lastPressedCombination() === 'sa' ||
-		lastPressedCombination() === 'sd'
-	) {
-		return Math.SQRT2 / 2;
-	}
-	return 1;
-};
+export const { speedModifier } = createRoot(() => {
+	const speedModifier = createMemo(() => {
+		if (
+			lastPressedCombination() === 'wa' ||
+			lastPressedCombination() === 'wd' ||
+			lastPressedCombination() === 'sa' ||
+			lastPressedCombination() === 'sd'
+		) {
+			return Math.SQRT2 / 2;
+		}
+		return 1;
+	});
+
+	return { speedModifier };
+});

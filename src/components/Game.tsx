@@ -1,11 +1,11 @@
 import { createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import Banner from '~/components/Banner';
-import Enemies from '~/components/Enemies';
-import Player from '~/components/Player';
+import Enemies, { enemies } from '~/components/Enemies';
+import Player, { playerLevel } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
 import UserAccount from '~/components/UserAccount';
-import Bullet from '~/components/weapons/Bullets';
+import Bullet, { spawnNewBullet } from '~/components/weapons/Bullets';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	gameState,
@@ -41,25 +41,29 @@ function onKeyDown(e: KeyboardEvent) {
 	}
 
 	if (gameState.status === 'in_progress') {
-		if (e.code === 'KeyW') return setKeyPressed('w', true);
-		if (e.code === 'KeyS') return setKeyPressed('s', true);
-		if (e.code === 'KeyA') return setKeyPressed('a', true);
-		if (e.code === 'KeyD') return setKeyPressed('d', true);
+		if (e.code === 'KeyW' || e.code === 'ArrowUp') return setKeyPressed('w', true);
+		if (e.code === 'KeyS' || e.code === 'ArrowDown') return setKeyPressed('s', true);
+		if (e.code === 'KeyA' || e.code === 'ArrowLeft') return setKeyPressed('a', true);
+		if (e.code === 'KeyD' || e.code === 'ArrowRight') return setKeyPressed('d', true);
 	}
 }
 
 function onKeyUp(e: KeyboardEvent) {
 	if (gameState.status === 'in_progress') {
-		if (e.code === 'KeyW') return setKeyPressed('w', false);
-		if (e.code === 'KeyS') return setKeyPressed('s', false);
-		if (e.code === 'KeyA') return setKeyPressed('a', false);
-		if (e.code === 'KeyD') return setKeyPressed('d', false);
+		if (e.code === 'KeyW' || e.code === 'ArrowUp') return setKeyPressed('w', false);
+		if (e.code === 'KeyS' || e.code === 'ArrowDown') return setKeyPressed('s', false);
+		if (e.code === 'KeyA' || e.code === 'ArrowLeft') return setKeyPressed('a', false);
+		if (e.code === 'KeyD' || e.code === 'ArrowRight') return setKeyPressed('d', false);
 	}
 }
 
 export default function Game() {
 	onMount(async () => {
 		runGameLoop();
+
+		setTimeout(() => {
+			spawnNewBullet();
+		}, 500);
 
 		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('keyup', onKeyUp);
@@ -100,6 +104,7 @@ export default function Game() {
 			<UserAccount />
 			<StageTimer />
 			<UIStats />
+			<UserStats />
 		</div>
 	);
 }
@@ -111,6 +116,31 @@ function GameWorld(props: ParentProps) {
 			style={{ transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)` }}
 		>
 			{props.children}
+		</div>
+	);
+}
+
+function UserStats() {
+	const enemiesCount = () => enemies.length;
+
+	return (
+		<div class="absolute left-1/2 top-1 flex -translate-x-1/2 gap-2 border-2 text-4xl">
+			<div class="flex w-full flex-row justify-between gap-1 px-1">
+				<strong>
+					{playerLevel().exp}/{playerLevel().xpToNextLevel}
+				</strong>
+				<span>EXP</span>
+			</div>
+
+			<div class="flex w-full flex-row justify-between gap-1 px-1">
+				<strong>{playerLevel().level}</strong>
+				<span>LVL</span>
+			</div>
+
+			<div class="flex w-full flex-row justify-between gap-1 px-1">
+				<strong>{enemiesCount()}</strong>
+				<span>Enemies</span>
+			</div>
 		</div>
 	);
 }

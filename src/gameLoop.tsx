@@ -14,6 +14,9 @@ import {
 } from '~/state';
 import { collisionDetected, getNewPos } from '~/utils';
 
+const SPAWN_ENEMIES = true;
+const SPAWN_BULLETS = true;
+
 const ENEMY_SPAWN_INTERVAL_MS = 500;
 const BULLET_SPAWN_INTERVAL_MS = 1000;
 
@@ -40,16 +43,20 @@ function gameLoop(timestamp: number) {
 
 	setStageTimer(timestamp - gameStageTimer - gameStageTimerStoppedAt);
 
-	if (!enemySpawnTimer) enemySpawnTimer = timestamp;
-	if (timestamp - enemySpawnTimer >= ENEMY_SPAWN_INTERVAL_MS) {
-		spawnNewEnemy();
-		enemySpawnTimer += ENEMY_SPAWN_INTERVAL_MS;
+	if (SPAWN_ENEMIES) {
+		if (!enemySpawnTimer) enemySpawnTimer = timestamp;
+		if (timestamp - enemySpawnTimer >= ENEMY_SPAWN_INTERVAL_MS) {
+			spawnNewEnemy();
+			enemySpawnTimer += ENEMY_SPAWN_INTERVAL_MS;
+		}
 	}
 
-	if (!bulletSpawnTimer) bulletSpawnTimer = timestamp;
-	if (timestamp - bulletSpawnTimer >= BULLET_SPAWN_INTERVAL_MS) {
-		spawnNewBullet();
-		bulletSpawnTimer += BULLET_SPAWN_INTERVAL_MS;
+	if (SPAWN_BULLETS) {
+		if (!bulletSpawnTimer) bulletSpawnTimer = timestamp;
+		if (timestamp - bulletSpawnTimer >= BULLET_SPAWN_INTERVAL_MS) {
+			spawnNewBullet();
+			bulletSpawnTimer += BULLET_SPAWN_INTERVAL_MS;
+		}
 	}
 
 	let newX = worldPos().x;
@@ -106,7 +113,10 @@ function gameLoop(timestamp: number) {
 	for (let i = 0; i < bullets.length; i++) {
 		const bullet = bullets[i]!;
 
-		if (bullet.rect().x === bullet.target.x && bullet.rect().y === bullet.target.y) {
+		if (
+			(bullet.rect().x | 0) === (bullet.target.x | 0) &&
+			(bullet.rect().y | 0) === (bullet.target.y | 0)
+		) {
 			destroyBullet(i);
 		} else {
 			let newBulletX = bullet.rect().x;
