@@ -1,4 +1,6 @@
+import { type Remote, wrap } from 'comlink';
 import { batch } from 'solid-js';
+import { isServer } from 'solid-js/web';
 import { destroyEnemy, enemies, spawnNewEnemy } from '~/components/Enemies';
 import { player, relativePlayerPos } from '~/components/Player';
 import { bullets, destroyBullet, spawnNewBullet } from '~/components/weapons/Bullets';
@@ -13,6 +15,17 @@ import {
 	worldPos,
 } from '~/state';
 import { collisionDetected, getNewPos } from '~/utils';
+import type { GameLoopWorker } from '~/workers/gameLoopWorker';
+
+let updateEnemyPositions: Remote<GameLoopWorker['updateEnemyPositions']>;
+
+if (!isServer) {
+	const worker = new Worker(new URL('./workers/gameLoopWorker.ts', import.meta.url), {
+		type: 'module',
+		name: 'game-loop-worker',
+	});
+	updateEnemyPositions = wrap<GameLoopWorker>(worker).updateEnemyPositions;
+}
 
 const SPAWN_ENEMIES = true;
 const SPAWN_BULLETS = true;
@@ -27,7 +40,7 @@ let gameStageTimerStoppedAt = 0;
 
 export let mainGameLoop: number | undefined;
 
-function gameLoop(timestamp: number) {
+async function gameLoop(timestamp: number) {
 	if (gameState.status !== 'in_progress') {
 		enemySpawnTimer = 0;
 		bulletSpawnTimer = 0;

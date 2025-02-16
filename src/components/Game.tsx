@@ -37,7 +37,10 @@ function onKeyDown(e: KeyboardEvent) {
 	}
 
 	if (e.code === 'KeyR') {
-		return resetGameState();
+		if (gameState.status === 'lost') {
+			return resetGameState();
+		}
+		return;
 	}
 
 	if (gameState.status === 'in_progress') {
@@ -59,12 +62,6 @@ function onKeyUp(e: KeyboardEvent) {
 
 export default function Game() {
 	onMount(async () => {
-		runGameLoop();
-
-		setTimeout(() => {
-			spawnNewBullet();
-		}, 500);
-
 		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('keyup', onKeyUp);
 

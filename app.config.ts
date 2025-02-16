@@ -1,8 +1,6 @@
 import { defineConfig } from '@solidjs/start/config';
-import dotenv from 'dotenv';
 import tsconfigPaths from 'vite-tsconfig-paths';
-
-dotenv.config();
+import { comlink } from 'vite-plugin-comlink';
 
 export default defineConfig({
 	server: {
@@ -15,9 +13,13 @@ export default defineConfig({
 			compact: true,
 		},
 	},
+
 	vite: {
 		ssr: { external: ['drizzle-orm'] },
-		plugins: [tsconfigPaths()],
+		plugins: [tsconfigPaths(), comlink()],
+		worker: {
+			plugins: () => [comlink()],
+		},
 	},
 }).addRouter({
 	name: '_ws',
