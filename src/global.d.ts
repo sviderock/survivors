@@ -26,6 +26,7 @@ declare global {
 		setAttackStatus: Setter<EnemyAttackStatus>;
 		health: number;
 		maxHealth: number;
+		blocked: Record<keyof RectSides, boolean>;
 	};
 
 	type Bullet = {

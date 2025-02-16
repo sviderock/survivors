@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onMount } from 'solid-js';
+import { createEffect, createMemo, createRoot, createSignal, onMount } from 'solid-js';
 import HealthBar from '~/components/HealthBar';
 import {
 	BASE_HEALTH,
@@ -65,10 +65,6 @@ export const playerLevel = () => {
 export default function Player() {
 	onMount(() => {
 		setPlayer((p) => ({ ...p, rect: getRect(p.ref!) }));
-	});
-
-	createEffect(() => {
-		console.log(playerLevel().level);
 	});
 
 	return (

@@ -27,6 +27,7 @@ function createSingleEnemy(): Enemy {
 		setAttackStatus,
 		health,
 		maxHealth: health,
+		blocked: { left: false, right: false, top: false, bottom: false },
 	};
 }
 
@@ -75,12 +76,19 @@ function Enemy(props: EnemyProps) {
 		<div
 			class="absolute flex flex-col items-center justify-center"
 			style={{
+				// transition: 'transform 2s linear',
 				transform: `translate3d(${props.enemy.rect().x}px, ${props.enemy.rect().y}px, 0)`,
 			}}
 		>
 			<div
 				ref={(el) => setEnemies(props.idx, 'ref', el)}
-				class="flex items-center justify-center border-2 border-blue-900 bg-blue-500"
+				class={cn(
+					'flex items-center justify-center border-2 border-blue-900 bg-blue-500',
+					props.enemy.blocked.left && 'border-l-red-500',
+					props.enemy.blocked.right && 'border-r-red-500',
+					props.enemy.blocked.top && 'border-t-red-500',
+					props.enemy.blocked.bottom && 'border-b-red-500',
+				)}
 				style={{
 					width: `${ENEMY_SIZE}px`,
 					height: `${ENEMY_SIZE}px`,

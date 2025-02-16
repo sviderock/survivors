@@ -22,6 +22,8 @@ export const [lastPressedCombination, setLastPressedCombination] = createSignal(
 );
 
 export const [gameState, setGameState] = createStore({
+	bulletSpawnInterval: 0,
+	enemySpawnInterval: 0,
 	experience: 0,
 	enemiesKilled: 0,
 	status: 'not_started' as 'not_started' | 'in_progress' | 'paused' | 'won' | 'lost',
@@ -37,7 +39,13 @@ export function resetGameState() {
 		setBullets([]);
 		setGems([]);
 		setWorldPos({ x: 0, y: 0 });
-		setGameState({ experience: 0, enemiesKilled: 0, status: 'not_started' });
+		setGameState({
+			enemySpawnInterval: 0,
+			bulletSpawnInterval: 0,
+			experience: 0,
+			enemiesKilled: 0,
+			status: 'not_started',
+		});
 		setLastPressedCombination('w');
 		setKeyPressed({ w: false, s: false, a: false, d: false });
 		setStageTimer(0);

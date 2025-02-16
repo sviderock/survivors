@@ -50,10 +50,12 @@ export function getNewPos({
 	y: number;
 	width: number;
 	height: number;
-}): RectSides & RectCoords & RectCenter {
+}): Rect {
 	return {
-		x: x,
-		y: y,
+		x,
+		y,
+		width,
+		height,
 		left: x,
 		right: x + width,
 		top: y,
@@ -173,4 +175,32 @@ export function interpolateHealth(percentage: number) {
 	const hex2 = getRGB(HEALTH_COLOR_HALF);
 	const hex3 = getRGB(HEALTH_COLOR_NONE);
 	return interpolateColors(hex3, hex2, percentage * 2);
+}
+
+export function getDirection(objCenter: number, sideA: number, sideB: number) {
+	return objCenter < sideA ? 1 : objCenter > sideB ? -1 : 0;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function slowCollisionDetect() {
+	// for (let j = 0; j < enemies.length; j++) {
+	// 	if (i === j) continue;
+	// 	const foreignEnemy = enemies[j]!;
+	// 	// stuck moving right
+	// 	if (dirX === 1 && newPos.right + COLLISION_OFFSET === foreignEnemy.rect().left) {
+	// 		blocked.right = true;
+	// 	}
+	// 	// stuck moving left
+	// 	if (dirX === -1 && newPos.left - COLLISION_OFFSET === foreignEnemy.rect().right) {
+	// 		blocked.left = true;
+	// 	}
+	// 	// stuck moving bottom
+	// 	if (dirY === 1 && newPos.bottom + COLLISION_OFFSET === foreignEnemy.rect().top) {
+	// 		blocked.bottom = true;
+	// 	}
+	// 	// stuck moving top
+	// 	if (dirY === -1 && newPos.top - COLLISION_OFFSET === foreignEnemy.rect().bottom) {
+	// 		blocked.top = true;
+	// 	}
+	// }
 }

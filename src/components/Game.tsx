@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onCleanup, onMount, ParentProps } from 'solid-js';
+import { createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import Banner from '~/components/Banner';
 import Enemies, { enemies } from '~/components/Enemies';
 import Gems from '~/components/Gems';
@@ -6,7 +6,7 @@ import Player, { playerLevel } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
 import UserAccount from '~/components/UserAccount';
-import Bullet, { spawnBullet } from '~/components/weapons/Bullets';
+import Bullet from '~/components/weapons/Bullets';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	gameState,
@@ -17,7 +17,6 @@ import {
 	setLastPressedCombination,
 	worldPos,
 } from '~/state';
-import { interpolateHealth } from '~/utils';
 
 function onKeyDown(e: KeyboardEvent) {
 	if (e.code === 'Escape' || e.code === 'KeyP') {
@@ -113,7 +112,10 @@ function GameWorld(props: ParentProps) {
 	return (
 		<div
 			class="bg-size absolute h-[10000px] w-[10000px] bg-forest bg-[100px_100px]"
-			style={{ transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)` }}
+			style={{
+				transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)`,
+				// transition: 'transform 0.1s linear',
+			}}
 		>
 			{props.children}
 		</div>

@@ -1,5 +1,8 @@
-import { Match, Switch } from 'solid-js';
-import { gameState } from '~/state';
+import { batch, Match, Switch } from 'solid-js';
+import { produce } from 'solid-js/store';
+import { setPlayer } from '~/components/Player';
+import { Button } from '~/components/ui/button';
+import { gameState, setGameState } from '~/state';
 import { cn } from '~/utils';
 
 export default function Banner() {
@@ -12,6 +15,22 @@ export default function Banner() {
 					)}
 				>
 					Press <strong>Spacebar</strong> to start
+					<Button
+						onClick={() => {
+							batch(() => {
+								setPlayer((p) => ({ ...p, health: 10000, maxHealth: 10000 }));
+								setGameState(
+									produce((state) => {
+										state.status = 'in_progress';
+										state.bulletSpawnInterval = 50;
+										state.enemySpawnInterval = 10;
+									}),
+								);
+							});
+						}}
+					>
+						Fun mode
+					</Button>
 				</div>
 			</Match>
 

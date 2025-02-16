@@ -1,4 +1,5 @@
 import { type Remote, wrap } from 'comlink';
+import { timeStamp } from 'console';
 import { batch } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { destroyEnemy, enemies, setEnemies, spawnEnemy } from '~/components/Enemies';
@@ -7,10 +8,8 @@ import { player, relativePlayerPos, setPlayer } from '~/components/Player';
 import { bullets, destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
 import { BULLET_SPEED, ENEMY_SPEED, PLAYER_SPEED } from '~/constants';
 import { gameState, keyPressed, setGameState, setStageTimer, setWorldPos, worldPos } from '~/state';
-import { collisionDetected, getNewPos } from '~/utils';
+import { collisionDetected, getDirection, getNewPos } from '~/utils';
 import type { GameLoopWorker } from '~/workers/gameLoopWorker';
-
-const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 
 let updateEnemyPositions: Remote<GameLoopWorker['updateEnemyPositions']>;
 
@@ -25,6 +24,7 @@ if (!isServer) {
 const SPAWN_ENEMIES = true;
 const SPAWN_BULLETS = true;
 
+const CALCULATIONS_INTERVAL_MS = 1000;
 const ENEMY_SPAWN_INTERVAL_MS = 500;
 const BULLET_SPAWN_INTERVAL_MS = 1000;
 
@@ -33,6 +33,9 @@ const BULLET_COLLISIONS = true;
 const GEMS_COLLISIONS = true;
 
 const ENEMY_LIMIT = 300;
+
+const COLLISION_OFFSET = 0;
+const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 
 let enemySpawnTimer = 0;
 let bulletSpawnTimer = 0;
@@ -59,19 +62,22 @@ async function gameLoop(timestamp: number) {
 
 	if (SPAWN_ENEMIES) {
 		if (!enemySpawnTimer) enemySpawnTimer = timestamp;
-		if (timestamp - enemySpawnTimer >= ENEMY_SPAWN_INTERVAL_MS) {
+		if (timestamp - enemySpawnTimer >= (gameState.enemySpawnInterval || ENEMY_SPAWN_INTERVAL_MS)) {
 			if (enemies.length < ENEMY_LIMIT) {
 				spawnEnemy();
 			}
-			enemySpawnTimer += ENEMY_SPAWN_INTERVAL_MS;
+			enemySpawnTimer += gameState.enemySpawnInterval || ENEMY_SPAWN_INTERVAL_MS;
 		}
 	}
 
 	if (SPAWN_BULLETS) {
 		if (!bulletSpawnTimer) bulletSpawnTimer = timestamp;
-		if (timestamp - bulletSpawnTimer >= BULLET_SPAWN_INTERVAL_MS) {
+		if (
+			timestamp - bulletSpawnTimer >=
+			(gameState.bulletSpawnInterval || BULLET_SPAWN_INTERVAL_MS)
+		) {
 			spawnBullet();
-			bulletSpawnTimer += BULLET_SPAWN_INTERVAL_MS;
+			bulletSpawnTimer += gameState.bulletSpawnInterval || BULLET_SPAWN_INTERVAL_MS;
 		}
 	}
 
@@ -83,55 +89,38 @@ async function gameLoop(timestamp: number) {
 			? DIAGONAL_SPEED
 			: 1;
 
-	let newX = worldPos().x;
-	let newY = worldPos().y;
-	if (keyPressed.w) newY += (PLAYER_SPEED * playerSpeedModifier) | 0;
-	if (keyPressed.s) newY -= (PLAYER_SPEED * playerSpeedModifier) | 0;
-	if (keyPressed.a) newX += (PLAYER_SPEED * playerSpeedModifier) | 0;
-	if (keyPressed.d) newX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
-	setWorldPos({ x: newX, y: newY });
+	let newWorldX = worldPos().x;
+	let newWorldY = worldPos().y;
+	if (keyPressed.w) newWorldY += (PLAYER_SPEED * playerSpeedModifier) | 0;
+	if (keyPressed.s) newWorldY -= (PLAYER_SPEED * playerSpeedModifier) | 0;
+	if (keyPressed.a) newWorldX += (PLAYER_SPEED * playerSpeedModifier) | 0;
+	if (keyPressed.d) newWorldX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
+	setWorldPos({ x: newWorldX, y: newWorldY });
 
 	const relPlayerPos = {
-		left: player().rect.left - newX,
-		right: player().rect.right - newX,
-		top: player().rect.top - newY,
-		bottom: player().rect.bottom - newY,
+		left: player().rect.left - newWorldX,
+		right: player().rect.right - newWorldX,
+		top: player().rect.top - newWorldY,
+		bottom: player().rect.bottom - newWorldY,
 	};
 
 	for (let i = 0; i < enemies.length; i++) {
 		const enemy = enemies[i]!;
 
-		const enemyCenter = {
-			x: enemy.rect().x + enemy.rect().width / 2,
-			y: enemy.rect().y + enemy.rect().height / 2,
-		};
+		const dirX =
+			getDirection(enemy.rect().centerX, relPlayerPos.left, relPlayerPos.right) * ENEMY_SPEED;
+		const dirY =
+			getDirection(enemy.rect().centerY, relPlayerPos.top, relPlayerPos.bottom) * ENEMY_SPEED;
+		const newPos = getNewPos({
+			x: enemy.rect().x + dirX,
+			y: enemy.rect().y + dirY,
+			width: enemy.rect().width,
+			height: enemy.rect().height,
+		});
 
-		let newEnemyX = enemy.rect().x;
-		let newEnemyY = enemy.rect().y;
-		switch (true) {
-			case enemyCenter.x < relPlayerPos.left:
-				newEnemyX += ENEMY_SPEED;
-				break;
+		const blocked: Enemy['blocked'] = { left: false, right: false, top: false, bottom: false };
 
-			case enemyCenter.x > relPlayerPos.right:
-				newEnemyX -= ENEMY_SPEED;
-				break;
-		}
-
-		switch (true) {
-			case enemyCenter.y < relPlayerPos.top:
-				newEnemyY += ENEMY_SPEED;
-				break;
-
-			case enemyCenter.y > relPlayerPos.bottom:
-				newEnemyY -= ENEMY_SPEED;
-				break;
-		}
-
-		enemy.setRect((pos) => ({
-			...pos,
-			...getNewPos({ x: newEnemyX, y: newEnemyY, width: pos.width, height: pos.height }),
-		}));
+		enemy.setRect(newPos);
 	}
 
 	for (let i = 0; i < bullets.length; i++) {
@@ -168,10 +157,14 @@ async function gameLoop(timestamp: number) {
 					break;
 			}
 
-			bullet.setRect((pos) => ({
-				...pos,
-				...getNewPos({ x: newBulletX, y: newBulletY, width: pos.width, height: pos.height }),
-			}));
+			bullet.setRect(
+				getNewPos({
+					x: newBulletX,
+					y: newBulletY,
+					width: bullet.rect().width,
+					height: bullet.rect().height,
+				}),
+			);
 		}
 	}
 
