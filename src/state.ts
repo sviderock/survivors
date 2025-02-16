@@ -2,7 +2,10 @@ import { type UseAppKitAccountReturn } from '@reown/appkit';
 import { batch, createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { setEnemies } from '~/components/Enemies';
+import { setGems } from '~/components/Gems';
+import { setPlayer } from '~/components/Player';
 import { setBullets } from '~/components/weapons/Bullets';
+import { BASE_HEALTH } from '~/constants';
 
 export const [connectedUser, setConnectedUser] = createStore<UseAppKitAccountReturn>({
 	address: undefined,
@@ -32,10 +35,12 @@ export function resetGameState() {
 	batch(() => {
 		setEnemies([]);
 		setBullets([]);
+		setGems([]);
 		setWorldPos({ x: 0, y: 0 });
-		setGameState({ experience: 0, enemiesKilled: 0, status: 'in_progress' });
+		setGameState({ experience: 0, enemiesKilled: 0, status: 'not_started' });
 		setLastPressedCombination('w');
 		setKeyPressed({ w: false, s: false, a: false, d: false });
 		setStageTimer(0);
+		setPlayer((p) => ({ ...p, health: BASE_HEALTH, maxHealth: BASE_HEALTH }));
 	});
 }

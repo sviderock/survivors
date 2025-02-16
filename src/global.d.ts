@@ -12,12 +12,20 @@ declare global {
 	type Player = {
 		ref: HTMLDivElement | undefined;
 		rect: Rect;
+		health: number;
+		maxHealth: number;
 	};
 
+	type EnemyAttackStatus = 'ready' | 'hit' | 'cooldown';
 	type Enemy = {
-		ref: HTMLSpanElement | undefined;
+		ref: HTMLDivElement | undefined;
 		rect: Accessor<Rect>;
 		setRect: Setter<Rect>;
+		attack: number;
+		attackStatus: Accessor<EnemyAttackStatus>;
+		setAttackStatus: Setter<EnemyAttackStatus>;
+		health: number;
+		maxHealth: number;
 	};
 
 	type Bullet = {
@@ -25,6 +33,7 @@ declare global {
 		rect: Accessor<Rect>;
 		setRect: Setter<Rect>;
 		target: { x: number; y: number };
+		damage: number;
 	};
 
 	type Gem = {
@@ -33,6 +42,9 @@ declare global {
 		setRect: Setter<Rect>;
 		value: number;
 	};
+
+	type RGBStr = `rgb(${number},${'' | ' '}${number},${'' | ' '}${number})`;
+	type RGB = { r: number; g: number; b: number };
 }
 
 export {};

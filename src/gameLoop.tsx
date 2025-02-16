@@ -1,9 +1,9 @@
 import { type Remote, wrap } from 'comlink';
 import { batch } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { destroyEnemy, enemies, spawnEnemy } from '~/components/Enemies';
+import { destroyEnemy, enemies, setEnemies, spawnEnemy } from '~/components/Enemies';
 import { destroyGem, gems, spawnGem } from '~/components/Gems';
-import { player, relativePlayerPos } from '~/components/Player';
+import { player, relativePlayerPos, setPlayer } from '~/components/Player';
 import { bullets, destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
 import { BULLET_SPEED, ENEMY_SPEED, PLAYER_SPEED } from '~/constants';
 import { gameState, keyPressed, setGameState, setStageTimer, setWorldPos, worldPos } from '~/state';
@@ -28,7 +28,7 @@ const SPAWN_BULLETS = true;
 const ENEMY_SPAWN_INTERVAL_MS = 500;
 const BULLET_SPAWN_INTERVAL_MS = 1000;
 
-const ENEMY_COLLISIONS = false;
+const ENEMY_COLLISIONS = true;
 const BULLET_COLLISIONS = true;
 const GEMS_COLLISIONS = true;
 
@@ -183,10 +183,15 @@ async function gameLoop(timestamp: number) {
 				const bullet = bullets[j]!;
 				if (collisionDetected(bullet.rect(), enemy.rect())) {
 					batch(() => {
-						spawnGem({ x: enemy.rect().centerX, y: enemy.rect().centerY });
-						destroyEnemy(i);
-						destroyBullet(j);
-						setGameState('enemiesKilled', (k) => k + 1);
+						if (enemy.health <= bullet.damage) {
+							spawnGem({ x: enemy.rect().centerX, y: enemy.rect().centerY });
+							destroyEnemy(i);
+							destroyBullet(j);
+							setGameState('enemiesKilled', (k) => k + 1);
+						} else {
+							destroyBullet(j);
+							setEnemies(i, 'health', enemy.health - bullet.damage);
+						}
 					});
 				}
 			}
@@ -194,7 +199,12 @@ async function gameLoop(timestamp: number) {
 
 		if (ENEMY_COLLISIONS) {
 			if (collisionDetected(relativePlayerPos(), enemy.rect())) {
-				setGameState('status', 'lost');
+				if (enemy.attackStatus() === 'ready') {
+					batch(() => {
+						enemy.setAttackStatus('hit');
+						setPlayer((p) => ({ ...p, health: p.health - enemy.attack }));
+					});
+				}
 			}
 		}
 	}
@@ -207,6 +217,11 @@ async function gameLoop(timestamp: number) {
 				setGameState('experience', (exp) => exp + 1);
 			}
 		}
+	}
+
+	if (player().health <= 0) {
+		setGameState('status', 'lost');
+		clearGameLoop();
 	}
 
 	mainGameLoop = requestAnimationFrame(gameLoop);

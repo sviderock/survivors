@@ -1,5 +1,7 @@
 import { createEffect, createSignal, onMount } from 'solid-js';
+import HealthBar from '~/components/HealthBar';
 import {
+	BASE_HEALTH,
 	PLAYER_SIZE,
 	XP_LVL_2,
 	XP_LVL_21_TO_40,
@@ -13,6 +15,8 @@ import { cn, getInitialRect, getRect, getRotationClass } from '~/utils';
 export const [player, setPlayer] = createSignal<Player>({
 	ref: undefined,
 	rect: getInitialRect({ x: 0, y: 0, width: PLAYER_SIZE, height: PLAYER_SIZE }),
+	health: BASE_HEALTH,
+	maxHealth: BASE_HEALTH,
 });
 
 export const relativePlayerPos = () => ({
@@ -68,10 +72,10 @@ export default function Player() {
 	});
 
 	return (
-		<>
+		<div class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
 			<div
 				ref={(ref) => setPlayer((p) => ({ ...p, ref }))}
-				class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-2 border-2 border-red-800 bg-red-500 text-white transition-none"
+				class="flex flex-col items-center justify-center gap-2 border-2 border-red-800 bg-red-500 text-white transition-none"
 				style={{
 					width: `${player().rect.width}px`,
 					height: `${player().rect.height}px`,
@@ -85,6 +89,8 @@ export default function Player() {
 				/>
 				<span class="flex text-center text-xs">WASD to move</span>
 			</div>
-		</>
+
+			<HealthBar class="mt-1 h-3" currentHealth={player().health} maxHealth={player().maxHealth} />
+		</div>
 	);
 }

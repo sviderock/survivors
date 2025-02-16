@@ -1,4 +1,4 @@
-import { createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
+import { createEffect, createSignal, onCleanup, onMount, ParentProps } from 'solid-js';
 import Banner from '~/components/Banner';
 import Enemies, { enemies } from '~/components/Enemies';
 import Gems from '~/components/Gems';
@@ -17,6 +17,7 @@ import {
 	setLastPressedCombination,
 	worldPos,
 } from '~/state';
+import { interpolateHealth } from '~/utils';
 
 function onKeyDown(e: KeyboardEvent) {
 	if (e.code === 'Escape' || e.code === 'KeyP') {

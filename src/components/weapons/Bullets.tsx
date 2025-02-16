@@ -1,7 +1,7 @@
 import { createSignal, For, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { relativePlayerPos } from '~/components/Player';
-import { BULLET_DISTANCE, BULLET_SIZE } from '~/constants';
+import { BULLET_DAMAGE, BULLET_DISTANCE, BULLET_SIZE } from '~/constants';
 import { lastPressedCombination } from '~/state';
 import { getDiagonalDistance, getInitialRect, getRect } from '~/utils';
 
@@ -39,6 +39,7 @@ export function createSingleBullet(): Bullet {
 		ref: undefined,
 		rect,
 		setRect,
+		damage: BULLET_DAMAGE,
 		target: {
 			x: bulletStartX + getBulletDistance().x,
 			y: bulletStartY + getBulletDistance().y,

@@ -1,8 +1,10 @@
-import { createSignal, For, onMount } from 'solid-js';
+import { createEffect, createSignal, For, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
+import HealthBar from '~/components/HealthBar';
 import { relativePlayerPos } from '~/components/Player';
-import { ENEMY_SIZE } from '~/constants';
-import { getInitialRect, getRandomBetween, getRect } from '~/utils';
+import { ENEMY_ATTACK_COOLDOWN, ENEMY_BASE_HEALTH, ENEMY_SIZE } from '~/constants';
+import { LoadingSpinner } from '~/icons/LoadingSpinner';
+import { cn, getInitialRect, getRandomBetween, getRect } from '~/utils';
 
 export const [enemies, setEnemies] = createStore<Enemy[]>([]);
 
@@ -14,7 +16,18 @@ function createSingleEnemy(): Enemy {
 		y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
 	});
 	const [rect, setRect] = createSignal(initialRect);
-	return { ref: undefined, rect, setRect };
+	const [attackStatus, setAttackStatus] = createSignal<EnemyAttackStatus>('ready');
+	const health = getRandomBetween(1, ENEMY_BASE_HEALTH);
+	return {
+		ref: undefined,
+		rect,
+		setRect,
+		attack: 3,
+		attackStatus,
+		setAttackStatus,
+		health,
+		maxHealth: health,
+	};
 }
 
 export function spawnEnemy() {
@@ -36,16 +49,53 @@ export default function Enemies() {
 	return (
 		<For each={enemies}>
 			{(enemy, idx) => (
-				<span
-					ref={(el) => setEnemies(idx(), 'ref', el)}
-					class="absolute border-2 border-blue-900 bg-blue-500"
-					style={{
-						transform: `translate3d(${enemy.rect().x}px, ${enemy.rect().y}px, 0)`,
-						width: `${ENEMY_SIZE}px`,
-						height: `${ENEMY_SIZE}px`,
-					}}
-				/>
+				<Enemy idx={idx()} enemy={enemy} ref={(el) => setEnemies(idx(), 'ref', el)} />
 			)}
 		</For>
+	);
+}
+
+interface EnemyProps {
+	ref: (ref: HTMLDivElement) => void;
+	enemy: Enemy;
+	idx: number;
+}
+
+function Enemy(props: EnemyProps) {
+	createEffect(() => {
+		if (props.enemy.attackStatus() === 'hit') {
+			props.enemy.setAttackStatus('cooldown');
+			setTimeout(() => {
+				props.enemy.setAttackStatus('ready');
+			}, ENEMY_ATTACK_COOLDOWN);
+		}
+	});
+
+	return (
+		<div
+			class="absolute flex flex-col items-center justify-center"
+			style={{
+				transform: `translate3d(${props.enemy.rect().x}px, ${props.enemy.rect().y}px, 0)`,
+			}}
+		>
+			<div
+				ref={(el) => setEnemies(props.idx, 'ref', el)}
+				class="flex items-center justify-center border-2 border-blue-900 bg-blue-500"
+				style={{
+					width: `${ENEMY_SIZE}px`,
+					height: `${ENEMY_SIZE}px`,
+				}}
+			>
+				<LoadingSpinner
+					class={cn('opacity-0', props.enemy.attackStatus() === 'cooldown' && 'opacity-1')}
+				/>
+			</div>
+
+			<HealthBar
+				currentHealth={props.enemy.health}
+				maxHealth={props.enemy.maxHealth}
+				class="mt-0.5 h-2"
+			/>
+		</div>
 	);
 }

@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { HEALTH_COLOR_FULL, HEALTH_COLOR_HALF, HEALTH_COLOR_NONE } from '~/constants';
 import { type LastPressedCombination } from '~/state';
 
 export function cn(...inputs: ClassValue[]) {
@@ -116,4 +117,60 @@ export function msToTime(ms: number) {
 	const mm = (totalSeconds / 60) | 0;
 	const ss = totalSeconds % 60;
 	return (mm < 10 ? '0' + mm : mm) + ':' + (ss < 10 ? '0' + ss : ss);
+}
+
+function rgbToHex(c: RGB) {
+	const r = c.r.toString(16).padStart(2, '0');
+	const g = c.g.toString(16).padStart(2, '0');
+	const b = c.b.toString(16).padStart(2, '0');
+	return `#${r}${g}${b}`.toUpperCase();
+}
+
+function hexToRgb(hex: string) {
+	hex = hex.replace(/^#/, '');
+	if (hex.length === 3) {
+		hex = hex
+			.split('')
+			.map((c) => c + c)
+			.join('');
+	}
+	const num = parseInt(hex, 16);
+	return {
+		r: (num >> 16) & 255,
+		g: (num >> 8) & 255,
+		b: num & 255,
+	};
+}
+
+export function lerp(a: number, b: number, t: number) {
+	return a + (b - a) * t;
+}
+
+function getRGB(color: RGBStr) {
+	const [r, g, b] = color
+		.replace('rgb(', '')
+		.replace(')', '')
+		.split(',')
+		.map((i) => +i);
+	return { r, g, b } as RGB;
+}
+
+function interpolateColors(c1: RGB, c2: RGB, t: number) {
+	const r = Math.round(lerp(c1.r, c2.r, t));
+	const g = Math.round(lerp(c1.g, c2.g, t));
+	const b = Math.round(lerp(c1.b, c2.b, t));
+	return rgbToHex({ r, g, b });
+}
+
+export function interpolateHealth(percentage: number) {
+	percentage = Math.min(Math.max(percentage, 0), 1);
+	if (percentage > 0.5) {
+		const hex1 = getRGB(HEALTH_COLOR_FULL);
+		const hex2 = getRGB(HEALTH_COLOR_HALF);
+		return interpolateColors(hex2, hex1, (percentage - 0.5) * 2);
+	}
+
+	const hex2 = getRGB(HEALTH_COLOR_HALF);
+	const hex3 = getRGB(HEALTH_COLOR_NONE);
+	return interpolateColors(hex3, hex2, percentage * 2);
 }
