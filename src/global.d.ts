@@ -26,6 +26,13 @@ declare global {
 		setRect: Setter<Rect>;
 		target: { x: number; y: number };
 	};
+
+	type Gem = {
+		ref: HTMLSpanElement | undefined;
+		rect: Accessor<Rect>;
+		setRect: Setter<Rect>;
+		value: number;
+	};
 }
 
 export {};

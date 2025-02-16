@@ -8,6 +8,8 @@ export const BULLET_DISTANCE = 500;
 export const ENEMY_SPEED = 1;
 export const ENEMY_SIZE = 32;
 
+export const GEM_SIZE = { w: 16, h: 24 };
+
 export const XP_LVL_2 = 5;
 export const XP_LVL_3_TO_20 = 10;
 export const XP_LVL_21_TO_40 = 13;

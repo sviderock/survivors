@@ -1,11 +1,12 @@
 import { createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import Banner from '~/components/Banner';
 import Enemies, { enemies } from '~/components/Enemies';
+import Gems from '~/components/Gems';
 import Player, { playerLevel } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
 import UserAccount from '~/components/UserAccount';
-import Bullet, { spawnNewBullet } from '~/components/weapons/Bullets';
+import Bullet, { spawnBullet } from '~/components/weapons/Bullets';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	gameState,
@@ -94,6 +95,7 @@ export default function Game() {
 			<GameWorld>
 				<Enemies />
 				<Bullet />
+				<Gems />
 			</GameWorld>
 
 			<Player />

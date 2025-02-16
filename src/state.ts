@@ -1,5 +1,5 @@
 import { type UseAppKitAccountReturn } from '@reown/appkit';
-import { batch, createMemo, createRoot, createSignal } from 'solid-js';
+import { batch, createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { setEnemies } from '~/components/Enemies';
 import { setBullets } from '~/components/weapons/Bullets';
@@ -20,6 +20,7 @@ export const [lastPressedCombination, setLastPressedCombination] = createSignal(
 
 export const [gameState, setGameState] = createStore({
 	experience: 0,
+	enemiesKilled: 0,
 	status: 'not_started' as 'not_started' | 'in_progress' | 'paused' | 'won' | 'lost',
 });
 
@@ -32,25 +33,9 @@ export function resetGameState() {
 		setEnemies([]);
 		setBullets([]);
 		setWorldPos({ x: 0, y: 0 });
-		setGameState({ experience: 0, status: 'in_progress' });
+		setGameState({ experience: 0, enemiesKilled: 0, status: 'in_progress' });
 		setLastPressedCombination('w');
 		setKeyPressed({ w: false, s: false, a: false, d: false });
 		setStageTimer(0);
 	});
 }
-
-export const { speedModifier } = createRoot(() => {
-	const speedModifier = createMemo(() => {
-		if (
-			lastPressedCombination() === 'wa' ||
-			lastPressedCombination() === 'wd' ||
-			lastPressedCombination() === 'sa' ||
-			lastPressedCombination() === 'sd'
-		) {
-			return Math.SQRT2 / 2;
-		}
-		return 1;
-	});
-
-	return { speedModifier };
-});

@@ -98,7 +98,7 @@ export default {
 				},
 				'caret-blink': {
 					'0%,70%,100%': { opacity: '1' },
-					'20%,50%': { opacity: '0' },
+					'20%,50%': { opacity: '0.6' },
 				},
 			},
 			animation: {
@@ -106,7 +106,7 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'content-show': 'content-show 0.2s ease-out',
 				'content-hide': 'content-hide 0.2s ease-out',
-				'caret-blink': 'caret-blink 1.25s ease-out infinite',
+				'caret-blink': 'caret-blink .5s ease-out infinite',
 			},
 		},
 	},

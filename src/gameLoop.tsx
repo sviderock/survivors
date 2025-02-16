@@ -1,21 +1,16 @@
 import { type Remote, wrap } from 'comlink';
 import { batch } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { destroyEnemy, enemies, spawnNewEnemy } from '~/components/Enemies';
+import { destroyEnemy, enemies, spawnEnemy } from '~/components/Enemies';
+import { destroyGem, gems, spawnGem } from '~/components/Gems';
 import { player, relativePlayerPos } from '~/components/Player';
-import { bullets, destroyBullet, spawnNewBullet } from '~/components/weapons/Bullets';
+import { bullets, destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
 import { BULLET_SPEED, ENEMY_SPEED, PLAYER_SPEED } from '~/constants';
-import {
-	gameState,
-	keyPressed,
-	setGameState,
-	setStageTimer,
-	setWorldPos,
-	speedModifier,
-	worldPos,
-} from '~/state';
+import { gameState, keyPressed, setGameState, setStageTimer, setWorldPos, worldPos } from '~/state';
 import { collisionDetected, getNewPos } from '~/utils';
 import type { GameLoopWorker } from '~/workers/gameLoopWorker';
+
+const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 
 let updateEnemyPositions: Remote<GameLoopWorker['updateEnemyPositions']>;
 
@@ -32,6 +27,12 @@ const SPAWN_BULLETS = true;
 
 const ENEMY_SPAWN_INTERVAL_MS = 500;
 const BULLET_SPAWN_INTERVAL_MS = 1000;
+
+const ENEMY_COLLISIONS = false;
+const BULLET_COLLISIONS = true;
+const GEMS_COLLISIONS = true;
+
+const ENEMY_LIMIT = 300;
 
 let enemySpawnTimer = 0;
 let bulletSpawnTimer = 0;
@@ -59,7 +60,9 @@ async function gameLoop(timestamp: number) {
 	if (SPAWN_ENEMIES) {
 		if (!enemySpawnTimer) enemySpawnTimer = timestamp;
 		if (timestamp - enemySpawnTimer >= ENEMY_SPAWN_INTERVAL_MS) {
-			spawnNewEnemy();
+			if (enemies.length < ENEMY_LIMIT) {
+				spawnEnemy();
+			}
 			enemySpawnTimer += ENEMY_SPAWN_INTERVAL_MS;
 		}
 	}
@@ -67,17 +70,25 @@ async function gameLoop(timestamp: number) {
 	if (SPAWN_BULLETS) {
 		if (!bulletSpawnTimer) bulletSpawnTimer = timestamp;
 		if (timestamp - bulletSpawnTimer >= BULLET_SPAWN_INTERVAL_MS) {
-			spawnNewBullet();
+			spawnBullet();
 			bulletSpawnTimer += BULLET_SPAWN_INTERVAL_MS;
 		}
 	}
 
+	const playerSpeedModifier =
+		(keyPressed.w && keyPressed.a) ||
+		(keyPressed.w && keyPressed.d) ||
+		(keyPressed.s && keyPressed.a) ||
+		(keyPressed.s && keyPressed.d)
+			? DIAGONAL_SPEED
+			: 1;
+
 	let newX = worldPos().x;
 	let newY = worldPos().y;
-	if (keyPressed.w) newY += PLAYER_SPEED * speedModifier();
-	if (keyPressed.s) newY -= PLAYER_SPEED * speedModifier();
-	if (keyPressed.a) newX += PLAYER_SPEED * speedModifier();
-	if (keyPressed.d) newX -= PLAYER_SPEED * speedModifier();
+	if (keyPressed.w) newY += (PLAYER_SPEED * playerSpeedModifier) | 0;
+	if (keyPressed.s) newY -= (PLAYER_SPEED * playerSpeedModifier) | 0;
+	if (keyPressed.a) newX += (PLAYER_SPEED * playerSpeedModifier) | 0;
+	if (keyPressed.d) newX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
 	setWorldPos({ x: newX, y: newY });
 
 	const relPlayerPos = {
@@ -99,21 +110,21 @@ async function gameLoop(timestamp: number) {
 		let newEnemyY = enemy.rect().y;
 		switch (true) {
 			case enemyCenter.x < relPlayerPos.left:
-				newEnemyX += ENEMY_SPEED * speedModifier();
+				newEnemyX += ENEMY_SPEED;
 				break;
 
 			case enemyCenter.x > relPlayerPos.right:
-				newEnemyX -= ENEMY_SPEED * speedModifier();
+				newEnemyX -= ENEMY_SPEED;
 				break;
 		}
 
 		switch (true) {
 			case enemyCenter.y < relPlayerPos.top:
-				newEnemyY += ENEMY_SPEED * speedModifier();
+				newEnemyY += ENEMY_SPEED;
 				break;
 
 			case enemyCenter.y > relPlayerPos.bottom:
-				newEnemyY -= ENEMY_SPEED * speedModifier();
+				newEnemyY -= ENEMY_SPEED;
 				break;
 		}
 
@@ -139,10 +150,10 @@ async function gameLoop(timestamp: number) {
 			if (deltaX) {
 				switch (true) {
 					case bullet.rect().x < bullet.target.x:
-						newBulletX += (deltaX < BULLET_SPEED ? deltaX : BULLET_SPEED) * speedModifier();
+						newBulletX += deltaX < BULLET_SPEED ? deltaX : BULLET_SPEED;
 						break;
 					case bullet.rect().x > bullet.target.x:
-						newBulletX -= (deltaX <= BULLET_SPEED ? deltaX : BULLET_SPEED) * speedModifier();
+						newBulletX -= deltaX <= BULLET_SPEED ? deltaX : BULLET_SPEED;
 						break;
 				}
 			}
@@ -150,10 +161,10 @@ async function gameLoop(timestamp: number) {
 			const deltaY = Math.abs(bullet.rect().y - bullet.target.y);
 			switch (true) {
 				case bullet.rect().y < bullet.target.y:
-					newBulletY += (deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED) * speedModifier();
+					newBulletY += deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED;
 					break;
 				case bullet.rect().y > bullet.target.y:
-					newBulletY -= (deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED) * speedModifier();
+					newBulletY -= deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED;
 					break;
 			}
 
@@ -162,23 +173,38 @@ async function gameLoop(timestamp: number) {
 				...getNewPos({ x: newBulletX, y: newBulletY, width: pos.width, height: pos.height }),
 			}));
 		}
+	}
 
-		for (let i = 0; i < enemies.length; i++) {
-			const enemy = enemies[i]!;
+	for (let i = 0; i < enemies.length; i++) {
+		const enemy = enemies[i]!;
 
+		if (BULLET_COLLISIONS) {
 			for (let j = 0; j < bullets.length; j++) {
 				const bullet = bullets[j]!;
 				if (collisionDetected(bullet.rect(), enemy.rect())) {
 					batch(() => {
+						spawnGem({ x: enemy.rect().centerX, y: enemy.rect().centerY });
 						destroyEnemy(i);
 						destroyBullet(j);
-						setGameState('experience', (exp) => exp + 1);
+						setGameState('enemiesKilled', (k) => k + 1);
 					});
 				}
 			}
+		}
 
+		if (ENEMY_COLLISIONS) {
 			if (collisionDetected(relativePlayerPos(), enemy.rect())) {
 				setGameState('status', 'lost');
+			}
+		}
+	}
+
+	if (GEMS_COLLISIONS) {
+		for (let i = 0; i < gems.length; i++) {
+			const gem = gems[i]!;
+			if (collisionDetected(relativePlayerPos(), gem.rect())) {
+				destroyGem(i);
+				setGameState('experience', (exp) => exp + 1);
 			}
 		}
 	}

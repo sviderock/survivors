@@ -46,7 +46,7 @@ export function createSingleBullet(): Bullet {
 	};
 }
 
-export function spawnNewBullet() {
+export function spawnBullet() {
 	setBullets(produce((bullets) => bullets.push(createSingleBullet())));
 }
 

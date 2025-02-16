@@ -17,7 +17,7 @@ function createSingleEnemy(): Enemy {
 	return { ref: undefined, rect, setRect };
 }
 
-export function spawnNewEnemy() {
+export function spawnEnemy() {
 	setEnemies(produce((enemies) => enemies.push(createSingleEnemy())));
 }
 

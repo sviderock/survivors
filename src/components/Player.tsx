@@ -1,4 +1,4 @@
-import { createMemo, createSignal, onMount } from 'solid-js';
+import { createEffect, createSignal, onMount } from 'solid-js';
 import {
 	PLAYER_SIZE,
 	XP_LVL_2,
@@ -61,6 +61,10 @@ export const playerLevel = () => {
 export default function Player() {
 	onMount(() => {
 		setPlayer((p) => ({ ...p, rect: getRect(p.ref!) }));
+	});
+
+	createEffect(() => {
+		console.log(playerLevel().level);
 	});
 
 	return (
