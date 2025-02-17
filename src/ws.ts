@@ -1,5 +1,15 @@
+import type { PlayedGame } from '@/schema';
 import { eventHandler } from 'vinxi/http';
-import { parseJson } from '~/utils';
+import { startNewGame } from '~/routes/api/games';
+import { getSession } from '~/routes/api/sessions';
+import { encodeJson, parseJson } from '~/utils';
+
+export type GameStartConfirmedEvent = { type: 'game_start_confirmed'; game: PlayedGame };
+
+export type GameServerEvent =
+	| { type: 'ping'; ts: number }
+	| { type: 'init_game_start' }
+	| GameStartConfirmedEvent;
 
 export default eventHandler({
 	handler() {},
@@ -8,14 +18,32 @@ export default eventHandler({
 			console.log('User connected!');
 		},
 		async message(peer, msg) {
+			const session = await getSession(peer.request as Request);
+			if (!session) return;
+
 			const message = parseJson(msg.text());
-			// console.log(message)
-			if (message.type === 'ping') {
-				peer.send(JSON.stringify({ type: 'pong', ts: message.ts }));
-				return;
+			switch (message.type as GameServerEvent['type']) {
+				case 'ping': {
+					peer.send(msg.text());
+					break;
+				}
+
+				case 'init_game_start': {
+					const newGame = await startNewGame(session.userId);
+					const encoded = encodeJson<GameServerEvent>({
+						type: 'game_start_confirmed',
+						game: newGame,
+					});
+					if (encoded) {
+						peer.send(encoded);
+					}
+					break;
+				}
+
+				case 'game_start_confirmed': {
+					break;
+				}
 			}
-			peer.publish('what', message);
-			peer.send(message);
 		},
 		async close(peer, details) {
 			console.log('close', peer.id);

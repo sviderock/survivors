@@ -52,3 +52,5 @@ export function resetGameState() {
 		setPlayer((p) => ({ ...p, health: BASE_HEALTH, maxHealth: BASE_HEALTH }));
 	});
 }
+
+export const [ping, setPing] = createSignal(0);

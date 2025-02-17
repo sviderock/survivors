@@ -1,6 +1,5 @@
 import { createEffect, createSignal, For, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import HealthBar from '~/components/HealthBar';
 import { relativePlayerPos } from '~/components/Player';
 import { ENEMY_ATTACK_COOLDOWN, ENEMY_BASE_HEALTH, ENEMY_SIZE } from '~/constants';
 import { LoadingSpinner } from '~/icons/LoadingSpinner';
@@ -75,10 +74,7 @@ function Enemy(props: EnemyProps) {
 	return (
 		<div
 			class="absolute flex flex-col items-center justify-center"
-			style={{
-				// transition: 'transform 2s linear',
-				transform: `translate3d(${props.enemy.rect().x}px, ${props.enemy.rect().y}px, 0)`,
-			}}
+			style={{ transform: `translate3d(${props.enemy.rect().x}px, ${props.enemy.rect().y}px, 0)` }}
 		>
 			<div
 				ref={(el) => setEnemies(props.idx, 'ref', el)}
@@ -98,12 +94,6 @@ function Enemy(props: EnemyProps) {
 					class={cn('opacity-0', props.enemy.attackStatus() === 'cooldown' && 'opacity-1')}
 				/>
 			</div>
-
-			<HealthBar
-				currentHealth={props.enemy.health}
-				maxHealth={props.enemy.maxHealth}
-				class="mt-0.5 h-2"
-			/>
 		</div>
 	);
 }

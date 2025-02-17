@@ -16,6 +16,15 @@ export function parseJson(str: string) {
 	}
 }
 
+export function encodeJson<T extends object>(obj: T) {
+	try {
+		return JSON.stringify(obj);
+	} catch (error) {
+		console.log('issue encoding JSON', error);
+		return '';
+	}
+}
+
 export function getDiagonalDistance(distance: number) {
 	return distance * (1 / Math.sqrt(2));
 }
@@ -203,4 +212,12 @@ function slowCollisionDetect() {
 	// 		blocked.top = true;
 	// 	}
 	// }
+}
+
+export function getWsUrl(location: Location) {
+	return `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/_ws/`;
+}
+
+export function getMins(mm: number) {
+	return mm * 60 * 1000;
 }

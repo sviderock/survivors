@@ -1,30 +1,28 @@
 import { type Remote, wrap } from 'comlink';
-import { timeStamp } from 'console';
 import { batch } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { destroyEnemy, enemies, setEnemies, spawnEnemy } from '~/components/Enemies';
 import { destroyGem, gems, spawnGem } from '~/components/Gems';
 import { player, relativePlayerPos, setPlayer } from '~/components/Player';
 import { bullets, destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
-import { BULLET_SPEED, ENEMY_SPEED, PLAYER_SPEED } from '~/constants';
+import { BULLET_SPEED, PLAYER_SPEED } from '~/constants';
 import { gameState, keyPressed, setGameState, setStageTimer, setWorldPos, worldPos } from '~/state';
-import { collisionDetected, getDirection, getNewPos } from '~/utils';
+import { collisionDetected, getNewPos } from '~/utils';
 import type { GameLoopWorker } from '~/workers/gameLoopWorker';
 
-let updateEnemyPositions: Remote<GameLoopWorker['updateEnemyPositions']>;
+let worker: Remote<GameLoopWorker>;
 
 if (!isServer) {
-	const worker = new Worker(new URL('./workers/gameLoopWorker.ts', import.meta.url), {
+	const unwrappedWorker = new Worker(new URL('./workers/gameLoopWorker.ts', import.meta.url), {
 		type: 'module',
 		name: 'game-loop-worker',
 	});
-	updateEnemyPositions = wrap<GameLoopWorker>(worker).updateEnemyPositions;
+	worker = wrap<GameLoopWorker>(unwrappedWorker);
 }
 
 const SPAWN_ENEMIES = true;
 const SPAWN_BULLETS = true;
 
-const CALCULATIONS_INTERVAL_MS = 1000;
 const ENEMY_SPAWN_INTERVAL_MS = 500;
 const BULLET_SPAWN_INTERVAL_MS = 1000;
 
@@ -32,9 +30,8 @@ const ENEMY_COLLISIONS = true;
 const BULLET_COLLISIONS = true;
 const GEMS_COLLISIONS = true;
 
-const ENEMY_LIMIT = 300;
+const ENEMY_LIMIT = 150;
 
-const COLLISION_OFFSET = 0;
 const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 
 let enemySpawnTimer = 0;
@@ -104,24 +101,15 @@ async function gameLoop(timestamp: number) {
 		bottom: player().rect.bottom - newWorldY,
 	};
 
-	for (let i = 0; i < enemies.length; i++) {
+	const positions = await worker.updateEnemyPositions({
+		relPlayerPos,
+		enemies: enemies.map((e) => e.rect()),
+	});
+
+	positions.forEach((p, i) => {
 		const enemy = enemies[i]!;
-
-		const dirX =
-			getDirection(enemy.rect().centerX, relPlayerPos.left, relPlayerPos.right) * ENEMY_SPEED;
-		const dirY =
-			getDirection(enemy.rect().centerY, relPlayerPos.top, relPlayerPos.bottom) * ENEMY_SPEED;
-		const newPos = getNewPos({
-			x: enemy.rect().x + dirX,
-			y: enemy.rect().y + dirY,
-			width: enemy.rect().width,
-			height: enemy.rect().height,
-		});
-
-		const blocked: Enemy['blocked'] = { left: false, right: false, top: false, bottom: false };
-
-		enemy.setRect(newPos);
-	}
+		enemy.setRect(p);
+	});
 
 	for (let i = 0; i < bullets.length; i++) {
 		const bullet = bullets[i]!;

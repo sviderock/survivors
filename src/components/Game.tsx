@@ -1,22 +1,27 @@
 import { createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
+import { appkitModal } from '~/appkit';
 import Banner from '~/components/Banner';
 import Enemies, { enemies } from '~/components/Enemies';
 import Gems from '~/components/Gems';
 import Player, { playerLevel } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
-import UserAccount from '~/components/UserAccount';
+import UserAccount, { useUser } from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	gameState,
 	keyPressed,
 	resetGameState,
+	setConnectedUser,
 	setGameState,
 	setKeyPressed,
 	setLastPressedCombination,
 	worldPos,
 } from '~/state';
+import useGameServer, { gameServer } from '~/useGameServer';
+import { encodeJson } from '~/utils';
+import type { GameServerEvent } from '~/ws';
 
 function onKeyDown(e: KeyboardEvent) {
 	if (e.code === 'Escape' || e.code === 'KeyP') {
@@ -29,10 +34,11 @@ function onKeyDown(e: KeyboardEvent) {
 	}
 
 	if (e.code === 'Space') {
-		setGameState('status', (status) => {
-			if (status === 'not_started') return 'in_progress';
-			return status;
-		});
+		gameServer?.send(encodeJson({ type: 'init_game_start' } as GameServerEvent));
+		// setGameState('status', (status) => {
+		// 	if (status === 'not_started') return 'in_progress';
+		// 	return status;
+		// });
 
 		return;
 	}
@@ -62,10 +68,14 @@ function onKeyUp(e: KeyboardEvent) {
 }
 
 export default function Game() {
+	useUser();
+	useGameServer();
+
 	onMount(async () => {
+		appkitModal.subscribeAccount(setConnectedUser);
+
 		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('keyup', onKeyUp);
-
 		onCleanup(() => {
 			document.removeEventListener('keydown', onKeyDown);
 			document.removeEventListener('keyup', onKeyUp);
@@ -112,10 +122,7 @@ function GameWorld(props: ParentProps) {
 	return (
 		<div
 			class="bg-size absolute h-[10000px] w-[10000px] bg-forest bg-[100px_100px]"
-			style={{
-				transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)`,
-				// transition: 'transform 0.1s linear',
-			}}
+			style={{ transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)` }}
 		>
 			{props.children}
 		</div>

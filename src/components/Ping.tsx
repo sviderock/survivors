@@ -1,22 +1,10 @@
-import { createSignal, onCleanup, onMount, Show } from 'solid-js';
-import { parseJson } from '~/utils';
 import { clientOnly } from '@solidjs/start';
-
-const hrefToWs = (location: Location) =>
-	`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/_ws/`;
+import { Show } from 'solid-js';
+import { ping } from '~/state';
 
 export const PingClientOnly = clientOnly(() => import('~/components/Ping'));
 
 export default function Ping(props: { explicit?: boolean }) {
-	const [socket, setSocket] = createSignal<WebSocket | null>(null);
-	const [ping, setPing] = createSignal(0);
-
-	const pingInterval = setInterval(() => {
-		if (socket()?.readyState === WebSocket.OPEN) {
-			socket()!.send(JSON.stringify({ type: 'ping', ts: Date.now() }));
-		}
-	}, 1000);
-
 	const pingState = () => {
 		if (!ping()) return { color: '#888888', type: 'Disconnected' };
 		if (ping() <= 10) return { color: '#00E676', type: 'Professional' };
@@ -25,38 +13,6 @@ export default function Ping(props: { explicit?: boolean }) {
 		if (ping() < 100) return { color: '#FF9800', type: 'Poor' };
 		return { color: '#F44336', type: 'Unplayable' };
 	};
-
-	onMount(() => {
-		const ws = new WebSocket(hrefToWs(location));
-
-		ws.onopen = () => {
-			// console.log('WebSocket connection opened');
-		};
-
-		ws.onmessage = (event) => {
-			const message = parseJson(event.data);
-			if (message.type === 'pong') {
-				setPing(Date.now() - message.ts);
-			}
-		};
-
-		ws.onclose = (event) => {
-			// console.log('WebSocket connection closed', event);
-			setPing(0);
-		};
-
-		ws.onerror = (error) => {
-			// console.error('WebSocket encountered an error:', error);
-		};
-
-		setSocket(ws);
-	});
-
-	// Clean up when the component unmounts
-	onCleanup(() => {
-		socket()?.close();
-		clearInterval(pingInterval);
-	});
 
 	return (
 		<div

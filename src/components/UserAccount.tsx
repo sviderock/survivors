@@ -1,22 +1,18 @@
-import { createQuery, QueryClient } from '@tanstack/solid-query';
-import { createEffect, ErrorBoundary, Match, onMount, Suspense, Switch } from 'solid-js';
-import { getUser } from '~/api/users';
+import type { UserType } from '@/schema';
+import { createQuery } from '@tanstack/solid-query';
+import { Match, Switch } from 'solid-js';
 import { appkitModal } from '~/appkit';
 import { Avatar } from '~/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { LoadingSpinner } from '~/icons/LoadingSpinner';
 import RiUserFacesAccountCircleLine from '~/icons/RiUserFacesAccountCircleLine';
-import { connectedUser, setConnectedUser } from '~/state';
+import { connectedUser } from '~/state';
 
 export default function UserAccount() {
 	const userAddresses = () => connectedUser.allAccounts.map((acc) => acc.address);
 
-	onMount(() => {
-		appkitModal.subscribeAccount(setConnectedUser);
-	});
-
 	return (
-		<div class="absolute left-4 top-4">
+		<div class="absolute left-4 top-4 z-50">
 			<Switch>
 				<Match when={connectedUser.status === 'disconnected'}>
 					<Tooltip>
@@ -43,26 +39,30 @@ export default function UserAccount() {
 				</Match>
 
 				<Match when={connectedUser.status === 'connected' && !!userAddresses().length}>
-					<ConnectedUser addresses={userAddresses()} />
+					<ConnectedUser />
 				</Match>
 			</Switch>
 		</div>
 	);
 }
 
-async function getUserByAddresses(addresses: string[]) {
-	'use server';
-	const data = await getUser(addresses);
-	return data;
+export function useUser() {
+	const userAddresses = () => connectedUser.allAccounts.map((acc) => acc.address);
+	return createQuery(() => ({
+		queryKey: ['currentUser', userAddresses()],
+		queryFn: async () => {
+			console.log('query', userAddresses());
+			const resp = await fetch('/api/users/', {
+				method: 'POST',
+				body: JSON.stringify({ addresses: userAddresses() }),
+			});
+			return (await resp.json()) as UserType;
+		},
+		enabled: !!connectedUser.address?.length,
+	}));
 }
 
-function ConnectedUser(props: { addresses: string[] }) {
-	const user = createQuery(() => ({
-		queryKey: ['currentUser', props.addresses],
-		queryFn: () => getUserByAddresses(props.addresses),
-		enabled: !!props.addresses.length,
-	}));
-
+function ConnectedUser() {
 	return (
 		<Avatar
 			class="size-14 cursor-pointer items-center justify-center bg-green-500 p-2 text-4xl text-green-100"
