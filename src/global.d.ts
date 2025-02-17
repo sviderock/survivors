@@ -46,6 +46,11 @@ declare global {
 
 	type RGBStr = `rgb(${number},${'' | ' '}${number},${'' | ' '}${number})`;
 	type RGB = { r: number; g: number; b: number };
-}
 
-export {};
+	namespace App {
+		interface RequestEventLocals {
+			// session: StoredSessionData | null | undefined;
+			// activeGame: PlayedGame | undefined;
+		}
+	}
+}

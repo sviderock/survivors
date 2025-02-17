@@ -42,5 +42,6 @@ export const PlayedGames = pgTable('PlayedGames', {
 	startedAt: timestamp().defaultNow().notNull(),
 	finishedAt: timestamp(),
 	timeLimit: integer().notNull(),
+	currentlyAt: integer().default(0).notNull(),
 	status: GameStatusEnum().notNull(),
 });

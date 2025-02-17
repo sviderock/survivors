@@ -1,12 +1,11 @@
-'use server';
-import { Sessions, type UserType } from '@/schema';
-import jwt from 'jsonwebtoken';
-import { db } from '~/db';
-import cookie from 'cookie';
+import { type PlayedGame, Sessions, type UserType } from '@/schema';
 import type { ResponseStub } from '@solidjs/start/server';
+import cookie from 'cookie';
+import jwt from 'jsonwebtoken';
 import { isDev } from 'solid-js/web';
+import { db } from '~/db';
 
-type StoredSessionData = { userId: UserType['id'] };
+export type StoredSessionData = { userId: UserType['id']; gameId?: PlayedGame['id'] };
 
 export async function getSession<T extends Request>(request: T) {
 	const cookies = cookie.parse(request.headers.get('cookie') || '');

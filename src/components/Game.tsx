@@ -17,28 +17,43 @@ import {
 	setGameState,
 	setKeyPressed,
 	setLastPressedCombination,
+	stageTimer,
 	worldPos,
 } from '~/state';
 import useGameServer, { gameServer } from '~/useGameServer';
 import { encodeJson } from '~/utils';
-import type { GameServerEvent } from '~/ws';
+import type { ContinueGameEvent, GameServerEvent, PauseGameEvent } from '~/ws';
 
 function onKeyDown(e: KeyboardEvent) {
 	if (e.code === 'Escape' || e.code === 'KeyP') {
-		setGameState('status', (status) => {
-			if (status === 'paused') return 'in_progress';
-			if (status === 'in_progress') return 'paused';
-			return status;
-		});
+		if (gameState.status === 'paused') {
+			setGameState('status', 'in_progress');
+			gameServer!.send(encodeJson<ContinueGameEvent>({ type: 'continue_game' }));
+			return;
+		}
+
+		if (gameState.status === 'in_progress') {
+			setGameState('status', 'paused');
+			gameServer!.send(
+				encodeJson<PauseGameEvent>({ type: 'pause_game', timePassedInMs: stageTimer() }),
+			);
+			return;
+		}
+
 		return;
 	}
 
 	if (e.code === 'Space') {
-		gameServer?.send(encodeJson({ type: 'init_game_start' } as GameServerEvent));
-		// setGameState('status', (status) => {
-		// 	if (status === 'not_started') return 'in_progress';
-		// 	return status;
-		// });
+		if (gameState.status === 'not_started') {
+			gameServer?.send(encodeJson({ type: 'init_game_start' } as GameServerEvent));
+			return;
+		}
+
+		if (gameState.status === 'active_game_found') {
+			setGameState('status', 'in_progress');
+			gameServer?.send(encodeJson({ type: 'continue_game' } as GameServerEvent));
+			return;
+		}
 
 		return;
 	}

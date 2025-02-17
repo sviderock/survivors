@@ -1,4 +1,4 @@
-import { batch, Match, Switch } from 'solid-js';
+import { batch, createEffect, Match, Switch } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { setPlayer } from '~/components/Player';
 import { Button } from '~/components/ui/button';
@@ -6,6 +6,9 @@ import { gameState, setGameState } from '~/state';
 import { cn } from '~/utils';
 
 export default function Banner() {
+	createEffect(() => {
+		console.log(gameState.status);
+	});
 	return (
 		<Switch fallback={null}>
 			<Match when={gameState.status === 'not_started'}>
@@ -63,6 +66,19 @@ export default function Banner() {
 					<span>{gameState.status}</span>
 					<span class="text-3xl">
 						Press <strong>R</strong> to restart
+					</span>
+				</div>
+			</Match>
+
+			<Match when={gameState.status === 'active_game_found'}>
+				<div
+					class={cn(
+						'absolute left-0 top-0 z-50 flex h-full w-full flex-col items-center justify-center bg-yellow-500/50 text-9xl uppercase',
+					)}
+				>
+					<span class="text-3xl">You've got an unfinished game.</span>
+					<span class="text-3xl">
+						Press <strong>spacebar</strong> to continue
 					</span>
 				</div>
 			</Match>

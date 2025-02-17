@@ -6,7 +6,7 @@ import { destroyGem, gems, spawnGem } from '~/components/Gems';
 import { player, relativePlayerPos, setPlayer } from '~/components/Player';
 import { bullets, destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
 import { BULLET_SPEED, PLAYER_SPEED } from '~/constants';
-import { gameState, keyPressed, setGameState, setStageTimer, setWorldPos, worldPos } from '~/state';
+import { gameState, keyPressed, setGameState, setWorldPos, worldPos } from '~/state';
 import { collisionDetected, getNewPos } from '~/utils';
 import type { GameLoopWorker } from '~/workers/gameLoopWorker';
 
@@ -37,7 +37,6 @@ const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 let enemySpawnTimer = 0;
 let bulletSpawnTimer = 0;
 let gameStageTimer = 0;
-let gameStageTimerStoppedAt = 0;
 
 export let mainGameLoop: number | undefined;
 
@@ -45,17 +44,12 @@ async function gameLoop(timestamp: number) {
 	if (gameState.status !== 'in_progress') {
 		enemySpawnTimer = 0;
 		bulletSpawnTimer = 0;
-		if (gameState.status === 'paused') {
-			gameStageTimerStoppedAt = timestamp;
-		}
 		return;
 	}
 
 	if (gameStageTimer === 0) {
 		gameStageTimer = timestamp;
 	}
-
-	setStageTimer(timestamp - gameStageTimer - gameStageTimerStoppedAt);
 
 	if (SPAWN_ENEMIES) {
 		if (!enemySpawnTimer) enemySpawnTimer = timestamp;

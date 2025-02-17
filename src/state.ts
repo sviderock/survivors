@@ -1,4 +1,6 @@
+import type { PlayedGame } from '@/schema';
 import { type UseAppKitAccountReturn } from '@reown/appkit';
+import { createTimer } from '@solid-primitives/timer';
 import { batch, createSignal } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import { setEnemies } from '~/components/Enemies';
@@ -26,7 +28,14 @@ export const [gameState, setGameState] = createStore({
 	enemySpawnInterval: 0,
 	experience: 0,
 	enemiesKilled: 0,
-	status: 'not_started' as 'not_started' | 'in_progress' | 'paused' | 'won' | 'lost',
+	gameInstance: null as PlayedGame | null,
+	status: 'not_started' as
+		| 'not_started'
+		| 'in_progress'
+		| 'paused'
+		| 'won'
+		| 'lost'
+		| 'active_game_found',
 });
 
 export const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, d: false });
@@ -45,6 +54,7 @@ export function resetGameState() {
 			experience: 0,
 			enemiesKilled: 0,
 			status: 'not_started',
+			gameInstance: null,
 		});
 		setLastPressedCombination('w');
 		setKeyPressed({ w: false, s: false, a: false, d: false });
@@ -54,3 +64,9 @@ export function resetGameState() {
 }
 
 export const [ping, setPing] = createSignal(0);
+
+export const roundTimer = createTimer(
+	() => gameState.status === 'in_progress' && setStageTimer((p) => p + 500),
+	500,
+	setInterval,
+);

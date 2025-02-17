@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip
 import { LoadingSpinner } from '~/icons/LoadingSpinner';
 import RiUserFacesAccountCircleLine from '~/icons/RiUserFacesAccountCircleLine';
 import { connectedUser } from '~/state';
+import { encodeJson } from '~/utils';
 
 export default function UserAccount() {
 	const userAddresses = () => connectedUser.allAccounts.map((acc) => acc.address);
@@ -51,10 +52,9 @@ export function useUser() {
 	return createQuery(() => ({
 		queryKey: ['currentUser', userAddresses()],
 		queryFn: async () => {
-			console.log('query', userAddresses());
 			const resp = await fetch('/api/users/', {
 				method: 'POST',
-				body: JSON.stringify({ addresses: userAddresses() }),
+				body: encodeJson({ addresses: userAddresses() }),
 			});
 			return (await resp.json()) as UserType;
 		},
