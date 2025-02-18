@@ -1,23 +1,33 @@
 import type { PlayedGame } from '@/schema';
-import { getRequestEvent } from 'solid-js/web';
 import { eventHandler } from 'vinxi/http';
-import { continueGame, findActiveGame, pauseGame, startNewGame } from '~/routes/api/games';
+import { continueGame, findActiveGame, startNewGame, updateGame } from '~/routes/api/games';
 import { getSession } from '~/routes/api/sessions';
-import { encodeJson, parseJson } from '~/utils';
+import { addCoinsToUser } from '~/routes/api/users';
+import { encodeEvent, parseEvent } from '~/utils';
 
 export type PingEvent = { type: 'ping'; ts: number };
+export type InitGameStartEvent = { type: 'init_game_start' };
 export type GameStartConfirmedEvent = { type: 'game_start_confirmed'; game: PlayedGame };
 export type ActiveGameFoundEvent = { type: 'active_game_found'; game: PlayedGame };
 export type ContinueGameEvent = { type: 'continue_game' };
 export type PauseGameEvent = { type: 'pause_game'; timePassedInMs: number };
+export type UpdateAbruptlyStoppedGameEvent = {
+	type: 'update_abruptly_stopped_game';
+	timePassedInMs: number;
+};
+export type GameWonEvent = { type: 'game_won' };
+export type RewardClaimedEvent = { type: 'reward_claimed' };
 
 export type GameServerEvent =
 	| PingEvent
-	| { type: 'init_game_start' }
+	| InitGameStartEvent
 	| GameStartConfirmedEvent
 	| ActiveGameFoundEvent
 	| ContinueGameEvent
-	| PauseGameEvent;
+	| PauseGameEvent
+	| UpdateAbruptlyStoppedGameEvent
+	| GameWonEvent
+	| RewardClaimedEvent;
 
 export default eventHandler({
 	handler() {},
@@ -29,29 +39,25 @@ export default eventHandler({
 
 			const activeGame = await findActiveGame(session.userId);
 			if (activeGame) {
-				peer.send(
-					encodeJson<ActiveGameFoundEvent>({ type: 'active_game_found', game: activeGame }),
-				);
+				peer.send(encodeEvent({ type: 'active_game_found', game: activeGame }));
 			}
 		},
 		async message(peer, msg) {
 			const session = await getSession(peer.request as Request);
 			if (!session) return;
 
-			const message = parseJson(msg.text()) as GameServerEvent;
+			const message = parseEvent(msg.text());
+			if (!message) return;
 
 			switch (message.type) {
 				case 'ping': {
-					peer.send(encodeJson<PingEvent>({ type: 'ping', ts: message.ts }));
+					peer.send(encodeEvent({ type: 'ping', ts: message.ts }));
 					break;
 				}
 
 				case 'init_game_start': {
 					const newGame = await startNewGame(session.userId);
-					const encoded = encodeJson<GameServerEvent>({
-						type: 'game_start_confirmed',
-						game: newGame,
-					});
+					const encoded = encodeEvent({ type: 'game_start_confirmed', game: newGame });
 					if (encoded) {
 						peer.send(encoded);
 					}
@@ -70,7 +76,37 @@ export default eventHandler({
 				case 'pause_game': {
 					const activeGame = await findActiveGame(session.userId);
 					if (activeGame) {
-						await pauseGame({ id: activeGame.id, currentlyAt: message.timePassedInMs });
+						await updateGame(activeGame.id, {
+							status: 'paused',
+							currentlyAt: message.timePassedInMs,
+						});
+					}
+					break;
+				}
+
+				case 'update_abruptly_stopped_game': {
+					const activeGame = await findActiveGame(session.userId);
+					if (activeGame) {
+						const updatedGame = await updateGame(activeGame.id, {
+							status: 'paused',
+							currentlyAt: message.timePassedInMs,
+						});
+						peer.send(encodeEvent({ type: 'active_game_found', game: updatedGame }));
+					}
+					break;
+				}
+
+				case 'game_won': {
+					const activeGame = await findActiveGame(session.userId);
+					if (activeGame) {
+						const updatedGame = await updateGame(activeGame.id, {
+							status: 'won',
+							currentlyAt: activeGame.timeLimit,
+							finishedAt: new Date(),
+							gameState: null,
+						});
+						await addCoinsToUser(session.userId, updatedGame.coinsAtStake);
+						peer.send(encodeEvent({ type: 'reward_claimed' }));
 					}
 					break;
 				}

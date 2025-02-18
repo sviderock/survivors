@@ -1,11 +1,10 @@
 import { createEffect, createSignal, For, onMount } from 'solid-js';
-import { createStore, produce } from 'solid-js/store';
+import { produce } from 'solid-js/store';
 import { relativePlayerPos } from '~/components/Player';
 import { ENEMY_ATTACK_COOLDOWN, ENEMY_BASE_HEALTH, ENEMY_SIZE } from '~/constants';
 import { LoadingSpinner } from '~/icons/LoadingSpinner';
+import { gameState, setGameState } from '~/state';
 import { cn, getInitialRect, getRandomBetween, getRect } from '~/utils';
-
-export const [enemies, setEnemies] = createStore<Enemy[]>([]);
 
 function createSingleEnemy(): Enemy {
 	const initialRect = getInitialRect({
@@ -31,25 +30,28 @@ function createSingleEnemy(): Enemy {
 }
 
 export function spawnEnemy() {
-	setEnemies(produce((enemies) => enemies.push(createSingleEnemy())));
+	setGameState(
+		'enemies',
+		produce((enemies) => enemies.push(createSingleEnemy())),
+	);
 }
 
 export function destroyEnemy(idx: number) {
-	setEnemies((prev) => prev.filter((_, i) => idx !== i));
+	setGameState('enemies', (prev) => prev.filter((_, i) => idx !== i));
 }
 
 export default function Enemies() {
 	onMount(() => {
-		enemies.forEach((enemy) => {
+		gameState.enemies.forEach((enemy) => {
 			const rect = getRect(enemy.ref!);
 			enemy.setRect(rect);
 		});
 	});
 
 	return (
-		<For each={enemies}>
+		<For each={gameState.enemies}>
 			{(enemy, idx) => (
-				<Enemy idx={idx()} enemy={enemy} ref={(el) => setEnemies(idx(), 'ref', el)} />
+				<Enemy idx={idx()} enemy={enemy} ref={(el) => setGameState('enemies', idx(), 'ref', el)} />
 			)}
 		</For>
 	);
@@ -77,7 +79,7 @@ function Enemy(props: EnemyProps) {
 			style={{ transform: `translate3d(${props.enemy.rect().x}px, ${props.enemy.rect().y}px, 0)` }}
 		>
 			<div
-				ref={(el) => setEnemies(props.idx, 'ref', el)}
+				ref={props.ref}
 				class={cn(
 					'flex items-center justify-center border-2 border-blue-900 bg-blue-500',
 					props.enemy.blocked.left && 'border-l-red-500',

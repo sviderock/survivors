@@ -30,5 +30,5 @@ export default function FPSCounter() {
 		clearInterval(interval);
 	});
 
-	return <span class="text-base text-zinc-500">{fps()} FPS</span>;
+	return <span class="text-base">{fps()} FPS</span>;
 }

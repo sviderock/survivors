@@ -1,7 +1,7 @@
 import { createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import { appkitModal } from '~/appkit';
 import Banner from '~/components/Banner';
-import Enemies, { enemies } from '~/components/Enemies';
+import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
 import Player, { playerLevel } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
@@ -55,6 +55,11 @@ function onKeyDown(e: KeyboardEvent) {
 			return;
 		}
 
+		if (gameState.status === 'won') {
+			resetGameState();
+			return;
+		}
+
 		return;
 	}
 
@@ -82,9 +87,29 @@ function onKeyUp(e: KeyboardEvent) {
 	}
 }
 
+function onBeforeUnload(e: BeforeUnloadEvent) {
+	e.preventDefault();
+	setGameState('status', 'paused');
+	gameServer!.send(
+		encodeJson<PauseGameEvent>({ type: 'pause_game', timePassedInMs: stageTimer() }),
+	);
+}
+
 export default function Game() {
-	useUser();
 	useGameServer();
+
+	createEffect(() => {
+		console.log(gameState.status);
+	});
+
+	createEffect(() => {
+		if (gameState.status !== 'in_progress' && gameState.status !== 'paused') return;
+
+		window.addEventListener('beforeunload', onBeforeUnload);
+		onCleanup(() => {
+			window.removeEventListener('beforeunload', onBeforeUnload);
+		});
+	});
 
 	onMount(async () => {
 		appkitModal.subscribeAccount(setConnectedUser);
@@ -128,7 +153,6 @@ export default function Game() {
 			<UserAccount />
 			<StageTimer />
 			<UIStats />
-			<UserStats />
 		</div>
 	);
 }
@@ -140,31 +164,6 @@ function GameWorld(props: ParentProps) {
 			style={{ transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)` }}
 		>
 			{props.children}
-		</div>
-	);
-}
-
-function UserStats() {
-	const enemiesCount = () => enemies.length;
-
-	return (
-		<div class="absolute left-1/2 top-1 flex -translate-x-1/2 gap-2 border-2 text-4xl">
-			<div class="flex w-full flex-row justify-between gap-1 px-1">
-				<strong>
-					{playerLevel().exp}/{playerLevel().xpToNextLevel}
-				</strong>
-				<span>EXP</span>
-			</div>
-
-			<div class="flex w-full flex-row justify-between gap-1 px-1">
-				<strong>{playerLevel().level}</strong>
-				<span>LVL</span>
-			</div>
-
-			<div class="flex w-full flex-row justify-between gap-1 px-1">
-				<strong>{enemiesCount()}</strong>
-				<span>Enemies</span>
-			</div>
 		</div>
 	);
 }

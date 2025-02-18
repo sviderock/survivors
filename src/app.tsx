@@ -25,7 +25,7 @@ import '@fontsource/poppins/900-italic.css';
 import '@fontsource/poppins/900.css';
 import './app.css';
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
 			experimental_prefetchInRender: true,

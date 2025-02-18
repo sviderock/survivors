@@ -29,15 +29,15 @@ export default function MemoryUsage() {
 
 	return (
 		<Show when={memoryData()}>
-			<div class="flex flex-col text-sm text-zinc-500">
-				<span class="flex justify-end gap-1">
-					Used Memory: <strong>{formatBytes(memoryData()!.usedJSHeapSize)}</strong>
+			<div class="flex w-full flex-col text-sm">
+				<span class="flex justify-between gap-2">
+					<strong>{formatBytes(memoryData()!.usedJSHeapSize)}</strong>Used Memory
 				</span>
-				<span class="flex justify-end gap-1">
-					Total Allocated Memory: <strong>{formatBytes(memoryData()!.totalJSHeapSize)}</strong>
+				<span class="flex justify-between gap-2">
+					<strong>{formatBytes(memoryData()!.totalJSHeapSize)}</strong>Total Allocated Memory
 				</span>
-				<span class="flex justify-end gap-1">
-					Heap Size Limit: <strong>{formatBytes(memoryData()!.jsHeapSizeLimit)}</strong>
+				<span class="flex justify-between gap-2">
+					<strong>{formatBytes(memoryData()!.jsHeapSizeLimit)}</strong>Heap Size Limit
 				</span>
 			</div>
 		</Show>

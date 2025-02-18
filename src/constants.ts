@@ -24,5 +24,7 @@ export const HEALTH_COLOR_FULL = 'rgb(124,207,0)';
 export const HEALTH_COLOR_HALF = 'rgb(240,177,0)';
 export const HEALTH_COLOR_NONE = 'rgb(193,0,7)';
 
-export const COINS_FOR_WIN = 100;
-export const STAGE_TIME_IN_MINUTES = 5;
+export const BASE_COINS_REWARD = 100;
+export const STAGE_TIME_IN_MINUTES = 0.2;
+
+export const ABRUPTLY_STOPPPED_GAME_LS_KEY = 'abruptly_stopped_game';

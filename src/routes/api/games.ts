@@ -1,14 +1,20 @@
 'use server';
 
 import { PlayedGame, PlayedGames, type UserType } from '@/schema';
-import { and, eq, inArray, or } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
+import { BASE_COINS_REWARD, STAGE_TIME_IN_MINUTES } from '~/constants';
 import { db } from '~/db';
 import { getMins } from '~/utils';
 
 export async function startNewGame(userId: UserType['id']) {
 	const [game] = await db
 		.insert(PlayedGames)
-		.values({ userId, status: 'in_progress', timeLimit: getMins(5) })
+		.values({
+			userId,
+			status: 'in_progress',
+			timeLimit: getMins(STAGE_TIME_IN_MINUTES),
+			coinsAtStake: BASE_COINS_REWARD,
+		})
 		.returning();
 	return game!;
 }
@@ -32,9 +38,11 @@ export async function findActiveGame(userId: UserType['id']) {
 	return game;
 }
 
-export async function pauseGame(game: Pick<PlayedGame, 'id' | 'currentlyAt'>) {
-	await db
+export async function updateGame(gameId: PlayedGame['id'], data: Partial<Omit<PlayedGame, 'id'>>) {
+	const [game] = await db
 		.update(PlayedGames)
-		.set({ status: 'paused', currentlyAt: game.currentlyAt })
-		.where(eq(PlayedGames.id, game.id));
+		.set(data)
+		.where(eq(PlayedGames.id, gameId))
+		.returning();
+	return game!;
 }

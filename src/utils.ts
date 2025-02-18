@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { HEALTH_COLOR_FULL, HEALTH_COLOR_HALF, HEALTH_COLOR_NONE } from '~/constants';
 import { type LastPressedCombination } from '~/state';
+import type { GameServerEvent } from '~/ws';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -22,6 +23,34 @@ export function encodeJson<T extends object>(obj: T) {
 	} catch (error) {
 		console.log('issue encoding JSON', error);
 		return '';
+	}
+}
+
+export function encodeEvent<T extends GameServerEvent>(obj: T) {
+	return encodeJson(obj);
+}
+
+export function parseEvent(str: string) {
+	const parsed = parseJson(str) as GameServerEvent;
+	return parsed.type ? parsed : null;
+}
+
+export function persistData<T extends object>(key: string, data: T) {
+	try {
+		localStorage.setItem(key, JSON.stringify(data));
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+export function getPersistedData<T extends object>(key: string): T | null {
+	try {
+		const data = localStorage.getItem(key);
+		if (!data) return null;
+		return JSON.parse(data) as T;
+	} catch (error) {
+		console.error(error);
+		return null;
 	}
 }
 

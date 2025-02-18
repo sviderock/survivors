@@ -64,13 +64,15 @@ export function useUser() {
 
 function ConnectedUser() {
 	return (
-		<Avatar
-			class="size-14 cursor-pointer items-center justify-center bg-green-500 p-2 text-4xl text-green-100"
-			onClick={() => {
-				appkitModal.open();
-			}}
-		>
-			<RiUserFacesAccountCircleLine />
-		</Avatar>
+		<div class="flex flex-col gap-2">
+			<Avatar
+				class="size-14 cursor-pointer items-center justify-center bg-green-500 p-2 text-4xl text-green-100"
+				onClick={() => {
+					appkitModal.open();
+				}}
+			>
+				<RiUserFacesAccountCircleLine />
+			</Avatar>
+		</div>
 	);
 }

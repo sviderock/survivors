@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createRoot, createSignal, onMount } from 'solid-js';
+import { createSignal, onMount } from 'solid-js';
 import HealthBar from '~/components/HealthBar';
 import {
 	BASE_HEALTH,

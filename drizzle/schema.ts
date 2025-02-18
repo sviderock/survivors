@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgEnum, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { integer, json, pgEnum, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export type UserType = typeof Users.$inferSelect;
 export const Users = pgTable('Users', {
@@ -44,4 +44,6 @@ export const PlayedGames = pgTable('PlayedGames', {
 	timeLimit: integer().notNull(),
 	currentlyAt: integer().default(0).notNull(),
 	status: GameStatusEnum().notNull(),
+	gameState: json().$type<GameState>(),
+	coinsAtStake: integer().notNull(),
 });

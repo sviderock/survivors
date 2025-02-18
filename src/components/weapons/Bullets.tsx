@@ -1,11 +1,9 @@
 import { createSignal, For, onMount } from 'solid-js';
-import { createStore, produce } from 'solid-js/store';
+import { produce } from 'solid-js/store';
 import { relativePlayerPos } from '~/components/Player';
 import { BULLET_DAMAGE, BULLET_DISTANCE, BULLET_SIZE } from '~/constants';
-import { lastPressedCombination } from '~/state';
+import { gameState, lastPressedCombination, setGameState } from '~/state';
 import { getDiagonalDistance, getInitialRect, getRect } from '~/utils';
-
-export const [bullets, setBullets] = createStore<Bullet[]>([]);
 
 function getBulletDistance() {
 	if (lastPressedCombination() === 'w') return { x: 0, y: -BULLET_DISTANCE };
@@ -48,26 +46,29 @@ export function createSingleBullet(): Bullet {
 }
 
 export function spawnBullet() {
-	setBullets(produce((bullets) => bullets.push(createSingleBullet())));
+	setGameState(
+		'bullets',
+		produce((bullets) => bullets.push(createSingleBullet())),
+	);
 }
 
 export function destroyBullet(idx: number) {
-	setBullets((prev) => prev.filter((_, i) => idx !== i));
+	setGameState('bullets', (prev) => prev.filter((_, i) => idx !== i));
 }
 
 export default function Bullets() {
 	onMount(() => {
-		bullets.forEach((bullet) => {
+		gameState.bullets.forEach((bullet) => {
 			const rect = getRect(bullet.ref!);
 			bullet.setRect(rect);
 		});
 	});
 
 	return (
-		<For each={bullets}>
+		<For each={gameState.bullets}>
 			{(bullet, idx) => (
 				<span
-					ref={(el) => setBullets(idx(), 'ref', el)}
+					ref={(el) => setGameState('bullets', idx(), 'ref', el)}
 					class="absolute z-[20] flex bg-purple-700"
 					style={{
 						transform: `translate3d(${bullet.rect().x}px, ${bullet.rect().y}px, 0)`,

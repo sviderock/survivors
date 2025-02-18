@@ -1,5 +1,6 @@
 /// <reference types="@solidjs/start/env" />
 
+import type { PlayedGame } from '@/schema';
 import type { Accessor, Setter } from 'solid-js';
 
 declare global {
@@ -8,6 +9,29 @@ declare global {
 	type RectSize = Pick<DOMRect, 'width' | 'height'>;
 	type RectCenter = { centerX: number; centerY: number };
 	type Rect = RectSides & RectCoords & RectSize & RectCenter;
+
+	type BaseGameStateProps = {
+		pingEnabled: boolean;
+		bulletSpawnInterval: number;
+		enemySpawnInterval: number;
+		experience: number;
+		enemiesKilled: number;
+		enemies: Enemy[];
+		bullets: Bullet[];
+		gems: Gem[];
+	};
+
+	type StatusBasedProps =
+		| {
+				status: 'in_progress' | 'paused' | 'won' | 'lost' | 'active_game_found';
+				activeGame: PlayedGame;
+		  }
+		| {
+				status: 'not_started';
+				activeGame: null;
+		  };
+
+	type GameState = BaseGameStateProps & StatusBasedProps;
 
 	type Player = {
 		ref: HTMLDivElement | undefined;

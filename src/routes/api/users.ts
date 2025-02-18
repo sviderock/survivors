@@ -1,7 +1,7 @@
 'use server';
 import { UserAddresses, Users, type UserType } from '@/schema';
 import { type APIEvent } from '@solidjs/start/server';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { db } from '~/db';
 import { createSession, getSession } from '~/routes/api/sessions';
 
@@ -38,6 +38,20 @@ async function createUser(addresses: string[]) {
 
 	if (!newUserId) throw new Error('User cannot be created');
 	return newUserId;
+}
+
+export async function updateUser(userId: UserType['id'], data: Partial<Omit<UserType, 'id'>>) {
+	const [user] = await db.update(Users).set(data).where(eq(Users.id, userId)).returning();
+	return user!;
+}
+
+export async function addCoinsToUser(userId: UserType['id'], coins: UserType['coins']) {
+	const [user] = await db
+		.update(Users)
+		.set({ coins: sql`${Users.coins} + ${coins}` })
+		.where(eq(Users.id, userId))
+		.returning();
+	return user!;
 }
 
 export async function POST({ request, response }: APIEvent) {

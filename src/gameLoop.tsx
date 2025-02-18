@@ -1,10 +1,10 @@
 import { type Remote, wrap } from 'comlink';
 import { batch } from 'solid-js';
 import { isServer } from 'solid-js/web';
-import { destroyEnemy, enemies, setEnemies, spawnEnemy } from '~/components/Enemies';
-import { destroyGem, gems, spawnGem } from '~/components/Gems';
+import { destroyEnemy, spawnEnemy } from '~/components/Enemies';
+import { destroyGem, spawnGem } from '~/components/Gems';
 import { player, relativePlayerPos, setPlayer } from '~/components/Player';
-import { bullets, destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
+import { destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
 import { BULLET_SPEED, PLAYER_SPEED } from '~/constants';
 import { gameState, keyPressed, setGameState, setWorldPos, worldPos } from '~/state';
 import { collisionDetected, getNewPos } from '~/utils';
@@ -54,7 +54,7 @@ async function gameLoop(timestamp: number) {
 	if (SPAWN_ENEMIES) {
 		if (!enemySpawnTimer) enemySpawnTimer = timestamp;
 		if (timestamp - enemySpawnTimer >= (gameState.enemySpawnInterval || ENEMY_SPAWN_INTERVAL_MS)) {
-			if (enemies.length < ENEMY_LIMIT) {
+			if (gameState.enemies.length < ENEMY_LIMIT) {
 				spawnEnemy();
 			}
 			enemySpawnTimer += gameState.enemySpawnInterval || ENEMY_SPAWN_INTERVAL_MS;
@@ -97,16 +97,16 @@ async function gameLoop(timestamp: number) {
 
 	const positions = await worker.updateEnemyPositions({
 		relPlayerPos,
-		enemies: enemies.map((e) => e.rect()),
+		enemies: gameState.enemies.map((e) => e.rect()),
 	});
 
 	positions.forEach((p, i) => {
-		const enemy = enemies[i]!;
+		const enemy = gameState.enemies[i]!;
 		enemy.setRect(p);
 	});
 
-	for (let i = 0; i < bullets.length; i++) {
-		const bullet = bullets[i]!;
+	for (let i = 0; i < gameState.bullets.length; i++) {
+		const bullet = gameState.bullets[i]!;
 
 		if (
 			(bullet.rect().x | 0) === (bullet.target.x | 0) &&
@@ -150,12 +150,12 @@ async function gameLoop(timestamp: number) {
 		}
 	}
 
-	for (let i = 0; i < enemies.length; i++) {
-		const enemy = enemies[i]!;
+	for (let i = 0; i < gameState.enemies.length; i++) {
+		const enemy = gameState.enemies[i]!;
 
 		if (BULLET_COLLISIONS) {
-			for (let j = 0; j < bullets.length; j++) {
-				const bullet = bullets[j]!;
+			for (let j = 0; j < gameState.bullets.length; j++) {
+				const bullet = gameState.bullets[j]!;
 				if (collisionDetected(bullet.rect(), enemy.rect())) {
 					batch(() => {
 						if (enemy.health <= bullet.damage) {
@@ -165,7 +165,7 @@ async function gameLoop(timestamp: number) {
 							setGameState('enemiesKilled', (k) => k + 1);
 						} else {
 							destroyBullet(j);
-							setEnemies(i, 'health', enemy.health - bullet.damage);
+							setGameState('enemies', i, 'health', enemy.health - bullet.damage);
 						}
 					});
 				}
@@ -185,8 +185,8 @@ async function gameLoop(timestamp: number) {
 	}
 
 	if (GEMS_COLLISIONS) {
-		for (let i = 0; i < gems.length; i++) {
-			const gem = gems[i]!;
+		for (let i = 0; i < gameState.gems.length; i++) {
+			const gem = gameState.gems[i]!;
 			if (collisionDetected(relativePlayerPos(), gem.rect())) {
 				destroyGem(i);
 				setGameState('experience', (exp) => exp + 1);

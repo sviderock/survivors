@@ -4,5 +4,5 @@ import { msToTime } from '~/utils';
 export default function StageTimer() {
 	const formattedTime = () => msToTime(stageTimer());
 
-	return <span class="">{formattedTime()}</span>;
+	return <span class="absolute left-1/2 top-6 -translate-x-1/2 text-4xl">{formattedTime()}</span>;
 }
