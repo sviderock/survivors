@@ -6,19 +6,6 @@ FROM oven/bun:${BUN_VERSION}-slim AS base
 
 LABEL fly_launch_runtime="Bun"
 
-ARG DB_URL
-ARG SESSION_SECRET
-ARG VITE_REOWN_PROJECT_ID
-ARG VITE_ZERION_API
-ARG VITE_ZERION_API_KEY
-
-ENV DB_URL=${DB_URL} \
-    SESSION_SECRET=${SESSION_SECRET} \
-    VITE_REOWN_PROJECT_ID=${VITE_REOWN_PROJECT_ID} \
-    VITE_ZERION_API=${VITE_ZERION_API} \
-    VITE_ZERION_API_KEY=${VITE_ZERION_API_KEY}
-
-
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential curl ca-certificates pkg-config python-is-python3
@@ -32,22 +19,21 @@ RUN curl -sL https://github.com/nodenv/node-build/archive/master.tar.gz | tar xz
 
 # Bun app lives here
 WORKDIR /app
-
-# Set production environment
 ENV NODE_ENV="production"
-
-
 
 
 FROM base AS build
 COPY bun.lock package.json ./
 RUN bun install
 COPY . .
-RUN bun run build
+RUN --mount=type=secret,id=ALL_SECRETS \
+    eval "$(base64 -d /run/secrets/ALL_SECRETS)" && \
+    echo $VITE_REOWN_PROJECT_ID && \
+    bun run build
+    
 # Remove development dependencies
 # RUN rm -rf node_modules && \
 #     bun install --ci
-
 
 
 FROM base

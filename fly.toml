@@ -6,6 +6,7 @@
 app = "survivors"
 primary_region = "waw"
 
+
 [env]
 
 [build]
