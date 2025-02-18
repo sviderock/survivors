@@ -1,6 +1,9 @@
 import { defineConfig } from '@solidjs/start/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { comlink } from 'vite-plugin-comlink';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export default defineConfig({
 	server: {

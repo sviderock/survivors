@@ -26,11 +26,7 @@ FROM base AS build
 COPY bun.lock package.json ./
 RUN bun install
 COPY . .
-RUN --mount=type=secret,id=ALL_SECRETS \
-    eval "$(base64 -d /run/secrets/ALL_SECRETS)" && \
-    echo $VITE_REOWN_PROJECT_ID && \
-    bun run build
-    
+RUN bun run build    
 # Remove development dependencies
 # RUN rm -rf node_modules && \
 #     bun install --ci
