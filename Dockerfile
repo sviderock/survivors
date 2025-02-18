@@ -1,16 +1,23 @@
 # syntax = docker/dockerfile:1
 
 # Adjust BUN_VERSION as desired
+ARG BUN_VERSION=1.2.2
+FROM oven/bun:${BUN_VERSION}-slim AS base
+
+LABEL fly_launch_runtime="Bun"
+
 ARG DB_URL
 ARG SESSION_SECRET
 ARG VITE_REOWN_PROJECT_ID
 ARG VITE_ZERION_API
 ARG VITE_ZERION_API_KEY
 
-ARG BUN_VERSION=1.2.2
-FROM oven/bun:${BUN_VERSION}-slim AS base
+ENV DB_URL=${DB_URL} \
+    SESSION_SECRET=${SESSION_SECRET} \
+    VITE_REOWN_PROJECT_ID=${VITE_REOWN_PROJECT_ID} \
+    VITE_ZERION_API=${VITE_ZERION_API} \
+    VITE_ZERION_API_KEY=${VITE_ZERION_API_KEY}
 
-LABEL fly_launch_runtime="Bun"
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \
