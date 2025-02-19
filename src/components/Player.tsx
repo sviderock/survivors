@@ -1,5 +1,6 @@
 import { createEffect, createSignal, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
+import Character from '~/components/Character';
 import HealthBar from '~/components/HealthBar';
 import {
 	BASE_HEALTH,
@@ -103,27 +104,16 @@ export default function Player() {
 				'pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center',
 			)}
 		>
-			<div
+			<Character
 				ref={(ref) => setPlayer('ref', ref)}
-				class="relative overflow-hidden border-2 text-white transition-none"
-				style={{
-					width: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
-					height: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
-					scale: `${player.state.direction === 'east' ? 1 : -1} 1`,
-				}}
-			>
-				<img
-					class={cn(
-						'animate-move-sprite-sheet-idle absolute max-w-[unset] transition-transform',
-						player.state.type === 'moving' && 'animate-move-sprite-sheet-run',
-					)}
-					src="/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png"
-					style={{
-						width: `calc(${PLAYER_SIZE * 8}px * var(--pixel-size))`,
-						'image-rendering': 'pixelated',
-					}}
-				/>
-			</div>
+				direction={player.state.direction}
+				size={PLAYER_SIZE}
+				spriteSrc="/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png"
+				class={cn(
+					'animate-move-sprite-sheet-idle',
+					player.state.type === 'moving' && 'animate-move-sprite-sheet-run',
+				)}
+			/>
 
 			<HealthBar class="mt-1 h-3" currentHealth={player.health} maxHealth={player.maxHealth} />
 		</div>

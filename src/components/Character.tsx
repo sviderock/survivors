@@ -1,0 +1,37 @@
+import { cn } from '~/utils';
+
+interface CharacterProps {
+	ref: HTMLDivElement | ((el: HTMLDivElement) => void) | undefined;
+	direction: 'east' | 'west';
+	size: number;
+	spriteSrc: string;
+	class?: string;
+	debug?: boolean;
+}
+
+export default function Character(props: CharacterProps) {
+	return (
+		<div
+			class={cn('relative h-[80px] w-[80px]', props.debug && 'border-2')}
+			style={{ scale: `${props.direction === 'east' ? 1 : -1} 1` }}
+		>
+			<div
+				ref={props.ref}
+				class="relative left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden"
+				style={{
+					width: `calc(${props.size}px * var(--pixel-size))`,
+					height: `calc(${props.size}px * var(--pixel-size))`,
+				}}
+			>
+				<img
+					src={props.spriteSrc}
+					class={cn('absolute max-w-[unset]', props.class)}
+					style={{
+						width: `calc(${props.size * 8}px * var(--pixel-size))`,
+						'image-rendering': 'pixelated',
+					}}
+				/>
+			</div>
+		</div>
+	);
+}
