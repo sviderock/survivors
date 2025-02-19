@@ -4,7 +4,7 @@ import Character from '~/components/Character';
 import { relativePlayerPos } from '~/components/Player';
 import { ENEMY_ATTACK_COOLDOWN, ENEMY_BASE_HEALTH, ENEMY_SIZE, WORLD_SIZE } from '~/constants';
 import { gameState, setGameState, world } from '~/state';
-import { cn, getDirection, getInitialRect, getRandomBetween, getRect } from '~/utils';
+import { cn, getInitialRect, getRandomBetween, getRect } from '~/utils';
 
 function createSingleEnemy(): Enemy {
 	const initialRect = getInitialRect({

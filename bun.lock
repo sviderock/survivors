@@ -15,6 +15,7 @@
         "@solidjs/start": "^1.1.1",
         "@tanstack/solid-query": "^5.66.4",
         "@tanstack/solid-query-devtools": "^5.66.4",
+        "@wagmi/core": "^2.16.4",
         "autoprefixer": "^10.4.20",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",

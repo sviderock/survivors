@@ -29,7 +29,7 @@ export const STAGE_TIME_IN_MINUTES = 0.2;
 
 export const ABRUPTLY_STOPPPED_GAME_LS_KEY = 'abruptly_stopped_game';
 
-export const PLAYER_FREE_MOVEMENT = true;
+export const PLAYER_FREE_MOVEMENT = false;
 
 export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 

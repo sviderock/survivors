@@ -1,6 +1,7 @@
 import { batch, createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { appkitModal } from '~/appkit';
+import Banner from '~/components/Banner';
 import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
 import Player, { setPlayer } from '~/components/Player';
@@ -251,7 +252,7 @@ export default function Game() {
 			<Bullet />
 			<Gems />
 
-			{/* <Banner /> */}
+			<Banner />
 			<UserAccount />
 			<StageTimer />
 			<UIStats />

@@ -14,7 +14,6 @@ async function getUserById<T extends string | undefined = undefined>(id: number,
 
 	if (typedUser) void checkQuestsForUser(typedUser.id);
 
-	// await readIsRegistered();
 	return typedUser;
 }
 
@@ -62,6 +61,8 @@ export async function addCoinsToUser(userId: UserType['id'], coins: UserType['co
 }
 
 export async function POST({ request, response }: APIEvent) {
+	// await readIsRegistered();
+
 	const session = await getSession(request);
 
 	// if session is present then we can get user by id

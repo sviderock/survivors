@@ -2,7 +2,6 @@ import { type UseAppKitAccountReturn } from '@reown/appkit';
 import { createTimer } from '@solid-primitives/timer';
 import { batch, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import { queryClient } from '~/app';
 import { setPlayer } from '~/components/Player';
 import { BASE_HEALTH, WORLD_SIZE } from '~/constants';
 import { gameServer } from '~/useGameServer';
@@ -67,19 +66,19 @@ export function resetGameState() {
 }
 
 export function useGameTimer() {
-	// createTimer(
-	// 	async () => {
-	// 		if (!gameState.activeGame) return;
-	// 		if (stageTimer() >= gameState.activeGame.timeLimit) {
-	// 			setGameState('status', 'won');
-	// 			if (gameServer) {
-	// 				gameServer.send(encodeEvent({ type: 'game_won' }));
-	// 			}
-	// 			return;
-	// 		}
-	// 		setStageTimer((p) => p + 500);
-	// 	},
-	// 	() => gameState.status === 'in_progress' && 500,
-	// 	setInterval,
-	// );
+	createTimer(
+		async () => {
+			if (!gameState.activeGame) return;
+			if (stageTimer() >= gameState.activeGame.timeLimit) {
+				setGameState('status', 'won');
+				if (gameServer) {
+					gameServer.send(encodeEvent({ type: 'game_won' }));
+				}
+				return;
+			}
+			setStageTimer((p) => p + 500);
+		},
+		() => gameState.status === 'in_progress' && 500,
+		setInterval,
+	);
 }

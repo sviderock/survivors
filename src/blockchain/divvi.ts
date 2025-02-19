@@ -1,5 +1,8 @@
 import { createPublicClient, http, stringToHex, type Address } from 'viem';
 import { celo } from 'viem/chains';
+import { appkitModal, wagmiConfig } from '~/appkit';
+import { useReadContract } from 'wagmi';
+import { readContract } from '@wagmi/core';
 
 export const abi = [
 	{
@@ -748,23 +751,46 @@ export const abi = [
 
 export const address: Address = '0xba9655677f4e42dd289f5b7888170bc0c7da8cdc';
 
+const storageSC = '0xEe6D291CC60d7CeD6627fA4cd8506912245c8cA4';
+
+const storageABI = [
+	{
+		inputs: [],
+		name: 'retrieve',
+		outputs: [
+			{
+				internalType: 'uint256',
+				name: '',
+				type: 'uint256',
+			},
+		],
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'uint256',
+				name: 'num',
+				type: 'uint256',
+			},
+		],
+		name: 'store',
+		outputs: [],
+		stateMutability: 'nonpayable',
+		type: 'function',
+	},
+];
+
 export async function readIsRegistered() {
 	console.log(123);
-	const client = createPublicClient({
-		batch: { multicall: { wait: 0 } },
-		chain: celo,
-		transport: http(),
-	});
 
 	try {
-		const data = await client.readContract({
-			address: address,
-			abi: abi,
+		const data = await readContract(wagmiConfig, {
+			address,
+			abi,
 			functionName: 'isUserRegistered',
-			args: [
-				stringToHex('testReferrer1', { size: 32 }),
-				[stringToHex('testProtocol1', { size: 32 })],
-			],
+			args: [stringToHex('survivors', { size: 20 }), [stringToHex('celo', { size: 32 })]],
 		});
 		console.log({ data });
 	} catch (error) {
