@@ -4,12 +4,12 @@ import { appkitModal } from '~/appkit';
 import Banner from '~/components/Banner';
 import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
-import Player, { setPlayer } from '~/components/Player';
+import Player, { player, setPlayer } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
 import UserAccount, { useLogout } from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
-import { PLAYER_FREE_MOVEMENT } from '~/constants';
+import { PLAYER_FREE_MOVEMENT, PLAYER_SIZE, TERRAIN_TILE_SIZE } from '~/constants';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	connectedUser,
@@ -25,7 +25,7 @@ import {
 	worldPos,
 } from '~/state';
 import useGameServer, { gameServer } from '~/useGameServer';
-import { encodeJson } from '~/utils';
+import { cn, encodeJson } from '~/utils';
 import type { ContinueGameEvent, GameServerEvent, PauseGameEvent } from '~/ws';
 
 function onKeyDown(e: KeyboardEvent) {
@@ -262,8 +262,10 @@ export default function Game() {
 function GameWorld(props: ParentProps) {
 	return (
 		<div
-			class="bg-size absolute h-[10000px] w-[10000px] bg-forest bg-[100px_100px]"
-			style={{ transform: `translate3d(${worldPos().x}px, ${worldPos().y}px, 0)` }}
+			class="bg-size absolute -left-1/2 -top-1/2 h-[10000px] w-[10000px] bg-forest"
+			style={{
+				transform: `translate3d(calc(-50% + ${worldPos().x}px), calc(-50% + ${worldPos().y}px), 0)`,
+			}}
 		>
 			{props.children}
 		</div>

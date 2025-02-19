@@ -46,6 +46,8 @@
 		--ring: 240 5.9% 10%;
 
 		--radius: 0.5rem;
+
+		--pixel-size: 6;
 	}
 
 	.dark,
@@ -92,6 +94,8 @@
 		--ring: 240 4.9% 83.9%;
 
 		--radius: 0.5rem;
+
+		--pixel-size: 6;
 	}
 }
 

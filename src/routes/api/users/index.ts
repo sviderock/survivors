@@ -2,6 +2,7 @@
 import { UserAddresses, Users, type UserType } from '@/schema';
 import { type APIEvent } from '@solidjs/start/server';
 import { eq, inArray, sql } from 'drizzle-orm';
+import { readIsRegistered } from '~/blockchain/divvi';
 import { db } from '~/db';
 import { checkQuestsForUser } from '~/routes/api/quests';
 import { createSession, getSession } from '~/routes/api/sessions';
@@ -13,6 +14,7 @@ async function getUserById<T extends string | undefined = undefined>(id: number,
 
 	if (typedUser) void checkQuestsForUser(typedUser.id);
 
+	// await readIsRegistered();
 	return typedUser;
 }
 
@@ -79,8 +81,8 @@ export async function POST({ request, response }: APIEvent) {
 
 	// if there are no user - create one and create session
 	if (!userByAddresses) {
-		const newUserId = await createUser(reqBody.addresses);
-		await createSession(newUserId, response);
+		const newUser = await createUser(reqBody.addresses);
+		await createSession(newUser.id, response);
 	}
 
 	return {};

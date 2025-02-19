@@ -1,4 +1,5 @@
 'use server';
+import { readIsRegistered } from '~/blockchain/divvi';
 
 async function fetchZerion(url: string) {
 	const data = await fetch(`${import.meta.env.VITE_ZERION_API_URL}${url}`, {
@@ -22,7 +23,8 @@ export async function getTransactions({
 	if (since) searchParams.append('filter[min_mined_at]', since.valueOf().toString());
 	const data = await fetchZerion(`/wallets/${address}/transactions?${searchParams.toString()}`);
 
-	console.log();
+	console.log(1);
+	console.log(readIsRegistered());
 	data.data.forEach((tx) => {
 		// console.log(tx.attributes.operation_type === '');
 	});

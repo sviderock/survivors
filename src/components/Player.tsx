@@ -102,7 +102,6 @@ export default function Player() {
 			class={cn(
 				'pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center',
 			)}
-			style={{ '--pixel-size': 6 }}
 		>
 			<div
 				ref={(ref) => setPlayer('ref', ref)}
