@@ -265,6 +265,7 @@ function Terrain(props: ParentProps) {
 			ref={(ref) => setWorld('ref', ref)}
 			class="bg-forest"
 			style={{
+				'image-rendering': 'pixelated',
 				transform: `translate3d(calc(-50% + ${world.rect.x}px), calc(-50% + ${world.rect.y}px), 0)`,
 				width: `${WORLD_SIZE}px`,
 				height: `${WORLD_SIZE}px`,

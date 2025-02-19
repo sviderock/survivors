@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { ENEMY_SIZE, PLAYER_SIZE, PLAYER_SPEED } from './src/constants';
+import { ENEMY_SIZE, PLAYER_SIZE } from './src/constants';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { fontFamily } = require('tailwindcss/defaultTheme');
@@ -23,7 +23,7 @@ export default {
 				sans: ['Poppins', ...fontFamily.sans],
 			},
 			backgroundImage: {
-				forest: `url('./game-assets/Terrain/Ground/Tiles/tile011.png');`,
+				forest: `url('/game-assets/Terrain/Ground/Tiles/tile011.png');`,
 			},
 			colors: {
 				border: 'hsl(var(--border))',
