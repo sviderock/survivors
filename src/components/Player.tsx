@@ -111,10 +111,12 @@ export default function Player() {
 		>
 			<Character
 				ref={(ref) => setPlayer('ref', ref)}
-				direction={player.state.direction}
 				hitboxSize={80}
 				size={PLAYER_SIZE}
 				spriteSrc="/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png"
+				wrapperStyle={{
+					transform: `scaleX(${player.state.direction === 'west' ? -1 : 1})`,
+				}}
 				class={cn(
 					'animate-move-sprite-sheet-idle',
 					player.state.type === 'moving' && 'animate-move-sprite-sheet-run',

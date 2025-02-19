@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, onMount } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
 import Character from '~/components/Character';
 import { relativePlayerPos } from '~/components/Player';
@@ -9,9 +9,8 @@ import {
 	PLAYER_SIZE,
 	WORLD_SIZE,
 } from '~/constants';
-import { LoadingSpinner } from '~/icons/LoadingSpinner';
 import { gameState, setGameState, world } from '~/state';
-import { cn, getInitialRect, getRandomBetween, getRect } from '~/utils';
+import { cn, getDirection, getInitialRect, getRandomBetween, getRect } from '~/utils';
 
 function createSingleEnemy(): Enemy {
 	const initialRect = getInitialRect({
@@ -33,6 +32,15 @@ function createSingleEnemy(): Enemy {
 		health,
 		maxHealth: health,
 		blocked: { left: false, right: false, top: false, bottom: false },
+		status: 'idle',
+		get direction() {
+			const dirX = getDirection(
+				this.rect().centerX,
+				relativePlayerPos().left,
+				relativePlayerPos().right,
+			);
+			return dirX === -1 ? 'west' : 'east';
+		},
 	};
 }
 
@@ -83,14 +91,13 @@ function Enemy(props: EnemyProps) {
 	return (
 		<Character
 			ref={props.ref}
-			direction={'east'}
 			hitboxSize={80}
 			size={PLAYER_SIZE}
 			spriteSrc="/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png"
 			class={cn('animate-move-sprite-sheet-enemy-idle')}
 			wrapperClass="absolute"
 			wrapperStyle={{
-				transform: `translate3d(calc(${props.enemy.rect().x}px + ${world.rect.x}px), calc(${props.enemy.rect().y}px + ${world.rect.y}px - ${WORLD_SIZE}px), 0)`,
+				transform: `translate3d(calc(${props.enemy.rect().x}px + ${world.rect.x}px), calc(${props.enemy.rect().y}px + ${world.rect.y}px - ${WORLD_SIZE}px), 0) scaleX(${props.enemy.direction === 'west' ? -1 : 1})`,
 			}}
 		/>
 	);

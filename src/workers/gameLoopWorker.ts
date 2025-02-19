@@ -14,12 +14,12 @@ const worker = {
 		for (let i = 0; i < enemies.length; i++) {
 			const enemy = enemies[i]!;
 
-			const dirX = getDirection(enemy.centerX, relPlayerPos.left, relPlayerPos.right) * ENEMY_SPEED;
-			const dirY = getDirection(enemy.centerY, relPlayerPos.top, relPlayerPos.bottom) * ENEMY_SPEED;
+			const dirX = getDirection(enemy.centerX, relPlayerPos.left, relPlayerPos.right);
+			const dirY = getDirection(enemy.centerY, relPlayerPos.top, relPlayerPos.bottom);
 			positions.push(
 				getNewPos({
-					x: enemy.x + dirX,
-					y: enemy.y + dirY,
+					x: enemy.x + ENEMY_SPEED * dirX,
+					y: enemy.y + ENEMY_SPEED * dirY,
 					width: enemy.width,
 					height: enemy.height,
 				}),

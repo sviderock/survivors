@@ -34,25 +34,14 @@ const ENEMY_LIMIT = 150;
 
 let enemySpawnTimer = 0;
 let bulletSpawnTimer = 0;
-let gameStageTimer = 0;
 
 export let mainGameLoop: number | undefined;
 
 async function gameLoop(timestamp: number) {
 	if (gameState.status !== 'in_progress') {
-		if (PLAYER_FREE_MOVEMENT) {
-			movePlayer();
-			mainGameLoop = requestAnimationFrame(gameLoop);
-			return;
-		}
-
 		enemySpawnTimer = 0;
 		bulletSpawnTimer = 0;
 		return;
-	}
-
-	if (gameStageTimer === 0) {
-		gameStageTimer = timestamp;
 	}
 
 	if (SPAWN_ENEMIES) {

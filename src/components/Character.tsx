@@ -3,7 +3,6 @@ import { cn } from '~/utils';
 
 interface CharacterProps {
 	ref: HTMLDivElement | ((el: HTMLDivElement) => void) | undefined;
-	direction: 'east' | 'west';
 	hitboxSize: number;
 	size: number;
 	spriteSrc: string;
@@ -21,7 +20,6 @@ export default function Character(props: CharacterProps) {
 			style={{
 				width: `${props.hitboxSize}px`,
 				height: `${props.hitboxSize}px`,
-				scale: `${props.direction === 'east' ? 1 : -1} 1`,
 				...props.wrapperStyle,
 			}}
 		>

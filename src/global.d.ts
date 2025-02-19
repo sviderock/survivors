@@ -44,7 +44,7 @@ declare global {
 		health: number;
 		maxHealth: number;
 		state: {
-			type: 'idle' | 'moving' | 'shooting';
+			type: 'idle' | 'moving' | 'attacking';
 			direction: 'east' | 'west';
 		};
 	};
@@ -60,6 +60,8 @@ declare global {
 		health: number;
 		maxHealth: number;
 		blocked: Record<keyof RectSides, boolean>;
+		status: 'idle' | 'moving' | 'attacking';
+		direction: 'east' | 'west';
 	};
 
 	type Bullet = {
