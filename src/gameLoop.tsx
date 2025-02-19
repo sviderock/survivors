@@ -5,7 +5,7 @@ import { destroyEnemy, spawnEnemy } from '~/components/Enemies';
 import { destroyGem, spawnGem } from '~/components/Gems';
 import { movePlayer, player, relativePlayerPos, setPlayer } from '~/components/Player';
 import { destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
-import { BULLET_SPEED, PLAYER_FREE_MOVEMENT } from '~/constants';
+import { BULLET_SPEED } from '~/constants';
 import { gameState, setGameState } from '~/state';
 import { collisionDetected, getNewPos } from '~/utils';
 import type { GameLoopWorker } from '~/workers/gameLoopWorker';
@@ -65,19 +65,11 @@ async function gameLoop(timestamp: number) {
 		}
 	}
 
-	const { newWorldX, newWorldY } = movePlayer();
+	movePlayer();
 
-	const relPlayerPos = {
-		left: player.rect.left - newWorldX,
-		right: player.rect.right - newWorldX,
-		top: player.rect.top - newWorldY,
-		bottom: player.rect.bottom - newWorldY,
-	};
-
-	const positions = await worker.updateEnemyPositions({
-		relPlayerPos,
-		enemies: gameState.enemies.map((e) => e.rect()),
-	});
+	const positions = await worker.updateEnemyPositions(
+		gameState.enemies.map((enemy) => ({ rect: enemy.rect(), dirX: enemy.dirX, dirY: enemy.dirY })),
+	);
 
 	positions.forEach((p, i) => {
 		const enemy = gameState.enemies[i]!;

@@ -27,13 +27,15 @@ function createSingleEnemy(): Enemy {
 		maxHealth: health,
 		blocked: { left: false, right: false, top: false, bottom: false },
 		status: 'idle',
-		get direction() {
-			const dirX = getDirection(
-				this.rect().centerX,
-				relativePlayerPos().left,
-				relativePlayerPos().right,
-			);
-			return dirX === -1 ? 'west' : 'east';
+		get dirX() {
+			if (this.rect().centerX < relativePlayerPos().centerX) return 1;
+			if (this.rect().centerX > relativePlayerPos().centerX) return -1;
+			return 0;
+		},
+		get dirY() {
+			if (this.rect().centerY < relativePlayerPos().centerY) return 1;
+			if (this.rect().centerY > relativePlayerPos().centerY) return -1;
+			return 0;
 		},
 	};
 }
@@ -91,7 +93,7 @@ function Enemy(props: EnemyProps) {
 			class={cn('animate-move-sprite-sheet-enemy-run')}
 			wrapperClass="absolute"
 			wrapperStyle={{
-				transform: `translate3d(calc(${props.enemy.rect().x}px + ${world.rect.x}px), calc(${props.enemy.rect().y}px + ${world.rect.y}px - ${WORLD_SIZE}px), 0) scaleX(${props.enemy.direction === 'west' ? -1 : 1})`,
+				transform: `translate3d(calc(${props.enemy.rect().x}px + ${world.rect.x}px), calc(${props.enemy.rect().y}px + ${world.rect.y}px - ${WORLD_SIZE}px), 0) scaleX(${props.enemy.dirX === -1 ? -1 : 1})`,
 			}}
 		/>
 	);
