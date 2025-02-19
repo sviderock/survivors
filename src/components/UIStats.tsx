@@ -3,13 +3,12 @@ import FPSCounter from '~/components/FPSCounter';
 import MemoryUsage from '~/components/Memory';
 import { PingClientOnly } from '~/components/Ping';
 import { playerLevel } from '~/components/Player';
-import { useUser } from '~/components/UserAccount';
+import { useCurrentUser } from '~/components/UserAccount';
 import { LoadingSpinner } from '~/icons/LoadingSpinner';
 import { connectedUser, gameState } from '~/state';
 
 export default function UIStats() {
-	const user = useUser();
-
+	const user = useCurrentUser();
 	return (
 		<div class="absolute right-4 top-2 flex w-[300px] flex-col items-end justify-between rounded-md border-2 bg-white p-2 px-4 text-sm text-zinc-800">
 			<MemoryUsage />

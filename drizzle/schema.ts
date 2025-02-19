@@ -4,7 +4,7 @@ import { integer, json, pgEnum, pgTable, serial, timestamp, varchar } from 'driz
 export type UserType = typeof Users.$inferSelect;
 export const Users = pgTable('Users', {
 	id: serial().primaryKey(),
-	coins: integer().default(0),
+	coins: integer().default(0).notNull(),
 });
 
 export const UsersRelations = relations(Users, ({ many }) => ({
@@ -13,8 +13,8 @@ export const UsersRelations = relations(Users, ({ many }) => ({
 
 export const UserAddresses = pgTable('UserWallets', {
 	id: serial().primaryKey(),
-	address: varchar({ length: 255 }),
-	userId: integer(),
+	address: varchar({ length: 255 }).notNull(),
+	userId: integer().notNull(),
 });
 
 export const UserAddressesRelations = relations(UserAddresses, ({ one }) => ({
@@ -25,10 +25,12 @@ export const UserAddressesRelations = relations(UserAddresses, ({ one }) => ({
 }));
 
 export const Sessions = pgTable('Sessions', {
+	id: serial().primaryKey(),
 	userId: integer()
 		.references(() => Users.id)
-		.unique(),
-	cookie: varchar({ length: 500 }),
+		.unique()
+		.notNull(),
+	cookie: varchar({ length: 500 }).notNull(),
 });
 
 export const GameStatusEnum = pgEnum('GameStatus', ['in_progress', 'paused', 'won', 'lost']);
@@ -46,4 +48,32 @@ export const PlayedGames = pgTable('PlayedGames', {
 	status: GameStatusEnum().notNull(),
 	gameState: json().$type<GameState>(),
 	coinsAtStake: integer().notNull(),
+});
+
+export const QuestStatusEnum = pgEnum('QuestStatus', [
+	'available',
+	'picked_up',
+	'reward_awaiting',
+	'reward_claimed',
+]);
+
+export type BlockchainQuest = {
+	type: 'blockchain';
+	txType: Zerion.Attributes['operation_type'];
+	count: number;
+	reward: { type: 'coins_multiplier'; amount: number };
+	condition: { type: 'tx_type_count'; count: number };
+};
+
+export const Quests = pgTable('Quests', {
+	id: serial().primaryKey(),
+	userId: integer()
+		.references(() => Users.id)
+		.notNull(),
+	questData: json().$type<BlockchainQuest>().notNull(),
+	status: QuestStatusEnum().notNull().default('available'),
+	createdAt: timestamp().defaultNow().notNull(),
+	pickedUpAt: timestamp(),
+	finishedAt: timestamp(),
+	rewardClaimedAt: timestamp(),
 });

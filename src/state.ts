@@ -54,20 +54,22 @@ export function resetGameState() {
 	});
 }
 
-export const roundTimer = createTimer(
-	async () => {
-		if (!gameState.activeGame) return;
+export function useGameTimer() {
+	createTimer(
+		async () => {
+			if (!gameState.activeGame) return;
 
-		if (stageTimer() >= gameState.activeGame.timeLimit) {
-			setGameState('status', 'won');
-			if (gameServer) {
-				gameServer.send(encodeEvent({ type: 'game_won' }));
+			if (stageTimer() >= gameState.activeGame.timeLimit) {
+				setGameState('status', 'won');
+				if (gameServer) {
+					gameServer.send(encodeEvent({ type: 'game_won' }));
+				}
+				return;
 			}
-			return;
-		}
 
-		setStageTimer((p) => p + 500);
-	},
-	() => gameState.status === 'in_progress' && 500,
-	setInterval,
-);
+			setStageTimer((p) => p + 500);
+		},
+		() => gameState.status === 'in_progress' && 500,
+		setInterval,
+	);
+}

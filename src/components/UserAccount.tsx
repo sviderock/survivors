@@ -1,5 +1,5 @@
 import type { UserType } from '@/schema';
-import { createQuery } from '@tanstack/solid-query';
+import { createMutation, createQuery } from '@tanstack/solid-query';
 import { Match, Switch } from 'solid-js';
 import { appkitModal } from '~/appkit';
 import { Avatar } from '~/components/ui/avatar';
@@ -47,8 +47,12 @@ export default function UserAccount() {
 	);
 }
 
-export function useUser() {
-	const userAddresses = () => connectedUser.allAccounts.map((acc) => acc.address);
+export function useCurrentUser() {
+	const userAddresses = () => {
+		console.log(connectedUser);
+		return connectedUser.allAccounts.map((acc) => acc.address);
+	};
+
 	return createQuery(() => ({
 		queryKey: ['currentUser', userAddresses()],
 		queryFn: async () => {
@@ -58,7 +62,15 @@ export function useUser() {
 			});
 			return (await resp.json()) as UserType;
 		},
-		enabled: !!connectedUser.address?.length,
+		enabled: !!userAddresses().length,
+		// refetchInterval: 10_000,
+	}));
+}
+
+export function useLogout() {
+	return createMutation(() => ({
+		mutationKey: ['logout'],
+		mutationFn: () => fetch('/api/users/logout', { method: 'POST' }),
 	}));
 }
 

@@ -3,13 +3,14 @@ import { appkitModal } from '~/appkit';
 import Banner from '~/components/Banner';
 import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
-import Player, { playerLevel } from '~/components/Player';
+import Player from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
-import UserAccount, { useUser } from '~/components/UserAccount';
+import UserAccount, { useLogout } from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
+	connectedUser,
 	gameState,
 	keyPressed,
 	resetGameState,
@@ -18,6 +19,7 @@ import {
 	setKeyPressed,
 	setLastPressedCombination,
 	stageTimer,
+	useGameTimer,
 	worldPos,
 } from '~/state';
 import useGameServer, { gameServer } from '~/useGameServer';
@@ -96,10 +98,12 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
 }
 
 export default function Game() {
+	const logout = useLogout();
 	useGameServer();
+	useGameTimer();
 
 	createEffect(() => {
-		console.log(gameState.status);
+		console.log(gameState.status + 123);
 	});
 
 	createEffect(() => {
@@ -112,7 +116,16 @@ export default function Game() {
 	});
 
 	onMount(async () => {
-		appkitModal.subscribeAccount(setConnectedUser);
+		appkitModal.subscribeAccount((data) => {
+			if (
+				connectedUser.status === 'connected' &&
+				data.status === 'disconnected' &&
+				data.isConnected === false
+			) {
+				logout.mutate();
+			}
+			setConnectedUser(data);
+		});
 
 		document.addEventListener('keydown', onKeyDown);
 		document.addEventListener('keyup', onKeyUp);

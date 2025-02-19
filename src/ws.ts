@@ -1,5 +1,6 @@
-import type { PlayedGame } from '@/schema';
+import { Quests, type PlayedGame } from '@/schema';
 import { eventHandler } from 'vinxi/http';
+import { db } from '~/db';
 import { continueGame, findActiveGame, startNewGame, updateGame } from '~/routes/api/games';
 import { getSession } from '~/routes/api/sessions';
 import { addCoinsToUser } from '~/routes/api/users';

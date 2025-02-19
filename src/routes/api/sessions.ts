@@ -1,11 +1,21 @@
 import { type PlayedGame, Sessions, type UserType } from '@/schema';
-import type { ResponseStub } from '@solidjs/start/server';
+import type { APIEvent, ResponseStub } from '@solidjs/start/server';
 import cookie from 'cookie';
+import { and, eq } from 'drizzle-orm';
 import jwt from 'jsonwebtoken';
 import { isDev } from 'solid-js/web';
 import { db } from '~/db';
 
 export type StoredSessionData = { userId: UserType['id']; gameId?: PlayedGame['id'] };
+
+function getCookieOptions(): cookie.SerializeOptions {
+	return {
+		path: '/',
+		secure: !isDev,
+		httpOnly: true,
+		maxAge: 60 * 60 * 24 * 7, // 1 week
+	};
+}
 
 export async function getSession<T extends Request>(request: T) {
 	const cookies = cookie.parse(request.headers.get('cookie') || '');
@@ -28,11 +38,27 @@ export async function createSession(userId: UserType['id'], response: ResponseSt
 
 	response.headers.set(
 		'Set-Cookie',
-		cookie.serialize('auth', savedSession.cookie, {
-			path: '/',
-			secure: !isDev,
-			httpOnly: true,
-			maxAge: 60 * 60 * 24 * 7, // 1 week
+		cookie.serialize('auth', savedSession.cookie, getCookieOptions()),
+	);
+}
+
+export async function logoutSession({ request, response }: APIEvent) {
+	const cookies = cookie.parse(request.headers.get('cookie') || '');
+	if (!cookies.auth) return null;
+
+	const session = await getSession(request);
+	if (session) {
+		await db
+			.delete(Sessions)
+			.where(and(eq(Sessions.userId, session.userId), eq(Sessions.cookie, cookies.auth)));
+	}
+
+	response.headers.set(
+		'cookie',
+		cookie.serialize('auth', cookies.auth, {
+			...getCookieOptions(),
+			maxAge: undefined,
+			expires: new Date(0),
 		}),
 	);
 }

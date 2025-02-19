@@ -3,12 +3,17 @@ import { UserAddresses, Users, type UserType } from '@/schema';
 import { type APIEvent } from '@solidjs/start/server';
 import { eq, inArray, sql } from 'drizzle-orm';
 import { db } from '~/db';
+import { checkQuestsForUser } from '~/routes/api/quests';
 import { createSession, getSession } from '~/routes/api/sessions';
 
 async function getUserById<T extends string | undefined = undefined>(id: number, throwMsg?: T) {
-	const user = (await db.select().from(Users).where(eq(Users.id, id)))[0];
+	const [user] = await db.select().from(Users).where(eq(Users.id, id));
 	if (!user && throwMsg) throw new Error(throwMsg);
-	return user as UserType | (T extends string ? never : undefined);
+	const typedUser = user as UserType | (T extends string ? never : undefined);
+
+	if (typedUser) void checkQuestsForUser(typedUser.id);
+
+	return typedUser;
 }
 
 async function getUserByAddresses<T extends string | undefined = undefined>(
@@ -29,11 +34,11 @@ async function createUser(addresses: string[]) {
 	if (!addresses.length) throw new Error('Addresses are absent');
 
 	const newUserId = await db.transaction(async (tx) => {
-		const [user] = await tx.insert(Users).values({}).returning({ userId: Users.id });
+		const [user] = await tx.insert(Users).values({}).returning();
 		await tx
 			.insert(UserAddresses)
-			.values(addresses.map((address) => ({ userId: user!.userId, address })));
-		return user!.userId;
+			.values(addresses.map((address) => ({ userId: user!.id, address })));
+		return user!;
 	});
 
 	if (!newUserId) throw new Error('User cannot be created');
@@ -69,7 +74,7 @@ export async function POST({ request, response }: APIEvent) {
 	const userByAddresses = await getUserByAddresses(reqBody.addresses);
 	if (userByAddresses) {
 		await createSession(userByAddresses.id, response);
-		return {};
+		return userByAddresses;
 	}
 
 	// if there are no user - create one and create session

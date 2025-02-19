@@ -2,8 +2,7 @@ import { createReconnectingWS, type ReconnectingWebSocket } from '@solid-primiti
 import { createEffect, onCleanup, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { isServer } from 'solid-js/web';
-import { queryClient } from '~/app';
-import { useUser } from '~/components/UserAccount';
+import { useCurrentUser } from '~/components/UserAccount';
 import { ABRUPTLY_STOPPPED_GAME_LS_KEY } from '~/constants';
 import { gameState, setGameState, setPing, setStageTimer, stageTimer } from '~/state';
 import {
@@ -26,7 +25,7 @@ function resetPingInterval() {
 }
 
 export default function useGameServer() {
-	const user = useUser();
+	const user = useCurrentUser();
 	gameServer = isServer ? null : createReconnectingWS(getWsUrl(location));
 
 	createEffect(() => {
