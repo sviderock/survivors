@@ -44,9 +44,9 @@ export default function UIStats() {
 				</Show>
 			</Suspense>
 
-			<div class="flex w-36 justify-between gap-2">
+			<div class="flex w-36 justify-end gap-2">
 				<PingClientOnly />
-				<FPSCounter />
+				{/* <FPSCounter /> */}
 			</div>
 		</div>
 	);

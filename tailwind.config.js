@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { ENEMY_SIZE, PLAYER_SIZE } from './src/constants';
+import { ENEMY_SIZE, GEM_SIZE, PLAYER_SIZE } from './src/constants';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { fontFamily } = require('tailwindcss/defaultTheme');
@@ -19,11 +19,30 @@ export default {
 			},
 		},
 		extend: {
+			width: {
+				'enemy-hitbox': '80px',
+				'player-hitbox': '80px',
+				enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
+				player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
+				gem: GEM_SIZE.w,
+			},
+			height: {
+				'enemy-hitbox': '80px',
+				'player-hitbox': '80px',
+				enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
+				player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
+				gem: GEM_SIZE.h,
+			},
+			willChange: {
+				bp: 'background-position',
+			},
 			fontFamily: {
 				sans: ['Poppins', ...fontFamily.sans],
 			},
 			backgroundImage: {
-				forest: `url('/game-assets/Terrain/Ground/Tiles/tile011.png');`,
+				forest: `url('/game-assets/Terrain/Ground/Tiles/tile011.png')`,
+				enemy: `url('/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png')`,
+				player: `url('/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png')`,
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -106,19 +125,21 @@ export default {
 
 				// player idle
 				'move-sprite-sheet-idle': {
-					'0%': { transform: 'translate3d(0px, 0, 0)' },
-					'100%': { transform: 'translate3d(-75%, 0, 0)' },
+					'0%': {
+						backgroundPosition: `0 0`,
+					},
+					'100%': {
+						backgroundPosition: `calc(-${PLAYER_SIZE}px * var(--pixel-size) * 6) 0`,
+					},
 				},
 
 				// player run
 				'move-sprite-sheet-run': {
 					'0%': {
-						top: `calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
-						transform: 'translate3d(0px, 0, 0)',
+						backgroundPosition: `0 calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
 					},
 					'100%': {
-						top: `calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
-						transform: 'translate3d(-75%, 0, 0)',
+						backgroundPosition: `calc(-${PLAYER_SIZE}px * var(--pixel-size) * 6) calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
 					},
 				},
 
@@ -126,7 +147,7 @@ export default {
 				'move-sprite-sheet-shoot-north': {
 					'0%': {
 						top: `calc(-${PLAYER_SIZE * 2}px * var(--pixel-size))`,
-						transform: 'translate3d(0px, 0, 0)',
+						backgroundPosition: '0 0',
 					},
 					'100%': {
 						top: `calc(-${PLAYER_SIZE * 2}px * var(--pixel-size))`,
@@ -136,7 +157,7 @@ export default {
 				'move-sprite-sheet-shoot-north-east': {
 					'0%': {
 						top: `calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
-						transform: 'translate3d(0px, 0, 0)',
+						backgroundPosition: '0 0',
 					},
 					'100%': {
 						top: `calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
@@ -146,7 +167,7 @@ export default {
 				'move-sprite-sheet-shoot-east': {
 					'0%': {
 						top: `calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
-						transform: 'translate3d(0px, 0, 0)',
+						backgroundPosition: '0 0',
 					},
 					'100%': {
 						top: `calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
@@ -156,7 +177,7 @@ export default {
 				'move-sprite-sheet-shoot-south-east': {
 					'0%': {
 						top: `calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
-						transform: 'translate3d(0px, 0, 0)',
+						backgroundPosition: '0 0',
 					},
 					'100%': {
 						top: `calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
@@ -166,7 +187,7 @@ export default {
 				'move-sprite-sheet-shoot-south': {
 					'0%': {
 						top: `calc(-${PLAYER_SIZE * 6}px * var(--pixel-size))`,
-						transform: 'translate3d(0px, 0, 0)',
+						backgroundPosition: '0 0',
 					},
 					'100%': {
 						top: `calc(-${PLAYER_SIZE * 6}px * var(--pixel-size))`,
@@ -206,19 +227,21 @@ export default {
 
 				// enemy idle
 				'move-sprite-sheet-enemy-idle': {
-					'0%': { transform: 'translate3d(0px, 0, 0)' },
-					'100%': { transform: 'translate3d(-100%, 0, 0)' },
+					'0%': {
+						backgroundPosition: `0 0`,
+					},
+					'100%': {
+						backgroundPosition: `calc(-${ENEMY_SIZE}px * var(--pixel-size) * 7) 0`,
+					},
 				},
 
 				// enemy run
 				'move-sprite-sheet-enemy-run': {
 					'0%': {
-						top: `calc(-${ENEMY_SIZE}px * var(--pixel-size))`,
-						transform: 'translate3d(0px, 0, 0)',
+						backgroundPosition: `0 calc(-${ENEMY_SIZE}px * var(--pixel-size))`,
 					},
 					'100%': {
-						top: `calc(-${ENEMY_SIZE}px * var(--pixel-size))`,
-						transform: 'translate3d(-85.714%, 0, 0)',
+						backgroundPosition: `calc(-${ENEMY_SIZE}px * var(--pixel-size) * 6) calc(-${ENEMY_SIZE}px * var(--pixel-size))`,
 					},
 				},
 			},

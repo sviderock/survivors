@@ -1,36 +1,37 @@
-import { createEffect, onMount } from 'solid-js';
-import { createStore, produce } from 'solid-js/store';
-import Character from '~/components/Character';
-import { spawnEnemy } from '~/components/Enemies';
+import { createSignal, onMount } from 'solid-js';
+import { createStore } from 'solid-js/store';
 import HealthBar from '~/components/HealthBar';
 import {
 	BASE_HEALTH,
 	DIAGONAL_SPEED,
 	PLAYER_SIZE,
 	PLAYER_SPEED,
+	WORLD_SIZE,
 	XP_LVL_2,
 	XP_LVL_21_TO_40,
 	XP_LVL_3_TO_20,
 	XP_LVL_41_AND_UP,
 } from '~/constants';
-import { gameState, keyPressed, setWorld, world } from '~/state';
+import { gameState, keyPressed, setWorldRect, worldRect } from '~/state';
 import { cn, getInitialRect, getNewPos, getRect } from '~/utils';
 
+export const [playerRect, setPlayerRect] = createSignal(
+	getInitialRect({ x: 0, y: 0, width: PLAYER_SIZE, height: PLAYER_SIZE }),
+);
 export const [player, setPlayer] = createStore<Player>({
 	ref: undefined,
-	rect: getInitialRect({ x: 0, y: 0, width: PLAYER_SIZE, height: PLAYER_SIZE }),
 	health: BASE_HEALTH,
 	maxHealth: BASE_HEALTH,
 	state: { type: 'idle', direction: 'east' },
 });
 
 export const relativePlayerPos = () => ({
-	left: player.rect.left - world.rect.x,
-	right: player.rect.right - world.rect.x,
-	top: player.rect.top - world.rect.y,
-	bottom: player.rect.bottom - world.rect.y,
-	centerX: player.rect.left - world.rect.x + player.rect.width / 2,
-	centerY: player.rect.top - world.rect.y + player.rect.height / 2,
+	left: playerRect().left - worldRect().x,
+	right: playerRect().right - worldRect().x,
+	top: playerRect().top - worldRect().y,
+	bottom: playerRect().bottom - worldRect().y,
+	centerX: playerRect().left - worldRect().x + playerRect().width / 2,
+	centerY: playerRect().top - worldRect().y + playerRect().height / 2,
 });
 
 export const playerLevel = () => {
@@ -76,52 +77,32 @@ export function movePlayer() {
 			? DIAGONAL_SPEED
 			: 1;
 
-	let newWorldX = world.rect.x;
-	let newWorldY = world.rect.y;
+	let newWorldX = worldRect().x;
+	let newWorldY = worldRect().y;
 	if (keyPressed.w) newWorldY += (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.s) newWorldY -= (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.a) newWorldX += (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.d) newWorldX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
-
-	setWorld('rect', (rect) =>
-		getNewPos({ x: newWorldX, y: newWorldY, width: rect.width, height: rect.height }),
-	);
-
+	setWorldRect(getNewPos({ x: newWorldX, y: newWorldY, width: WORLD_SIZE, height: WORLD_SIZE }));
 	return { newWorldX, newWorldY };
 }
 
 export default function Player() {
 	onMount(() => {
-		setPlayer(
-			produce((player) => {
-				player.rect = { ...getRect(player.ref!), width: PLAYER_SIZE, height: PLAYER_SIZE };
-			}),
-		);
-
-		setTimeout(() => {
-			spawnEnemy();
-		}, 1);
+		setPlayerRect({ ...getRect(player.ref!), width: PLAYER_SIZE, height: PLAYER_SIZE });
 	});
 
 	return (
-		<div
-			class={cn(
-				'pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center',
-			)}
-		>
-			<Character
-				ref={(ref) => setPlayer('ref', ref)}
-				hitboxSize={80}
-				size={PLAYER_SIZE}
-				spriteSrc="/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png"
-				wrapperStyle={{
-					transform: `scaleX(${player.state.direction === 'west' ? -1 : 1})`,
-				}}
-				class={cn(
-					'animate-move-sprite-sheet-idle',
-					player.state.type === 'moving' && 'animate-move-sprite-sheet-run',
-				)}
-			/>
+		<div class="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
+			<div ref={(ref) => setPlayer('ref', ref)} class="w-player-hitbox h-player-hitbox relative">
+				<div
+					class={cn(
+						'animate-move-sprite-sheet-idle bg-player will-change-bp w-player h-player relative left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden [image-rendering:pixelated]',
+						player.state.direction === 'west' && '-scale-x-100',
+						player.state.type === 'moving' && 'animate-move-sprite-sheet-run',
+					)}
+				/>
+			</div>
 
 			<HealthBar class="mt-1 h-3" currentHealth={player.health} maxHealth={player.maxHealth} />
 		</div>

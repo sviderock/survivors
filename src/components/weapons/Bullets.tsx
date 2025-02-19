@@ -1,9 +1,8 @@
-import { createSignal, For, onMount } from 'solid-js';
-import { produce } from 'solid-js/store';
+import { For } from 'solid-js';
 import { relativePlayerPos } from '~/components/Player';
 import { BULLET_DAMAGE, BULLET_DISTANCE, BULLET_SIZE } from '~/constants';
 import { gameState, lastPressedCombination, setGameState } from '~/state';
-import { getDiagonalDistance, getInitialRect, getRect } from '~/utils';
+import { getDiagonalDistance, getInitialRect } from '~/utils';
 
 function getBulletDistance() {
 	if (lastPressedCombination() === 'w') return { x: 0, y: -BULLET_DISTANCE };
@@ -26,17 +25,15 @@ function getBulletDistance() {
 export function createSingleBullet(): Bullet {
 	const bulletStartX = relativePlayerPos().centerX - BULLET_SIZE / 2;
 	const bulletStartY = relativePlayerPos().centerY - BULLET_SIZE / 2;
-	const initialRect = getInitialRect({
+	const rect = getInitialRect({
 		width: BULLET_SIZE,
 		height: BULLET_SIZE,
 		x: bulletStartX,
 		y: bulletStartY,
 	});
-	const [rect, setRect] = createSignal(initialRect);
 	return {
 		ref: undefined,
 		rect,
-		setRect,
 		damage: BULLET_DAMAGE,
 		target: {
 			x: bulletStartX + getBulletDistance().x,
@@ -46,24 +43,17 @@ export function createSingleBullet(): Bullet {
 }
 
 export function spawnBullet() {
-	setGameState(
-		'bullets',
-		produce((bullets) => bullets.push(createSingleBullet())),
-	);
+	setGameState('bullets', gameState.bullets.length, createSingleBullet());
 }
 
 export function destroyBullet(idx: number) {
-	setGameState('bullets', (prev) => prev.filter((_, i) => idx !== i));
+	setGameState(
+		'bullets',
+		gameState.bullets.filter((_, i) => idx !== i),
+	);
 }
 
 export default function Bullets() {
-	onMount(() => {
-		gameState.bullets.forEach((bullet) => {
-			const rect = getRect(bullet.ref!);
-			bullet.setRect(rect);
-		});
-	});
-
 	return (
 		<For each={gameState.bullets}>
 			{(bullet, idx) => (
@@ -71,9 +61,9 @@ export default function Bullets() {
 					ref={(el) => setGameState('bullets', idx(), 'ref', el)}
 					class="absolute z-[20] flex bg-purple-700"
 					style={{
-						transform: `translate3d(${bullet.rect().x}px, ${bullet.rect().y}px, 0)`,
-						width: `${bullet.rect().width}px`,
-						height: `${bullet.rect().height}px`,
+						transform: `translate3d(${bullet.rect.x}px, ${bullet.rect.y}px, 0)`,
+						width: `${bullet.rect.width}px`,
+						height: `${bullet.rect.height}px`,
 					}}
 				/>
 			)}

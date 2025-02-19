@@ -20,10 +20,9 @@ import {
 	setGameState,
 	setKeyPressed,
 	setLastPressedCombination,
-	setWorld,
 	stageTimer,
 	useGameTimer,
-	world,
+	worldRect,
 } from '~/state';
 import useGameServer, { gameServer } from '~/useGameServer';
 import { encodeJson } from '~/utils';
@@ -105,14 +104,14 @@ export default function Game() {
 	useGameServer();
 	useGameTimer();
 
-	createEffect(() => {
-		if (gameState.status !== 'in_progress' && gameState.status !== 'paused') return;
+	// createEffect(() => {
+	// 	if (gameState.status !== 'in_progress' && gameState.status !== 'paused') return;
 
-		window.addEventListener('beforeunload', onBeforeUnload);
-		onCleanup(() => {
-			window.removeEventListener('beforeunload', onBeforeUnload);
-		});
-	});
+	// 	window.addEventListener('beforeunload', onBeforeUnload);
+	// 	onCleanup(() => {
+	// 		window.removeEventListener('beforeunload', onBeforeUnload);
+	// 	});
+	// });
 
 	onMount(async () => {
 		appkitModal.subscribeAccount((data) => {
@@ -263,11 +262,10 @@ export default function Game() {
 function Terrain(props: ParentProps) {
 	return (
 		<div
-			ref={(ref) => setWorld('ref', ref)}
 			class="bg-forest"
 			style={{
 				'image-rendering': 'pixelated',
-				transform: `translate3d(calc(-50% + ${world.rect.x}px), calc(-50% + ${world.rect.y}px), 0)`,
+				transform: `translate3d(calc(-50% + ${worldRect().x}px), calc(-50% + ${worldRect().y}px), 0)`,
 				width: `${WORLD_SIZE}px`,
 				height: `${WORLD_SIZE}px`,
 			}}

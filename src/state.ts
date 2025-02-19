@@ -31,12 +31,11 @@ function getInitialGameState(): GameState {
 	};
 }
 
+export const [worldRect, setWorldRect] = createSignal(
+	getInitialRect({ x: 0, y: 0, width: WORLD_SIZE, height: WORLD_SIZE }),
+);
 export const [gameState, setGameState] = createStore<GameState>(getInitialGameState());
 export const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, d: false });
-export const [world, setWorld] = createStore<World>({
-	ref: undefined,
-	rect: getInitialRect({ x: 0, y: 0, width: WORLD_SIZE, height: WORLD_SIZE }),
-});
 export const [stageTimer, setStageTimer] = createSignal(0);
 export const [ping, setPing] = createSignal(0);
 
@@ -55,7 +54,6 @@ export function resetGameState() {
 		setLastPressedCombination('w');
 		setKeyPressed({ w: false, s: false, a: false, d: false });
 		setStageTimer(0);
-		setWorld('rect', getInitialRect({ x: 0, y: 0, width: 0, height: 0 }));
 		setPlayer(
 			produce((player) => {
 				player.health = BASE_HEALTH;

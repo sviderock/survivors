@@ -1,68 +1,50 @@
-import { createEffect, createSignal, For, onMount } from 'solid-js';
-import { produce } from 'solid-js/store';
-import Character from '~/components/Character';
+import { createEffect, For } from 'solid-js';
 import { relativePlayerPos } from '~/components/Player';
-import { ENEMY_ATTACK_COOLDOWN, ENEMY_BASE_HEALTH, ENEMY_SIZE, WORLD_SIZE } from '~/constants';
-import { gameState, setGameState, world } from '~/state';
-import { cn, getInitialRect, getRandomBetween, getRect } from '~/utils';
+import { ENEMY_ATTACK_COOLDOWN, ENEMY_BASE_HEALTH, ENEMY_SIZE } from '~/constants';
+import { gameState, setGameState } from '~/state';
+import { cn, getInitialRect, getRandomBetween } from '~/utils';
 
 function createSingleEnemy(): Enemy {
-	const initialRect = getInitialRect({
-		width: ENEMY_SIZE,
-		height: ENEMY_SIZE,
-		x: relativePlayerPos().centerX + getRandomBetween(500, 1000, true),
-		y: relativePlayerPos().centerY + getRandomBetween(500, 1000, true),
-	});
-	const [rect, setRect] = createSignal(initialRect);
-	const [attackStatus, setAttackStatus] = createSignal<EnemyAttackStatus>('ready');
 	const health = getRandomBetween(1, ENEMY_BASE_HEALTH);
 	return {
 		ref: undefined,
-		rect,
-		setRect,
 		attack: 3,
-		attackStatus,
-		setAttackStatus,
+		attackStatus: 'ready',
 		health,
 		maxHealth: health,
 		blocked: { left: false, right: false, top: false, bottom: false },
 		status: 'idle',
-		get dirX() {
-			if (this.rect().centerX < relativePlayerPos().centerX) return 1;
-			if (this.rect().centerX > relativePlayerPos().centerX) return -1;
-			return 0;
-		},
-		get dirY() {
-			if (this.rect().centerY < relativePlayerPos().centerY) return 1;
-			if (this.rect().centerY > relativePlayerPos().centerY) return -1;
-			return 0;
-		},
+		dirX: 0,
+		rect: getInitialRect({
+			width: ENEMY_SIZE,
+			height: ENEMY_SIZE,
+			x: relativePlayerPos().centerX + getRandomBetween(500, 1000, true),
+			y: relativePlayerPos().centerY + getRandomBetween(500, 1000, true),
+		}),
 	};
 }
 
 export function spawnEnemy() {
-	setGameState(
-		'enemies',
-		produce((enemies) => enemies.push(createSingleEnemy())),
-	);
+	setGameState('enemies', gameState.enemies.length, createSingleEnemy());
 }
 
 export function destroyEnemy(idx: number) {
-	setGameState('enemies', (prev) => prev.filter((_, i) => idx !== i));
+	setGameState(
+		'enemies',
+		gameState.enemies.filter((_, i) => idx !== i),
+	);
 }
 
 export default function Enemies() {
-	onMount(() => {
-		gameState.enemies.forEach((enemy) => {
-			const rect = getRect(enemy.ref!);
-			enemy.setRect(rect);
-		});
-	});
-
 	return (
 		<For each={gameState.enemies}>
 			{(enemy, idx) => (
-				<Enemy idx={idx()} enemy={enemy} ref={(el) => setGameState('enemies', idx(), 'ref', el)} />
+				<Enemy
+					idx={idx()}
+					rect={enemy.rect}
+					dirX={enemy.dirX}
+					ref={(el) => setGameState('enemies', idx(), 'ref', el)}
+				/>
 			)}
 		</For>
 	);
@@ -70,31 +52,29 @@ export default function Enemies() {
 
 interface EnemyProps {
 	ref: (ref: HTMLDivElement) => void;
-	enemy: Enemy;
 	idx: number;
+	rect: Rect;
+	dirX: Enemy['dirX'];
 }
 
 function Enemy(props: EnemyProps) {
 	createEffect(() => {
-		if (props.enemy.attackStatus() === 'hit') {
-			props.enemy.setAttackStatus('cooldown');
+		if (gameState.enemies[props.idx]!.attackStatus === 'hit') {
+			setGameState('enemies', props.idx, 'attackStatus', 'cooldown');
 			setTimeout(() => {
-				props.enemy.setAttackStatus('ready');
+				setGameState('enemies', props.idx, 'attackStatus', 'ready');
 			}, ENEMY_ATTACK_COOLDOWN);
 		}
 	});
 
 	return (
-		<Character
-			ref={props.ref}
-			hitboxSize={80}
-			size={ENEMY_SIZE}
-			spriteSrc="/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png"
-			class={cn('animate-move-sprite-sheet-enemy-run')}
-			wrapperClass="absolute"
-			wrapperStyle={{
-				transform: `translate3d(calc(${props.enemy.rect().x}px + ${world.rect.x}px), calc(${props.enemy.rect().y}px + ${world.rect.y}px - ${WORLD_SIZE}px), 0) scaleX(${props.enemy.dirX === -1 ? -1 : 1})`,
-			}}
-		/>
+		<div ref={props.ref} class="h-enemy-hitbox w-enemy-hitbox absolute">
+			<div
+				class={cn(
+					'animate-move-sprite-sheet-enemy-run w-enemy h-enemy bg-enemy will-change-bp relative left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden [image-rendering:pixelated]',
+					props.dirX === -1 && '-scale-x-100',
+				)}
+			/>
+		</div>
 	);
 }

@@ -215,8 +215,8 @@ export function interpolateHealth(percentage: number) {
 	return interpolateColors(hex3, hex2, percentage * 2);
 }
 
-export function getDirection(objCenter: number, sideA: number, sideB: number) {
-	return objCenter < sideA ? 1 : objCenter > sideB ? -1 : 0;
+export function getDirection(a: number, b: number) {
+	return a < b ? 1 : a > b ? -1 : 0;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

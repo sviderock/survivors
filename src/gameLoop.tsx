@@ -1,24 +1,12 @@
-import { type Remote, wrap } from 'comlink';
 import { batch } from 'solid-js';
-import { isServer } from 'solid-js/web';
+import { produce } from 'solid-js/store';
 import { destroyEnemy, spawnEnemy } from '~/components/Enemies';
 import { destroyGem, spawnGem } from '~/components/Gems';
-import { movePlayer, player, relativePlayerPos, setPlayer } from '~/components/Player';
+import { movePlayer, player, playerRect, setPlayer } from '~/components/Player';
 import { destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
-import { BULLET_SPEED } from '~/constants';
+import { BULLET_SPEED, ENEMY_SPEED, WORLD_SIZE } from '~/constants';
 import { gameState, setGameState } from '~/state';
-import { collisionDetected, getNewPos } from '~/utils';
-import type { GameLoopWorker } from '~/workers/gameLoopWorker';
-
-let worker: Remote<GameLoopWorker>;
-
-if (!isServer) {
-	const unwrappedWorker = new Worker(new URL('./workers/gameLoopWorker.ts', import.meta.url), {
-		type: 'module',
-		name: 'game-loop-worker',
-	});
-	worker = wrap<GameLoopWorker>(unwrappedWorker);
-}
+import { collisionDetected, getDirection, getNewPos } from '~/utils';
 
 const SPAWN_ENEMIES = true;
 const SPAWN_BULLETS = true;
@@ -30,7 +18,7 @@ const ENEMY_COLLISIONS = true;
 const BULLET_COLLISIONS = true;
 const GEMS_COLLISIONS = true;
 
-const ENEMY_LIMIT = 150;
+const ENEMY_LIMIT = 300;
 
 let enemySpawnTimer = 0;
 let bulletSpawnTimer = 0;
@@ -65,102 +53,129 @@ async function gameLoop(timestamp: number) {
 		}
 	}
 
-	movePlayer();
+	// move player
+	const { newWorldX, newWorldY } = movePlayer();
 
-	const positions = await worker.updateEnemyPositions(
-		gameState.enemies.map((enemy) => ({ rect: enemy.rect(), dirX: enemy.dirX, dirY: enemy.dirY })),
-	);
+	const relativePlayerPos = {
+		left: playerRect().left - newWorldX,
+		right: playerRect().right - newWorldX,
+		top: playerRect().top - newWorldY,
+		bottom: playerRect().bottom - newWorldY,
+		centerX: playerRect().left - newWorldX + playerRect().width / 2,
+		centerY: playerRect().top - newWorldY + playerRect().height / 2,
+	};
 
-	positions.forEach((p, i) => {
-		const enemy = gameState.enemies[i]!;
-		enemy.setRect(p);
-	});
-
+	// move bullets
 	for (let i = 0; i < gameState.bullets.length; i++) {
 		const bullet = gameState.bullets[i]!;
 
 		if (
-			(bullet.rect().x | 0) === (bullet.target.x | 0) &&
-			(bullet.rect().y | 0) === (bullet.target.y | 0)
+			(bullet.rect.x | 0) === (bullet.target.x | 0) &&
+			(bullet.rect.y | 0) === (bullet.target.y | 0)
 		) {
 			destroyBullet(i);
 		} else {
-			let newBulletX = bullet.rect().x;
-			let newBulletY = bullet.rect().y;
+			let newBulletX = bullet.rect.x;
+			let newBulletY = bullet.rect.y;
 
-			const deltaX = Math.abs(bullet.rect().x - bullet.target.x);
+			const deltaX = Math.abs(bullet.rect.x - bullet.target.x);
 			if (deltaX) {
 				switch (true) {
-					case bullet.rect().x < bullet.target.x:
+					case bullet.rect.x < bullet.target.x:
 						newBulletX += deltaX < BULLET_SPEED ? deltaX : BULLET_SPEED;
 						break;
-					case bullet.rect().x > bullet.target.x:
+					case bullet.rect.x > bullet.target.x:
 						newBulletX -= deltaX <= BULLET_SPEED ? deltaX : BULLET_SPEED;
 						break;
 				}
 			}
 
-			const deltaY = Math.abs(bullet.rect().y - bullet.target.y);
+			const deltaY = Math.abs(bullet.rect.y - bullet.target.y);
 			switch (true) {
-				case bullet.rect().y < bullet.target.y:
+				case bullet.rect.y < bullet.target.y:
 					newBulletY += deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED;
 					break;
-				case bullet.rect().y > bullet.target.y:
+				case bullet.rect.y > bullet.target.y:
 					newBulletY -= deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED;
 					break;
 			}
 
-			bullet.setRect(
+			setGameState(
+				'bullets',
+				i,
+				'rect',
 				getNewPos({
 					x: newBulletX,
 					y: newBulletY,
-					width: bullet.rect().width,
-					height: bullet.rect().height,
+					width: bullet.rect.width,
+					height: bullet.rect.height,
 				}),
 			);
 		}
 	}
 
+	// process enemies
 	for (let i = 0; i < gameState.enemies.length; i++) {
 		const enemy = gameState.enemies[i]!;
+		const dirX = getDirection(enemy.rect.centerX, relativePlayerPos.centerX);
+		const updatedRect = getNewPos({
+			x: enemy.rect.x + ENEMY_SPEED * dirX,
+			y: enemy.rect.y + ENEMY_SPEED * getDirection(enemy.rect.centerY, relativePlayerPos.centerY),
+			width: enemy.rect.width,
+			height: enemy.rect.height,
+		});
+		setGameState(
+			'enemies',
+			i,
+			produce((state) => {
+				state.rect = updatedRect;
+				state.dirX = dirX;
+			}),
+		);
+		enemy.ref!.style.transform = `translate3d(calc(${updatedRect.x}px + ${newWorldX}px), calc(${updatedRect.y}px + ${newWorldY}px - ${WORLD_SIZE}px), 0)`;
 
+		// for each enemy detect collisions with bullets
 		if (BULLET_COLLISIONS) {
 			for (let j = 0; j < gameState.bullets.length; j++) {
 				const bullet = gameState.bullets[j]!;
-				if (collisionDetected(bullet.rect(), enemy.rect())) {
+				if (collisionDetected(bullet.rect, enemy.rect)) {
 					batch(() => {
+						destroyBullet(j);
+
 						if (enemy.health <= bullet.damage) {
-							spawnGem({ x: enemy.rect().centerX, y: enemy.rect().centerY });
+							spawnGem({ x: enemy.rect.centerX, y: enemy.rect.centerY });
+
 							destroyEnemy(i);
-							destroyBullet(j);
-							setGameState('enemiesKilled', (k) => k + 1);
-						} else {
-							destroyBullet(j);
-							setGameState('enemies', i, 'health', enemy.health - bullet.damage);
+							setGameState('enemiesKilled', gameState.enemiesKilled + 1);
+							return;
 						}
+
+						setGameState('enemies', i, 'health', enemy.health - bullet.damage);
 					});
 				}
 			}
 		}
 
+		// for each enemy detect collisions with player
 		if (ENEMY_COLLISIONS) {
-			if (collisionDetected(relativePlayerPos(), enemy.rect())) {
-				if (enemy.attackStatus() === 'ready') {
+			if (collisionDetected(relativePlayerPos, enemy.rect)) {
+				if (enemy.attackStatus === 'ready') {
 					batch(() => {
-						enemy.setAttackStatus('hit');
-						setPlayer('health', (health) => health - enemy.attack);
+						setGameState('enemies', i, 'attackStatus', 'hit');
+						setPlayer('health', player.health - enemy.attack);
 					});
 				}
 			}
 		}
 	}
 
+	// detect player collisions with gems
 	if (GEMS_COLLISIONS) {
 		for (let i = 0; i < gameState.gems.length; i++) {
 			const gem = gameState.gems[i]!;
-			if (collisionDetected(relativePlayerPos(), gem.rect())) {
+			if (collisionDetected(relativePlayerPos, gem.rect)) {
 				destroyGem(i);
-				setGameState('experience', (exp) => exp + 1);
+				setGameState('experience', gameState.experience + 1);
 			}
 		}
 	}

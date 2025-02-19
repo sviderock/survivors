@@ -4,11 +4,13 @@ import type { PlayedGame } from '@/schema';
 import type { Accessor, Setter } from 'solid-js';
 
 declare global {
-	type RectSides = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom'>;
-	type RectCoords = Pick<DOMRect, 'x' | 'y'>;
-	type RectSize = Pick<DOMRect, 'width' | 'height'>;
+	type RectSides = { left: number; right: number; top: number; bottom: number };
+	type RectCoords = { x: number; y: number };
+	type RectSize = { width: number; height: number };
 	type RectCenter = { centerX: number; centerY: number };
 	type Rect = RectSides & RectCoords & RectSize & RectCenter;
+
+	type CharacterDirection = 'east' | 'west';
 
 	type World = {
 		ref: HTMLDivElement | undefined;
@@ -40,55 +42,41 @@ declare global {
 
 	type Player = {
 		ref: HTMLDivElement | undefined;
-		rect: Rect;
 		health: number;
 		maxHealth: number;
 		state: {
 			type: 'idle' | 'moving' | 'attacking';
-			direction: 'east' | 'west';
+			direction: CharacterDirection;
 		};
 	};
 
-	type EnemyAttackStatus = 'ready' | 'hit' | 'cooldown';
 	type Enemy = {
 		ref: HTMLDivElement | undefined;
-		rect: Accessor<Rect>;
-		setRect: Setter<Rect>;
+		rect: Rect;
 		attack: number;
-		attackStatus: Accessor<EnemyAttackStatus>;
-		setAttackStatus: Setter<EnemyAttackStatus>;
+		attackStatus: 'ready' | 'hit' | 'cooldown';
 		health: number;
 		maxHealth: number;
 		blocked: Record<keyof RectSides, boolean>;
 		status: 'idle' | 'moving' | 'attacking';
 		dirX: 1 | 0 | -1;
-		dirY: 1 | 0 | -1;
 	};
 
 	type Bullet = {
 		ref: HTMLSpanElement | undefined;
-		rect: Accessor<Rect>;
-		setRect: Setter<Rect>;
+		rect: Rect;
 		target: { x: number; y: number };
 		damage: number;
 	};
 
 	type Gem = {
 		ref: HTMLSpanElement | undefined;
-		rect: Accessor<Rect>;
-		setRect: Setter<Rect>;
+		rect: Rect;
 		value: number;
 	};
 
 	type RGBStr = `rgb(${number},${'' | ' '}${number},${'' | ' '}${number})`;
 	type RGB = { r: number; g: number; b: number };
-
-	namespace App {
-		interface RequestEventLocals {
-			// session: StoredSessionData | null | undefined;
-			// activeGame: PlayedGame | undefined;
-		}
-	}
 
 	namespace Zerion {
 		// Determined from an API response and transformed in TypeScript using https://transform.tools/json-to-typescript
