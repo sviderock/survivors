@@ -49,7 +49,6 @@ export default function UserAccount() {
 
 export function useCurrentUser() {
 	const userAddresses = () => {
-		console.log(connectedUser);
 		return connectedUser.allAccounts.map((acc) => acc.address);
 	};
 

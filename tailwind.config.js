@@ -1,4 +1,7 @@
 /* eslint-disable no-undef */
+
+import { PLAYER_SIZE, PLAYER_SPEED } from './src/constants';
+
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { fontFamily } = require('tailwindcss/defaultTheme');
 
@@ -100,6 +103,106 @@ export default {
 					'0%,70%,100%': { opacity: '1' },
 					'20%,50%': { opacity: '0.6' },
 				},
+
+				// player idle
+				'move-sprite-sheet-idle': {
+					'0%': { transform: 'translate3d(0px, 0, 0)' },
+					'100%': { transform: 'translate3d(-75%, 0, 0)' },
+				},
+
+				// player run
+				'move-sprite-sheet-run': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
+						transform: 'translate3d(0px, 0, 0)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
+						transform: 'translate3d(-75%, 0, 0)',
+					},
+				},
+
+				// player shoot
+				'move-sprite-sheet-shoot-north': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE * 2}px * var(--pixel-size))`,
+						transform: 'translate3d(0px, 0, 0)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE * 2}px * var(--pixel-size))`,
+						transform: 'translate3d(-100%, 0, 0)',
+					},
+				},
+				'move-sprite-sheet-shoot-north-east': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
+						transform: 'translate3d(0px, 0, 0)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
+						transform: 'translate3d(-100%, 0, 0)',
+					},
+				},
+				'move-sprite-sheet-shoot-east': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
+						transform: 'translate3d(0px, 0, 0)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
+						transform: 'translate3d(-100%, 0, 0)',
+					},
+				},
+				'move-sprite-sheet-shoot-south-east': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
+						transform: 'translate3d(0px, 0, 0)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
+						transform: 'translate3d(-100%, 0, 0)',
+					},
+				},
+				'move-sprite-sheet-shoot-south': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE * 6}px * var(--pixel-size))`,
+						transform: 'translate3d(0px, 0, 0)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE * 6}px * var(--pixel-size))`,
+						transform: 'translate3d(-100%, 0, 0)',
+					},
+				},
+				'move-sprite-sheet-shoot-south-west': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
+						transform: 'translate3d(-100%, 0, 0) scaleX(-1)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
+						transform: 'translate3d(0, 0, 0) scaleX(-1)',
+					},
+				},
+				'move-sprite-sheet-shoot-west': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
+						transform: 'translate3d(-100%, 0, 0) scaleX(-1)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
+						transform: 'translate3d(0, 0, 0) scaleX(-1)',
+					},
+				},
+				'move-sprite-sheet-shoot-north-west': {
+					'0%': {
+						top: `calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
+						transform: 'translate3d(-100%, 0, 0) scaleX(-1)',
+					},
+					'100%': {
+						top: `calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
+						transform: 'translate3d(0, 0, 0) scaleX(-1)',
+					},
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -107,6 +210,20 @@ export default {
 				'content-show': 'content-show 0.2s ease-out',
 				'content-hide': 'content-hide 0.2s ease-out',
 				'caret-blink': 'caret-blink .5s ease-out infinite',
+				'move-sprite-sheet-idle': 'move-sprite-sheet-idle .5s steps(6) infinite',
+				'move-sprite-sheet-run': `move-sprite-sheet-run .3s steps(6) infinite`,
+				'move-sprite-sheet-shoot-north': 'move-sprite-sheet-shoot-north .66s steps(8) infinite',
+				'move-sprite-sheet-shoot-north-east':
+					'move-sprite-sheet-shoot-north-east .66s steps(8) infinite',
+				'move-sprite-sheet-shoot-east': 'move-sprite-sheet-shoot-east .66s steps(8) infinite',
+				'move-sprite-sheet-shoot-south-east':
+					'move-sprite-sheet-shoot-south-east .66s steps(8) infinite',
+				'move-sprite-sheet-shoot-south': 'move-sprite-sheet-shoot-south .66s steps(8) infinite',
+				'move-sprite-sheet-shoot-south-west':
+					'move-sprite-sheet-shoot-south-west .66s steps(8) infinite',
+				'move-sprite-sheet-shoot-west': 'move-sprite-sheet-shoot-west .66s steps(8) infinite',
+				'move-sprite-sheet-shoot-north-west':
+					'move-sprite-sheet-shoot-north-west .66s steps(8) infinite',
 			},
 		},
 	},

@@ -3,9 +3,9 @@ import { batch } from 'solid-js';
 import { isServer } from 'solid-js/web';
 import { destroyEnemy, spawnEnemy } from '~/components/Enemies';
 import { destroyGem, spawnGem } from '~/components/Gems';
-import { player, relativePlayerPos, setPlayer } from '~/components/Player';
+import { movePlayer, player, relativePlayerPos, setPlayer } from '~/components/Player';
 import { destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
-import { BULLET_SPEED, PLAYER_SPEED } from '~/constants';
+import { BULLET_SPEED, PLAYER_FREE_MOVEMENT, PLAYER_SPEED } from '~/constants';
 import { gameState, keyPressed, setGameState, setWorldPos, worldPos } from '~/state';
 import { collisionDetected, getNewPos } from '~/utils';
 import type { GameLoopWorker } from '~/workers/gameLoopWorker';
@@ -32,8 +32,6 @@ const GEMS_COLLISIONS = true;
 
 const ENEMY_LIMIT = 150;
 
-const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
-
 let enemySpawnTimer = 0;
 let bulletSpawnTimer = 0;
 let gameStageTimer = 0;
@@ -41,6 +39,12 @@ let gameStageTimer = 0;
 export let mainGameLoop: number | undefined;
 
 async function gameLoop(timestamp: number) {
+	if (PLAYER_FREE_MOVEMENT) {
+		movePlayer();
+		mainGameLoop = requestAnimationFrame(gameLoop);
+		return;
+	}
+
 	if (gameState.status !== 'in_progress') {
 		enemySpawnTimer = 0;
 		bulletSpawnTimer = 0;
@@ -72,27 +76,13 @@ async function gameLoop(timestamp: number) {
 		}
 	}
 
-	const playerSpeedModifier =
-		(keyPressed.w && keyPressed.a) ||
-		(keyPressed.w && keyPressed.d) ||
-		(keyPressed.s && keyPressed.a) ||
-		(keyPressed.s && keyPressed.d)
-			? DIAGONAL_SPEED
-			: 1;
-
-	let newWorldX = worldPos().x;
-	let newWorldY = worldPos().y;
-	if (keyPressed.w) newWorldY += (PLAYER_SPEED * playerSpeedModifier) | 0;
-	if (keyPressed.s) newWorldY -= (PLAYER_SPEED * playerSpeedModifier) | 0;
-	if (keyPressed.a) newWorldX += (PLAYER_SPEED * playerSpeedModifier) | 0;
-	if (keyPressed.d) newWorldX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
-	setWorldPos({ x: newWorldX, y: newWorldY });
+	const { newWorldX, newWorldY } = movePlayer();
 
 	const relPlayerPos = {
-		left: player().rect.left - newWorldX,
-		right: player().rect.right - newWorldX,
-		top: player().rect.top - newWorldY,
-		bottom: player().rect.bottom - newWorldY,
+		left: player.rect.left - newWorldX,
+		right: player.rect.right - newWorldX,
+		top: player.rect.top - newWorldY,
+		bottom: player.rect.bottom - newWorldY,
 	};
 
 	const positions = await worker.updateEnemyPositions({
@@ -177,7 +167,7 @@ async function gameLoop(timestamp: number) {
 				if (enemy.attackStatus() === 'ready') {
 					batch(() => {
 						enemy.setAttackStatus('hit');
-						setPlayer((p) => ({ ...p, health: p.health - enemy.attack }));
+						setPlayer('health', (health) => health - enemy.attack);
 					});
 				}
 			}
@@ -194,7 +184,7 @@ async function gameLoop(timestamp: number) {
 		}
 	}
 
-	if (player().health <= 0) {
+	if (player.health <= 0) {
 		setGameState('status', 'lost');
 		clearGameLoop();
 	}

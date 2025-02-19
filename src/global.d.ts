@@ -38,6 +38,10 @@ declare global {
 		rect: Rect;
 		health: number;
 		maxHealth: number;
+		state: {
+			type: 'idle' | 'moving' | 'shooting';
+			direction: 'east' | 'west';
+		};
 	};
 
 	type EnemyAttackStatus = 'ready' | 'hit' | 'cooldown';

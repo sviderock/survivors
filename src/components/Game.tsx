@@ -1,13 +1,15 @@
-import { createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
+import { batch, createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
+import { produce } from 'solid-js/store';
 import { appkitModal } from '~/appkit';
 import Banner from '~/components/Banner';
 import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
-import Player from '~/components/Player';
+import Player, { setPlayer } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
 import UserAccount, { useLogout } from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
+import { PLAYER_FREE_MOVEMENT } from '~/constants';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	connectedUser,
@@ -72,7 +74,7 @@ function onKeyDown(e: KeyboardEvent) {
 		return;
 	}
 
-	if (gameState.status === 'in_progress') {
+	if (gameState.status === 'in_progress' || PLAYER_FREE_MOVEMENT) {
 		if (e.code === 'KeyW' || e.code === 'ArrowUp') return setKeyPressed('w', true);
 		if (e.code === 'KeyS' || e.code === 'ArrowDown') return setKeyPressed('s', true);
 		if (e.code === 'KeyA' || e.code === 'ArrowLeft') return setKeyPressed('a', true);
@@ -81,7 +83,7 @@ function onKeyDown(e: KeyboardEvent) {
 }
 
 function onKeyUp(e: KeyboardEvent) {
-	if (gameState.status === 'in_progress') {
+	if (gameState.status === 'in_progress' || PLAYER_FREE_MOVEMENT) {
 		if (e.code === 'KeyW' || e.code === 'ArrowUp') return setKeyPressed('w', false);
 		if (e.code === 'KeyS' || e.code === 'ArrowDown') return setKeyPressed('s', false);
 		if (e.code === 'KeyA' || e.code === 'ArrowLeft') return setKeyPressed('a', false);
@@ -101,10 +103,6 @@ export default function Game() {
 	const logout = useLogout();
 	useGameServer();
 	useGameTimer();
-
-	createEffect(() => {
-		console.log(gameState.status + 123);
-	});
 
 	createEffect(() => {
 		if (gameState.status !== 'in_progress' && gameState.status !== 'paused') return;
@@ -137,20 +135,111 @@ export default function Game() {
 	});
 
 	createEffect(() => {
-		if (gameState.status === 'in_progress') {
+		if (gameState.status === 'in_progress' || PLAYER_FREE_MOVEMENT) {
 			runGameLoop();
 		}
 	});
 
 	createEffect(() => {
-		if (keyPressed.w && keyPressed.a) return setLastPressedCombination('wa');
-		if (keyPressed.w && keyPressed.d) return setLastPressedCombination('wd');
-		if (keyPressed.s && keyPressed.a) return setLastPressedCombination('sa');
-		if (keyPressed.s && keyPressed.d) return setLastPressedCombination('sd');
-		if (keyPressed.w) return setLastPressedCombination('w');
-		if (keyPressed.s) return setLastPressedCombination('s');
-		if (keyPressed.a) return setLastPressedCombination('a');
-		if (keyPressed.d) return setLastPressedCombination('d');
+		batch(() => {
+			switch (true) {
+				case keyPressed.w && keyPressed.a: {
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'moving';
+							state.direction = 'west';
+						}),
+					);
+					setLastPressedCombination('wa');
+					break;
+				}
+				case keyPressed.w && keyPressed.d: {
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'moving';
+							state.direction = 'east';
+						}),
+					);
+					setLastPressedCombination('wd');
+					break;
+				}
+				case keyPressed.s && keyPressed.a: {
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'moving';
+							state.direction = 'west';
+						}),
+					);
+					setLastPressedCombination('sa');
+					break;
+				}
+				case keyPressed.s && keyPressed.d: {
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'moving';
+							state.direction = 'east';
+						}),
+					);
+					setLastPressedCombination('sd');
+					break;
+				}
+				case keyPressed.w: {
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'moving';
+						}),
+					);
+					setLastPressedCombination('w');
+					break;
+				}
+				case keyPressed.s: {
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'moving';
+						}),
+					);
+					setLastPressedCombination('s');
+					break;
+				}
+				case keyPressed.a: {
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'moving';
+							state.direction = 'west';
+						}),
+					);
+					setLastPressedCombination('a');
+					break;
+				}
+				case keyPressed.d: {
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'moving';
+							state.direction = 'east';
+						}),
+					);
+					setLastPressedCombination('d');
+					break;
+				}
+
+				default:
+					setPlayer(
+						'state',
+						produce((state) => {
+							state.type = 'idle';
+						}),
+					);
+					break;
+			}
+		});
 	});
 
 	return (
@@ -162,7 +251,7 @@ export default function Game() {
 			</GameWorld>
 
 			<Player />
-			<Banner />
+			{/* <Banner /> */}
 			<UserAccount />
 			<StageTimer />
 			<UIStats />

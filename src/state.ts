@@ -43,6 +43,10 @@ export const [lastPressedCombination, setLastPressedCombination] = createSignal(
 	'w' as 'wa' | 'wd' | 'sa' | 'sd' | 'w' | 's' | 'a' | 'd',
 );
 
+export function isLastPressedCombination(comb: LastPressedCombination[]) {
+	return comb.includes(lastPressedCombination());
+}
+
 export function resetGameState() {
 	batch(() => {
 		setGameState(getInitialGameState());
@@ -50,7 +54,12 @@ export function resetGameState() {
 		setLastPressedCombination('w');
 		setKeyPressed({ w: false, s: false, a: false, d: false });
 		setStageTimer(0);
-		setPlayer((p) => ({ ...p, health: BASE_HEALTH, maxHealth: BASE_HEALTH }));
+		setPlayer(
+			produce((player) => {
+				player.health = BASE_HEALTH;
+				player.maxHealth = BASE_HEALTH;
+			}),
+		);
 	});
 }
 

@@ -14,7 +14,12 @@ export default function Banner() {
 					<Button
 						onClick={() => {
 							batch(() => {
-								setPlayer((p) => ({ ...p, health: 10000, maxHealth: 10000 }));
+								setPlayer(
+									produce((player) => {
+										player.health = 10_000;
+										player.maxHealth = 10_000;
+									}),
+								);
 								setGameState(
 									produce((state) => {
 										state.status = 'in_progress';

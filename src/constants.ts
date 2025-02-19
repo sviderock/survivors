@@ -1,5 +1,5 @@
 export const PLAYER_SPEED = 3;
-export const PLAYER_SIZE = 80;
+export const PLAYER_SIZE = 32;
 
 export const BULLET_SPEED = 7;
 export const BULLET_SIZE = 16;
@@ -28,3 +28,7 @@ export const BASE_COINS_REWARD = 100;
 export const STAGE_TIME_IN_MINUTES = 0.2;
 
 export const ABRUPTLY_STOPPPED_GAME_LS_KEY = 'abruptly_stopped_game';
+
+export const PLAYER_FREE_MOVEMENT = true;
+
+export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
