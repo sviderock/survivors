@@ -1,6 +1,7 @@
-import { createEffect, createSignal, onMount } from 'solid-js';
+import { createEffect, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import Character from '~/components/Character';
+import { spawnEnemy } from '~/components/Enemies';
 import HealthBar from '~/components/HealthBar';
 import {
 	BASE_HEALTH,
@@ -12,8 +13,8 @@ import {
 	XP_LVL_3_TO_20,
 	XP_LVL_41_AND_UP,
 } from '~/constants';
-import { gameState, keyPressed, setWorldPos, worldPos } from '~/state';
-import { cn, getInitialRect, getRect } from '~/utils';
+import { gameState, keyPressed, setWorld, world } from '~/state';
+import { cn, getInitialRect, getNewPos, getRect } from '~/utils';
 
 export const [player, setPlayer] = createStore<Player>({
 	ref: undefined,
@@ -24,12 +25,12 @@ export const [player, setPlayer] = createStore<Player>({
 });
 
 export const relativePlayerPos = () => ({
-	left: player.rect.left - worldPos().x,
-	right: player.rect.right - worldPos().x,
-	top: player.rect.top - worldPos().y,
-	bottom: player.rect.bottom - worldPos().y,
-	centerX: player.rect.left - worldPos().x + player.rect.width / 2,
-	centerY: player.rect.top - worldPos().y + player.rect.height / 2,
+	left: player.rect.left - world.rect.x,
+	right: player.rect.right - world.rect.x,
+	top: player.rect.top - world.rect.y,
+	bottom: player.rect.bottom - world.rect.y,
+	centerX: player.rect.left - world.rect.x + player.rect.width / 2,
+	centerY: player.rect.top - world.rect.y + player.rect.height / 2,
 });
 
 export const playerLevel = () => {
@@ -75,13 +76,17 @@ export function movePlayer() {
 			? DIAGONAL_SPEED
 			: 1;
 
-	let newWorldX = worldPos().x;
-	let newWorldY = worldPos().y;
+	let newWorldX = world.rect.x;
+	let newWorldY = world.rect.y;
 	if (keyPressed.w) newWorldY += (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.s) newWorldY -= (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.a) newWorldX += (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.d) newWorldX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
-	setWorldPos({ x: newWorldX, y: newWorldY });
+
+	setWorld('rect', (rect) =>
+		getNewPos({ x: newWorldX, y: newWorldY, width: rect.width, height: rect.height }),
+	);
+
 	return { newWorldX, newWorldY };
 }
 
@@ -92,10 +97,10 @@ export default function Player() {
 				player.rect = { ...getRect(player.ref!), width: PLAYER_SIZE, height: PLAYER_SIZE };
 			}),
 		);
-	});
 
-	createEffect(() => {
-		console.log(player.state.type, player.state.direction);
+		setTimeout(() => {
+			spawnEnemy();
+		}, 1);
 	});
 
 	return (
@@ -107,6 +112,7 @@ export default function Player() {
 			<Character
 				ref={(ref) => setPlayer('ref', ref)}
 				direction={player.state.direction}
+				hitboxSize={80}
 				size={PLAYER_SIZE}
 				spriteSrc="/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png"
 				class={cn(

@@ -203,6 +203,12 @@ export default {
 						transform: 'translate3d(0, 0, 0) scaleX(-1)',
 					},
 				},
+
+				// enemy idle
+				'move-sprite-sheet-enemy-idle': {
+					'0%': { transform: 'translate3d(0px, 0, 0)' },
+					'100%': { transform: 'translate3d(-100%, 0, 0)' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -210,6 +216,8 @@ export default {
 				'content-show': 'content-show 0.2s ease-out',
 				'content-hide': 'content-hide 0.2s ease-out',
 				'caret-blink': 'caret-blink .5s ease-out infinite',
+
+				// player animations
 				'move-sprite-sheet-idle': 'move-sprite-sheet-idle .5s steps(6) infinite',
 				'move-sprite-sheet-run': `move-sprite-sheet-run .3s steps(6) infinite`,
 				'move-sprite-sheet-shoot-north': 'move-sprite-sheet-shoot-north .66s steps(8) infinite',
@@ -224,6 +232,9 @@ export default {
 				'move-sprite-sheet-shoot-west': 'move-sprite-sheet-shoot-west .66s steps(8) infinite',
 				'move-sprite-sheet-shoot-north-west':
 					'move-sprite-sheet-shoot-north-west .66s steps(8) infinite',
+
+				// enemy animations
+				'move-sprite-sheet-enemy-idle': 'move-sprite-sheet-enemy-idle .5s steps(7) infinite',
 			},
 		},
 	},

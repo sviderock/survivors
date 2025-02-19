@@ -10,6 +10,11 @@ declare global {
 	type RectCenter = { centerX: number; centerY: number };
 	type Rect = RectSides & RectCoords & RectSize & RectCenter;
 
+	type World = {
+		ref: HTMLDivElement | undefined;
+		rect: Rect;
+	};
+
 	type BaseGameStateProps = {
 		pingEnabled: boolean;
 		bulletSpawnInterval: number;

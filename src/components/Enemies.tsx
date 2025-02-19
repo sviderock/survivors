@@ -1,17 +1,24 @@
 import { createEffect, createSignal, For, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
+import Character from '~/components/Character';
 import { relativePlayerPos } from '~/components/Player';
-import { ENEMY_ATTACK_COOLDOWN, ENEMY_BASE_HEALTH, ENEMY_SIZE } from '~/constants';
+import {
+	ENEMY_ATTACK_COOLDOWN,
+	ENEMY_BASE_HEALTH,
+	ENEMY_SIZE,
+	PLAYER_SIZE,
+	WORLD_SIZE,
+} from '~/constants';
 import { LoadingSpinner } from '~/icons/LoadingSpinner';
-import { gameState, setGameState } from '~/state';
+import { gameState, setGameState, world } from '~/state';
 import { cn, getInitialRect, getRandomBetween, getRect } from '~/utils';
 
 function createSingleEnemy(): Enemy {
 	const initialRect = getInitialRect({
 		width: ENEMY_SIZE,
 		height: ENEMY_SIZE,
-		x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
-		y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
+		x: relativePlayerPos().centerX + getRandomBetween(300, 300),
+		y: relativePlayerPos().centerY + getRandomBetween(0, 0, true),
 	});
 	const [rect, setRect] = createSignal(initialRect);
 	const [attackStatus, setAttackStatus] = createSignal<EnemyAttackStatus>('ready');
@@ -74,28 +81,17 @@ function Enemy(props: EnemyProps) {
 	});
 
 	return (
-		<div
-			class="absolute flex flex-col items-center justify-center"
-			style={{ transform: `translate3d(${props.enemy.rect().x}px, ${props.enemy.rect().y}px, 0)` }}
-		>
-			<div
-				ref={props.ref}
-				class={cn(
-					'flex items-center justify-center border-2 border-blue-900 bg-blue-500',
-					props.enemy.blocked.left && 'border-l-red-500',
-					props.enemy.blocked.right && 'border-r-red-500',
-					props.enemy.blocked.top && 'border-t-red-500',
-					props.enemy.blocked.bottom && 'border-b-red-500',
-				)}
-				style={{
-					width: `${ENEMY_SIZE}px`,
-					height: `${ENEMY_SIZE}px`,
-				}}
-			>
-				<LoadingSpinner
-					class={cn('opacity-0', props.enemy.attackStatus() === 'cooldown' && 'opacity-1')}
-				/>
-			</div>
-		</div>
+		<Character
+			ref={props.ref}
+			direction={'east'}
+			hitboxSize={80}
+			size={PLAYER_SIZE}
+			spriteSrc="/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png"
+			class={cn('animate-move-sprite-sheet-enemy-idle')}
+			wrapperClass="absolute"
+			wrapperStyle={{
+				transform: `translate3d(calc(${props.enemy.rect().x}px + ${world.rect.x}px), calc(${props.enemy.rect().y}px + ${world.rect.y}px - ${WORLD_SIZE}px), 0)`,
+			}}
+		/>
 	);
 }

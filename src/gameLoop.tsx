@@ -5,8 +5,8 @@ import { destroyEnemy, spawnEnemy } from '~/components/Enemies';
 import { destroyGem, spawnGem } from '~/components/Gems';
 import { movePlayer, player, relativePlayerPos, setPlayer } from '~/components/Player';
 import { destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
-import { BULLET_SPEED, PLAYER_FREE_MOVEMENT, PLAYER_SPEED } from '~/constants';
-import { gameState, keyPressed, setGameState, setWorldPos, worldPos } from '~/state';
+import { BULLET_SPEED, PLAYER_FREE_MOVEMENT } from '~/constants';
+import { gameState, setGameState } from '~/state';
 import { collisionDetected, getNewPos } from '~/utils';
 import type { GameLoopWorker } from '~/workers/gameLoopWorker';
 
@@ -39,13 +39,13 @@ let gameStageTimer = 0;
 export let mainGameLoop: number | undefined;
 
 async function gameLoop(timestamp: number) {
-	if (PLAYER_FREE_MOVEMENT) {
-		movePlayer();
-		mainGameLoop = requestAnimationFrame(gameLoop);
-		return;
-	}
-
 	if (gameState.status !== 'in_progress') {
+		if (PLAYER_FREE_MOVEMENT) {
+			movePlayer();
+			mainGameLoop = requestAnimationFrame(gameLoop);
+			return;
+		}
+
 		enemySpawnTimer = 0;
 		bulletSpawnTimer = 0;
 		return;

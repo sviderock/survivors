@@ -2,14 +2,14 @@ import { batch, createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { appkitModal } from '~/appkit';
 import Banner from '~/components/Banner';
-import Enemies from '~/components/Enemies';
+import Enemies, { spawnEnemy } from '~/components/Enemies';
 import Gems from '~/components/Gems';
 import Player, { player, setPlayer } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
 import UserAccount, { useLogout } from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
-import { PLAYER_FREE_MOVEMENT, PLAYER_SIZE, TERRAIN_TILE_SIZE } from '~/constants';
+import { PLAYER_FREE_MOVEMENT, PLAYER_SIZE, TERRAIN_TILE_SIZE, WORLD_SIZE } from '~/constants';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	connectedUser,
@@ -20,12 +20,13 @@ import {
 	setGameState,
 	setKeyPressed,
 	setLastPressedCombination,
+	setWorld,
 	stageTimer,
 	useGameTimer,
-	worldPos,
+	world,
 } from '~/state';
 import useGameServer, { gameServer } from '~/useGameServer';
-import { cn, encodeJson } from '~/utils';
+import { cn, encodeJson, getRect } from '~/utils';
 import type { ContinueGameEvent, GameServerEvent, PauseGameEvent } from '~/ws';
 
 function onKeyDown(e: KeyboardEvent) {
@@ -244,13 +245,13 @@ export default function Game() {
 
 	return (
 		<div class="relative h-lvh w-full overflow-hidden">
-			<GameWorld>
-				<Enemies />
-				<Bullet />
-				<Gems />
-			</GameWorld>
+			<Terrain />
 
 			<Player />
+			<Enemies />
+			<Bullet />
+			<Gems />
+
 			{/* <Banner /> */}
 			<UserAccount />
 			<StageTimer />
@@ -259,12 +260,15 @@ export default function Game() {
 	);
 }
 
-function GameWorld(props: ParentProps) {
+function Terrain(props: ParentProps) {
 	return (
 		<div
-			class="bg-size absolute -left-1/2 -top-1/2 h-[10000px] w-[10000px] bg-forest"
+			ref={(ref) => setWorld('ref', ref)}
+			class="bg-forest"
 			style={{
-				transform: `translate3d(calc(-50% + ${worldPos().x}px), calc(-50% + ${worldPos().y}px), 0)`,
+				transform: `translate3d(calc(-50% + ${world.rect.x}px), calc(-50% + ${world.rect.y}px), 0)`,
+				width: `${WORLD_SIZE}px`,
+				height: `${WORLD_SIZE}px`,
 			}}
 		>
 			{props.children}
