@@ -1,15 +1,14 @@
 import { batch, createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { appkitModal } from '~/appkit';
-import Banner from '~/components/Banner';
-import Enemies, { spawnEnemy } from '~/components/Enemies';
+import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
-import Player, { player, setPlayer } from '~/components/Player';
+import Player, { setPlayer } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
 import UserAccount, { useLogout } from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
-import { PLAYER_FREE_MOVEMENT, PLAYER_SIZE, TERRAIN_TILE_SIZE, WORLD_SIZE } from '~/constants';
+import { PLAYER_FREE_MOVEMENT, WORLD_SIZE } from '~/constants';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import {
 	connectedUser,
@@ -26,7 +25,7 @@ import {
 	world,
 } from '~/state';
 import useGameServer, { gameServer } from '~/useGameServer';
-import { cn, encodeJson, getRect } from '~/utils';
+import { encodeJson } from '~/utils';
 import type { ContinueGameEvent, GameServerEvent, PauseGameEvent } from '~/ws';
 
 function onKeyDown(e: KeyboardEvent) {

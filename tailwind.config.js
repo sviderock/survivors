@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { PLAYER_SIZE, PLAYER_SPEED } from './src/constants';
+import { ENEMY_SIZE, PLAYER_SIZE, PLAYER_SPEED } from './src/constants';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { fontFamily } = require('tailwindcss/defaultTheme');
@@ -209,6 +209,18 @@ export default {
 					'0%': { transform: 'translate3d(0px, 0, 0)' },
 					'100%': { transform: 'translate3d(-100%, 0, 0)' },
 				},
+
+				// enemy run
+				'move-sprite-sheet-enemy-run': {
+					'0%': {
+						top: `calc(-${ENEMY_SIZE}px * var(--pixel-size))`,
+						transform: 'translate3d(0px, 0, 0)',
+					},
+					'100%': {
+						top: `calc(-${ENEMY_SIZE}px * var(--pixel-size))`,
+						transform: 'translate3d(-85.714%, 0, 0)',
+					},
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -235,6 +247,7 @@ export default {
 
 				// enemy animations
 				'move-sprite-sheet-enemy-idle': 'move-sprite-sheet-enemy-idle .5s steps(7) infinite',
+				'move-sprite-sheet-enemy-run': `move-sprite-sheet-enemy-run .3s steps(6) infinite`,
 			},
 		},
 	},

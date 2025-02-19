@@ -1,14 +1,8 @@
-import { createEffect, createMemo, createSignal, For, onMount } from 'solid-js';
+import { createEffect, createSignal, For, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
 import Character from '~/components/Character';
 import { relativePlayerPos } from '~/components/Player';
-import {
-	ENEMY_ATTACK_COOLDOWN,
-	ENEMY_BASE_HEALTH,
-	ENEMY_SIZE,
-	PLAYER_SIZE,
-	WORLD_SIZE,
-} from '~/constants';
+import { ENEMY_ATTACK_COOLDOWN, ENEMY_BASE_HEALTH, ENEMY_SIZE, WORLD_SIZE } from '~/constants';
 import { gameState, setGameState, world } from '~/state';
 import { cn, getDirection, getInitialRect, getRandomBetween, getRect } from '~/utils';
 
@@ -16,8 +10,8 @@ function createSingleEnemy(): Enemy {
 	const initialRect = getInitialRect({
 		width: ENEMY_SIZE,
 		height: ENEMY_SIZE,
-		x: relativePlayerPos().centerX + getRandomBetween(300, 300),
-		y: relativePlayerPos().centerY + getRandomBetween(0, 0, true),
+		x: relativePlayerPos().centerX + getRandomBetween(500, 1000, true),
+		y: relativePlayerPos().centerY + getRandomBetween(500, 1000, true),
 	});
 	const [rect, setRect] = createSignal(initialRect);
 	const [attackStatus, setAttackStatus] = createSignal<EnemyAttackStatus>('ready');
@@ -92,9 +86,9 @@ function Enemy(props: EnemyProps) {
 		<Character
 			ref={props.ref}
 			hitboxSize={80}
-			size={PLAYER_SIZE}
+			size={ENEMY_SIZE}
 			spriteSrc="/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png"
-			class={cn('animate-move-sprite-sheet-enemy-idle')}
+			class={cn('animate-move-sprite-sheet-enemy-run')}
 			wrapperClass="absolute"
 			wrapperStyle={{
 				transform: `translate3d(calc(${props.enemy.rect().x}px + ${world.rect.x}px), calc(${props.enemy.rect().y}px + ${world.rect.y}px - ${WORLD_SIZE}px), 0) scaleX(${props.enemy.direction === 'west' ? -1 : 1})`,
