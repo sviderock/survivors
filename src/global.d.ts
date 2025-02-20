@@ -16,7 +16,6 @@ declare global {
 
 	type BaseGameStateProps = {
 		pingEnabled: boolean;
-		bulletSpawnInterval: number;
 		enemySpawnInterval: number;
 		experience: number;
 		enemiesKilled: number;
@@ -51,10 +50,12 @@ declare global {
 		ref: HTMLDivElement | undefined;
 		health: number;
 		maxHealth: number;
-		state: {
-			type: 'idle' | 'moving' | 'attacking';
-			direction: 'east' | 'west';
-			attackingDirection: AttackingDirection;
+		movement: 'idle' | 'moving';
+		direction: 'east' | 'west';
+		attack: {
+			status: 'ready' | 'started_attack' | 'cooldown';
+			direction: AttackingDirection;
+			cooldown: number;
 		};
 	};
 
@@ -75,6 +76,7 @@ declare global {
 		rect: Rect;
 		target: { x: number; y: number };
 		damage: number;
+		direction: AttackingDirection;
 	};
 
 	type Gem = {

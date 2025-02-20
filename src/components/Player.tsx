@@ -1,11 +1,14 @@
-import { createSignal, onMount } from 'solid-js';
+import { batch, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import HealthBar from '~/components/HealthBar';
+import { spawnBullet } from '~/components/weapons/Bullets';
 import {
+	BASE_COOLDOWN,
 	BASE_HEALTH,
 	DIAGONAL_SPEED,
 	PLAYER_SIZE,
 	PLAYER_SPEED,
+	SHOOTING_ANIMATION_DURATION_SS,
 	WORLD_SIZE,
 	XP_LVL_2,
 	XP_LVL_21_TO_40,
@@ -22,7 +25,13 @@ export const [player, setPlayer] = createStore<Player>({
 	ref: undefined,
 	health: BASE_HEALTH,
 	maxHealth: BASE_HEALTH,
-	state: { type: 'idle', direction: 'east', attackingDirection: 'east' },
+	movement: 'idle',
+	direction: 'east',
+	attack: {
+		status: 'ready',
+		direction: 'east',
+		cooldown: BASE_COOLDOWN,
+	},
 });
 
 export const relativePlayerPos = () => ({
@@ -92,14 +101,67 @@ export default function Player() {
 		setPlayerRect({ ...getRect(player.ref!), width: PLAYER_SIZE, height: PLAYER_SIZE });
 	});
 
+	createEffect(() => {
+		let attackTimeout: NodeJS.Timeout;
+		if (player.attack.status === 'started_attack') {
+			attackTimeout = setTimeout(() => {
+				batch(() => {
+					spawnBullet(player.attack.direction);
+					setPlayer('attack', 'status', 'cooldown');
+				});
+			}, SHOOTING_ANIMATION_DURATION_SS * 1000);
+		}
+
+		onCleanup(() => {
+			clearTimeout(attackTimeout);
+		});
+	});
+
+	createEffect(() => {
+		let cooldownTimeout: NodeJS.Timeout;
+		if (player.attack.status === 'cooldown') {
+			cooldownTimeout = setTimeout(() => {
+				setPlayer('attack', 'status', 'ready');
+			}, player.attack.cooldown);
+		}
+
+		onCleanup(() => {
+			clearTimeout(cooldownTimeout);
+		});
+	});
+
 	return (
 		<div class="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
 			<div ref={(ref) => setPlayer('ref', ref)} class="w-player-hitbox h-player-hitbox relative">
 				<div
 					class={cn(
 						'animate-move-sprite-sheet-idle bg-player will-change-bp w-player h-player relative left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden [image-rendering:pixelated]',
-						player.state.direction === 'west' && '-scale-x-100',
-						player.state.type === 'moving' && 'animate-move-sprite-sheet-run',
+						player.direction === 'west' && '-scale-x-100',
+						player.movement === 'moving' && 'animate-move-sprite-sheet-run',
+						player.attack.status === 'started_attack' &&
+							player.attack.direction === 'north-west' &&
+							'animate-move-sprite-sheet-shoot-north-east -scale-x-100',
+						player.attack.status === 'started_attack' &&
+							player.attack.direction === 'north' &&
+							'animate-move-sprite-sheet-shoot-north',
+						player.attack.status === 'started_attack' &&
+							player.attack.direction === 'north-east' &&
+							'animate-move-sprite-sheet-shoot-north-east',
+						player.attack.status === 'started_attack' &&
+							player.attack.direction === 'east' &&
+							'animate-move-sprite-sheet-shoot-east',
+						player.attack.status === 'started_attack' &&
+							player.attack.direction === 'south-east' &&
+							'animate-move-sprite-sheet-shoot-south-east',
+						player.attack.status === 'started_attack' &&
+							player.attack.direction === 'south' &&
+							'animate-move-sprite-sheet-shoot-south',
+						player.attack.status === 'started_attack' &&
+							player.attack.direction === 'south-west' &&
+							'animate-move-sprite-sheet-shoot-south-east -scale-x-100',
+						player.attack.status === 'started_attack' &&
+							player.attack.direction === 'west' &&
+							'animate-move-sprite-sheet-shoot-east -scale-x-100',
 					)}
 				/>
 			</div>

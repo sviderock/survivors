@@ -3,7 +3,7 @@ import { createTimer } from '@solid-primitives/timer';
 import { batch, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { setPlayer } from '~/components/Player';
-import { BASE_HEALTH, WORLD_SIZE } from '~/constants';
+import { BASE_COOLDOWN, BASE_HEALTH, WORLD_SIZE } from '~/constants';
 import { gameServer } from '~/useGameServer';
 import { encodeEvent, getInitialRect } from '~/utils';
 
@@ -19,7 +19,6 @@ export const [connectedUser, setConnectedUser] = createStore<UseAppKitAccountRet
 function getInitialGameState(): GameState {
 	return {
 		pingEnabled: false,
-		bulletSpawnInterval: 0,
 		enemySpawnInterval: 0,
 		experience: 0,
 		enemiesKilled: 0,
@@ -48,7 +47,13 @@ export function resetGameState() {
 			produce((player) => {
 				player.health = BASE_HEALTH;
 				player.maxHealth = BASE_HEALTH;
-				player.state = { type: 'idle', direction: 'east', attackingDirection: 'east' };
+				player.movement = 'idle';
+				player.direction = 'east';
+				player.attack = {
+					status: 'ready',
+					direction: 'east',
+					cooldown: BASE_COOLDOWN,
+				};
 			}),
 		);
 	});

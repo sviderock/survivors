@@ -1,6 +1,12 @@
 /* eslint-disable no-undef */
 
-import { BULLET_SIZE, ENEMY_SIZE, GEM_SIZE, PLAYER_SIZE } from './src/constants';
+import {
+	BULLET_SIZE,
+	ENEMY_SIZE,
+	GEM_SIZE,
+	PLAYER_SIZE,
+	SHOOTING_ANIMATION_DURATION_SS,
+} from './src/constants';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { fontFamily } = require('tailwindcss/defaultTheme');
@@ -134,7 +140,7 @@ export default {
 						backgroundPosition: `0 0`,
 					},
 					'100%': {
-						backgroundPosition: `calc(-${PLAYER_SIZE}px * var(--pixel-size) * 6) 0`,
+						backgroundPosition: `calc(-${PLAYER_SIZE * 6}px * var(--pixel-size)) 0`,
 					},
 				},
 
@@ -144,59 +150,49 @@ export default {
 						backgroundPosition: `0 calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
 					},
 					'100%': {
-						backgroundPosition: `calc(-${PLAYER_SIZE}px * var(--pixel-size) * 6) calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
+						backgroundPosition: `calc(-${PLAYER_SIZE * 6}px * var(--pixel-size)) calc(-${PLAYER_SIZE}px * var(--pixel-size))`,
 					},
 				},
 
 				// player shoot
 				'move-sprite-sheet-shoot-north': {
 					'0%': {
-						top: `calc(-${PLAYER_SIZE * 2}px * var(--pixel-size))`,
-						backgroundPosition: '0 0',
+						backgroundPosition: `0 calc(-${PLAYER_SIZE * 2}px * var(--pixel-size))`,
 					},
 					'100%': {
-						top: `calc(-${PLAYER_SIZE * 2}px * var(--pixel-size))`,
-						transform: 'translate3d(-100%, 0, 0)',
+						backgroundPosition: `calc(-${PLAYER_SIZE * 8}px * var(--pixel-size)) calc(-${PLAYER_SIZE * 2}px * var(--pixel-size))`,
 					},
 				},
 				'move-sprite-sheet-shoot-north-east': {
 					'0%': {
-						top: `calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
-						backgroundPosition: '0 0',
+						backgroundPosition: `0 calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
 					},
 					'100%': {
-						top: `calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
-						transform: 'translate3d(-100%, 0, 0)',
+						backgroundPosition: `calc(-${PLAYER_SIZE * 8}px * var(--pixel-size)) calc(-${PLAYER_SIZE * 3}px * var(--pixel-size))`,
 					},
 				},
 				'move-sprite-sheet-shoot-east': {
 					'0%': {
-						top: `calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
-						backgroundPosition: '0 0',
+						backgroundPosition: `0 calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
 					},
 					'100%': {
-						top: `calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
-						transform: 'translate3d(-100%, 0, 0)',
+						backgroundPosition: `calc(-${PLAYER_SIZE * 8}px * var(--pixel-size)) calc(-${PLAYER_SIZE * 4}px * var(--pixel-size))`,
 					},
 				},
 				'move-sprite-sheet-shoot-south-east': {
 					'0%': {
-						top: `calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
-						backgroundPosition: '0 0',
+						backgroundPosition: `0 calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
 					},
 					'100%': {
-						top: `calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
-						transform: 'translate3d(-100%, 0, 0)',
+						backgroundPosition: `calc(-${PLAYER_SIZE * 8}px * var(--pixel-size)) calc(-${PLAYER_SIZE * 5}px * var(--pixel-size))`,
 					},
 				},
 				'move-sprite-sheet-shoot-south': {
 					'0%': {
-						top: `calc(-${PLAYER_SIZE * 6}px * var(--pixel-size))`,
-						backgroundPosition: '0 0',
+						backgroundPosition: `0 calc(-${PLAYER_SIZE * 6}px * var(--pixel-size))`,
 					},
 					'100%': {
-						top: `calc(-${PLAYER_SIZE * 6}px * var(--pixel-size))`,
-						transform: 'translate3d(-100%, 0, 0)',
+						backgroundPosition: `calc(-${PLAYER_SIZE * 8}px * var(--pixel-size)) calc(-${PLAYER_SIZE * 6}px * var(--pixel-size))`,
 					},
 				},
 				'move-sprite-sheet-shoot-south-west': {
@@ -260,18 +256,14 @@ export default {
 				// player animations
 				'move-sprite-sheet-idle': 'move-sprite-sheet-idle .5s steps(6) infinite',
 				'move-sprite-sheet-run': `move-sprite-sheet-run .3s steps(6) infinite`,
-				'move-sprite-sheet-shoot-north': 'move-sprite-sheet-shoot-north .66s steps(8) infinite',
-				'move-sprite-sheet-shoot-north-east':
-					'move-sprite-sheet-shoot-north-east .66s steps(8) infinite',
-				'move-sprite-sheet-shoot-east': 'move-sprite-sheet-shoot-east .66s steps(8) infinite',
-				'move-sprite-sheet-shoot-south-east':
-					'move-sprite-sheet-shoot-south-east .66s steps(8) infinite',
-				'move-sprite-sheet-shoot-south': 'move-sprite-sheet-shoot-south .66s steps(8) infinite',
-				'move-sprite-sheet-shoot-south-west':
-					'move-sprite-sheet-shoot-south-west .66s steps(8) infinite',
-				'move-sprite-sheet-shoot-west': 'move-sprite-sheet-shoot-west .66s steps(8) infinite',
-				'move-sprite-sheet-shoot-north-west':
-					'move-sprite-sheet-shoot-north-west .66s steps(8) infinite',
+				'move-sprite-sheet-shoot-north': `move-sprite-sheet-shoot-north ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
+				'move-sprite-sheet-shoot-north-east': `move-sprite-sheet-shoot-north-east ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
+				'move-sprite-sheet-shoot-east': `move-sprite-sheet-shoot-east ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
+				'move-sprite-sheet-shoot-south-east': `move-sprite-sheet-shoot-south-east ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
+				'move-sprite-sheet-shoot-south': `move-sprite-sheet-shoot-south ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
+				'move-sprite-sheet-shoot-south-west': `move-sprite-sheet-shoot-south-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
+				'move-sprite-sheet-shoot-west': `move-sprite-sheet-shoot-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
+				'move-sprite-sheet-shoot-north-west': `move-sprite-sheet-shoot-north-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
 
 				// enemy animations
 				'move-sprite-sheet-enemy-idle': 'move-sprite-sheet-enemy-idle .5s steps(7) infinite',

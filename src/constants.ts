@@ -1,7 +1,7 @@
 export const PLAYER_SPEED = 3;
 export const PLAYER_SIZE = 32;
 
-export const BULLET_SPEED = 7;
+export const BULLET_SPEED = 10;
 export const BULLET_SIZE = 32;
 export const BULLET_DISTANCE = 500;
 export const BULLET_DAMAGE = 3;
@@ -20,6 +20,7 @@ export const XP_LVL_41_AND_UP = 16;
 
 export const BASE_HEALTH = 100;
 export const BASE_DAMAGE = 3;
+export const BASE_COOLDOWN = 1_000;
 export const HEALTH_COLOR_FULL = 'rgb(124,207,0)';
 export const HEALTH_COLOR_HALF = 'rgb(240,177,0)';
 export const HEALTH_COLOR_NONE = 'rgb(193,0,7)';
@@ -36,3 +37,5 @@ export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 export const TERRAIN_TILE_SIZE = 32;
 
 export const WORLD_SIZE = 10_000;
+
+export const SHOOTING_ANIMATION_DURATION_SS = 0.2;

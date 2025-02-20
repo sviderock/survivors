@@ -27,7 +27,6 @@ export default function Gems() {
 				<span
 					ref={(el) => setGameState('gems', idx(), 'ref', el)}
 					class="w-gem h-gem absolute animate-caret-blink rounded-xl border-2 border-cyan-600 bg-cyan-400"
-					style={{ transform: `translate3d(${gem.rect.x}px, ${gem.rect.y}px, 0)` }}
 				/>
 			)}
 		</For>

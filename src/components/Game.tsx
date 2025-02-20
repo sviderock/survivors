@@ -144,86 +144,78 @@ export default function Game() {
 			switch (true) {
 				case keyPressed.w && keyPressed.a: {
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'moving';
+							state.movement = 'moving';
 							state.direction = 'west';
-							state.attackingDirection = 'north-west';
+							state.attack.direction = 'north-west';
 						}),
 					);
 					break;
 				}
 				case keyPressed.w && keyPressed.d: {
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'moving';
+							state.movement = 'moving';
 							state.direction = 'east';
-							state.attackingDirection = 'north-east';
+							state.attack.direction = 'north-east';
 						}),
 					);
 					break;
 				}
 				case keyPressed.s && keyPressed.a: {
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'moving';
+							state.movement = 'moving';
 							state.direction = 'west';
-							state.attackingDirection = 'south-west';
+							state.attack.direction = 'south-west';
 						}),
 					);
 					break;
 				}
 				case keyPressed.s && keyPressed.d: {
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'moving';
+							state.movement = 'moving';
 							state.direction = 'east';
-							state.attackingDirection = 'south-east';
+							state.attack.direction = 'south-east';
 						}),
 					);
 					break;
 				}
 				case keyPressed.w: {
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'moving';
-							state.attackingDirection = 'north';
+							state.movement = 'moving';
+							state.attack.direction = 'north';
 						}),
 					);
 					break;
 				}
 				case keyPressed.s: {
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'moving';
-							state.attackingDirection = 'south';
+							state.movement = 'moving';
+							state.attack.direction = 'south';
 						}),
 					);
 					break;
 				}
 				case keyPressed.a: {
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'moving';
+							state.movement = 'moving';
 							state.direction = 'west';
-							state.attackingDirection = 'west';
+							state.attack.direction = 'west';
 						}),
 					);
 					break;
 				}
 				case keyPressed.d: {
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'moving';
+							state.movement = 'moving';
 							state.direction = 'east';
-							state.attackingDirection = 'east';
+							state.attack.direction = 'east';
 						}),
 					);
 					break;
@@ -231,9 +223,8 @@ export default function Game() {
 
 				default:
 					setPlayer(
-						'state',
 						produce((state) => {
-							state.type = 'idle';
+							state.movement = 'idle';
 						}),
 					);
 					break;
