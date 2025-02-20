@@ -1,28 +1,28 @@
 import { For } from 'solid-js';
 import { relativePlayerPos } from '~/components/Player';
 import { BULLET_DAMAGE, BULLET_DISTANCE, BULLET_SIZE } from '~/constants';
-import { gameState, lastPressedCombination, setGameState } from '~/state';
-import { getDiagonalDistance, getInitialRect } from '~/utils';
+import { gameState, setGameState } from '~/state';
+import { cn, getDiagonalDistance, getInitialRect } from '~/utils';
 
-function getBulletDistance() {
-	if (lastPressedCombination() === 'w') return { x: 0, y: -BULLET_DISTANCE };
-	if (lastPressedCombination() === 's') return { x: 0, y: BULLET_DISTANCE };
-	if (lastPressedCombination() === 'a') return { x: -BULLET_DISTANCE, y: 0 };
-	if (lastPressedCombination() === 'd') return { x: BULLET_DISTANCE, y: 0 };
-	if (lastPressedCombination() === 'wa') {
+function getBulletDistance(direction: Bullet['direction']) {
+	if (direction === 'north') return { x: 0, y: -BULLET_DISTANCE };
+	if (direction === 'south') return { x: 0, y: BULLET_DISTANCE };
+	if (direction === 'west') return { x: -BULLET_DISTANCE, y: 0 };
+	if (direction === 'east') return { x: BULLET_DISTANCE, y: 0 };
+	if (direction === 'north-west') {
 		return { x: -getDiagonalDistance(BULLET_DISTANCE), y: -getDiagonalDistance(BULLET_DISTANCE) };
 	}
-	if (lastPressedCombination() === 'wd') {
+	if (direction === 'north-east') {
 		return { x: getDiagonalDistance(BULLET_DISTANCE), y: -getDiagonalDistance(BULLET_DISTANCE) };
 	}
-	if (lastPressedCombination() === 'sa') {
+	if (direction === 'south-west') {
 		return { x: -getDiagonalDistance(BULLET_DISTANCE), y: getDiagonalDistance(BULLET_DISTANCE) };
 	}
-	// sd
+	// south-east
 	return { x: getDiagonalDistance(BULLET_DISTANCE), y: getDiagonalDistance(BULLET_DISTANCE) };
 }
 
-export function createSingleBullet(): Bullet {
+export function createSingleBullet(direction: Bullet['direction']): Bullet {
 	const bulletStartX = relativePlayerPos().centerX - BULLET_SIZE / 2;
 	const bulletStartY = relativePlayerPos().centerY - BULLET_SIZE / 2;
 	const rect = getInitialRect({
@@ -34,16 +34,17 @@ export function createSingleBullet(): Bullet {
 	return {
 		ref: undefined,
 		rect,
+		direction,
 		damage: BULLET_DAMAGE,
 		target: {
-			x: bulletStartX + getBulletDistance().x,
-			y: bulletStartY + getBulletDistance().y,
+			x: bulletStartX + getBulletDistance(direction).x,
+			y: bulletStartY + getBulletDistance(direction).y,
 		},
 	};
 }
 
-export function spawnBullet() {
-	setGameState('bullets', gameState.bullets.length, createSingleBullet());
+export function spawnBullet(direction: Bullet['direction']) {
+	setGameState('bullets', gameState.bullets.length, createSingleBullet(direction));
 }
 
 export function destroyBullet(idx: number) {
@@ -56,16 +57,17 @@ export function destroyBullet(idx: number) {
 export default function Bullets() {
 	return (
 		<For each={gameState.bullets}>
-			{(bullet, idx) => (
-				<span
+			{(_, idx) => (
+				<div
 					ref={(el) => setGameState('bullets', idx(), 'ref', el)}
-					class="absolute z-[20] flex bg-purple-700"
-					style={{
-						transform: `translate3d(${bullet.rect.x}px, ${bullet.rect.y}px, 0)`,
-						width: `${bullet.rect.width}px`,
-						height: `${bullet.rect.height}px`,
-					}}
-				/>
+					class="w-bullet-hitbox h-bullet-hitbox absolute overflow-hidden"
+				>
+					<div
+						class={cn(
+							'bg-bullet w-bullet h-bullet relative overflow-hidden bg-[position:0_calc(var(--pixel-size)_*_4px_*-1)] bg-no-repeat [image-rendering:pixelated]',
+						)}
+					/>
+				</div>
 			)}
 		</For>
 	);

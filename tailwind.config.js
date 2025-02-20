@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-import { ENEMY_SIZE, GEM_SIZE, PLAYER_SIZE } from './src/constants';
+import { BULLET_SIZE, ENEMY_SIZE, GEM_SIZE, PLAYER_SIZE } from './src/constants';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { fontFamily } = require('tailwindcss/defaultTheme');
@@ -22,15 +22,19 @@ export default {
 			width: {
 				'enemy-hitbox': '80px',
 				'player-hitbox': '80px',
+				'bullet-hitbox': '64px',
 				enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
 				player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
+				bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
 				gem: GEM_SIZE.w,
 			},
 			height: {
 				'enemy-hitbox': '80px',
 				'player-hitbox': '80px',
+				'bullet-hitbox': '20px',
 				enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
 				player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
+				bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
 				gem: GEM_SIZE.h,
 			},
 			willChange: {
@@ -43,6 +47,7 @@ export default {
 				forest: `url('/game-assets/Terrain/Ground/Tiles/tile011.png')`,
 				enemy: `url('/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png')`,
 				player: `url('/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png')`,
+				bullet: `url('/game-assets/Factions/Knights/Troops/Archer/Arrow/Arrow.png')`,
 			},
 			colors: {
 				border: 'hsl(var(--border))',

@@ -22,7 +22,7 @@ export const [player, setPlayer] = createStore<Player>({
 	ref: undefined,
 	health: BASE_HEALTH,
 	maxHealth: BASE_HEALTH,
-	state: { type: 'idle', direction: 'east' },
+	state: { type: 'idle', direction: 'east', attackingDirection: 'east' },
 });
 
 export const relativePlayerPos = () => ({

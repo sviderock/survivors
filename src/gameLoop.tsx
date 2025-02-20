@@ -6,7 +6,7 @@ import { movePlayer, player, playerRect, setPlayer } from '~/components/Player';
 import { destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
 import { BULLET_SPEED, ENEMY_SPEED, WORLD_SIZE } from '~/constants';
 import { gameState, setGameState } from '~/state';
-import { collisionDetected, getDirection, getNewPos } from '~/utils';
+import { collisionDetected, getDirection, getNewPos, getRotationDeg } from '~/utils';
 
 const SPAWN_ENEMIES = true;
 const SPAWN_BULLETS = true;
@@ -19,6 +19,8 @@ const BULLET_COLLISIONS = true;
 const GEMS_COLLISIONS = true;
 
 const ENEMY_LIMIT = 300;
+const BULLET_MAGIC_OFFSET_X = 20;
+const BULLET_MAGIC_OFFSET_Y = 40;
 
 let enemySpawnTimer = 0;
 let bulletSpawnTimer = 0;
@@ -48,7 +50,7 @@ async function gameLoop(timestamp: number) {
 			timestamp - bulletSpawnTimer >=
 			(gameState.bulletSpawnInterval || BULLET_SPAWN_INTERVAL_MS)
 		) {
-			spawnBullet();
+			spawnBullet(player.state.attackingDirection);
 			bulletSpawnTimer += gameState.bulletSpawnInterval || BULLET_SPAWN_INTERVAL_MS;
 		}
 	}
@@ -100,17 +102,14 @@ async function gameLoop(timestamp: number) {
 					break;
 			}
 
-			setGameState(
-				'bullets',
-				i,
-				'rect',
-				getNewPos({
-					x: newBulletX,
-					y: newBulletY,
-					width: bullet.rect.width,
-					height: bullet.rect.height,
-				}),
-			);
+			const updatedRect = getNewPos({
+				x: newBulletX,
+				y: newBulletY,
+				width: bullet.rect.width,
+				height: bullet.rect.height,
+			});
+			setGameState('bullets', i, 'rect', updatedRect);
+			bullet.ref!.style.transform = `translate3d(calc(${updatedRect.x}px + ${newWorldX}px + ${BULLET_MAGIC_OFFSET_X}px), calc(${updatedRect.y}px + ${newWorldY}px - ${WORLD_SIZE}px + ${BULLET_MAGIC_OFFSET_Y}px), 0) rotate(${getRotationDeg(bullet.direction)}deg)`;
 		}
 	}
 

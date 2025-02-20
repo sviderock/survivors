@@ -2,7 +2,7 @@ export const PLAYER_SPEED = 3;
 export const PLAYER_SIZE = 32;
 
 export const BULLET_SPEED = 7;
-export const BULLET_SIZE = 16;
+export const BULLET_SIZE = 32;
 export const BULLET_DISTANCE = 500;
 export const BULLET_DAMAGE = 3;
 

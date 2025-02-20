@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { HEALTH_COLOR_FULL, HEALTH_COLOR_HALF, HEALTH_COLOR_NONE } from '~/constants';
-import { type LastPressedCombination } from '~/state';
 import type { GameServerEvent } from '~/ws';
 
 export function cn(...inputs: ClassValue[]) {
@@ -120,26 +119,15 @@ export function getInitialRect({ x, y, width, height }: GetInitialRectProps): Re
 }
 
 export type GetRotationDeg = ReturnType<typeof getRotationDeg>;
-export function getRotationDeg(comb: LastPressedCombination) {
-	if (comb === 'wa') return -45;
-	if (comb === 'wd') return 45;
-	if (comb === 'sa') return -135;
-	if (comb === 'sd') return 135;
-	if (comb === 'd') return 90;
-	if (comb === 'a') return -90;
-	if (comb === 's') return 180;
+export function getRotationDeg(comb: Player['state']['attackingDirection']) {
+	if (comb === 'north-east') return -45;
+	if (comb === 'south-east') return 45;
+	if (comb === 'north-west') return -135;
+	if (comb === 'south-west') return 135;
+	if (comb === 'south') return 90;
+	if (comb === 'north') return -90;
+	if (comb === 'west') return 180;
 	return 0;
-}
-
-export function getRotationClass(comb: LastPressedCombination) {
-	if (comb === 'wa') return '-rotate-45';
-	if (comb === 'wd') return 'rotate-45';
-	if (comb === 'sa') return '-rotate-[135deg]';
-	if (comb === 'sd') return 'rotate-[135deg]';
-	if (comb === 'd') return 'rotate-90';
-	if (comb === 'a') return '-rotate-90';
-	if (comb === 's') return 'rotate-180';
-	return 'flex';
 }
 
 export function getRandomBetween(min: number, max: number, randomSign?: boolean): number {

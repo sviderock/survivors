@@ -39,25 +39,16 @@ export const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: 
 export const [stageTimer, setStageTimer] = createSignal(0);
 export const [ping, setPing] = createSignal(0);
 
-export type LastPressedCombination = ReturnType<typeof lastPressedCombination>;
-export const [lastPressedCombination, setLastPressedCombination] = createSignal(
-	'w' as 'wa' | 'wd' | 'sa' | 'sd' | 'w' | 's' | 'a' | 'd',
-);
-
-export function isLastPressedCombination(comb: LastPressedCombination[]) {
-	return comb.includes(lastPressedCombination());
-}
-
 export function resetGameState() {
 	batch(() => {
 		setGameState(getInitialGameState());
-		setLastPressedCombination('w');
 		setKeyPressed({ w: false, s: false, a: false, d: false });
 		setStageTimer(0);
 		setPlayer(
 			produce((player) => {
 				player.health = BASE_HEALTH;
 				player.maxHealth = BASE_HEALTH;
+				player.state = { type: 'idle', direction: 'east', attackingDirection: 'east' };
 			}),
 		);
 	});

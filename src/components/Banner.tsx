@@ -23,7 +23,7 @@ export default function Banner() {
 								setGameState(
 									produce((state) => {
 										state.status = 'in_progress';
-										state.bulletSpawnInterval = 50;
+										// state.bulletSpawnInterval = 50;
 										state.enemySpawnInterval = 10;
 									}),
 								);

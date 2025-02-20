@@ -1,7 +1,6 @@
 /// <reference types="@solidjs/start/env" />
 
 import type { PlayedGame } from '@/schema';
-import type { Accessor, Setter } from 'solid-js';
 
 declare global {
 	type RectSides = { left: number; right: number; top: number; bottom: number };
@@ -9,8 +8,6 @@ declare global {
 	type RectSize = { width: number; height: number };
 	type RectCenter = { centerX: number; centerY: number };
 	type Rect = RectSides & RectCoords & RectSize & RectCenter;
-
-	type CharacterDirection = 'east' | 'west';
 
 	type World = {
 		ref: HTMLDivElement | undefined;
@@ -40,13 +37,24 @@ declare global {
 
 	type GameState = BaseGameStateProps & StatusBasedProps;
 
+	type AttackingDirection =
+		| 'north-west'
+		| 'north'
+		| 'north-east'
+		| 'east'
+		| 'south-east'
+		| 'south'
+		| 'south-west'
+		| 'west';
+
 	type Player = {
 		ref: HTMLDivElement | undefined;
 		health: number;
 		maxHealth: number;
 		state: {
 			type: 'idle' | 'moving' | 'attacking';
-			direction: CharacterDirection;
+			direction: 'east' | 'west';
+			attackingDirection: AttackingDirection;
 		};
 	};
 

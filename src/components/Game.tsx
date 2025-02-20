@@ -19,7 +19,6 @@ import {
 	setConnectedUser,
 	setGameState,
 	setKeyPressed,
-	setLastPressedCombination,
 	stageTimer,
 	useGameTimer,
 	worldRect,
@@ -149,9 +148,9 @@ export default function Game() {
 						produce((state) => {
 							state.type = 'moving';
 							state.direction = 'west';
+							state.attackingDirection = 'north-west';
 						}),
 					);
-					setLastPressedCombination('wa');
 					break;
 				}
 				case keyPressed.w && keyPressed.d: {
@@ -160,9 +159,9 @@ export default function Game() {
 						produce((state) => {
 							state.type = 'moving';
 							state.direction = 'east';
+							state.attackingDirection = 'north-east';
 						}),
 					);
-					setLastPressedCombination('wd');
 					break;
 				}
 				case keyPressed.s && keyPressed.a: {
@@ -171,9 +170,9 @@ export default function Game() {
 						produce((state) => {
 							state.type = 'moving';
 							state.direction = 'west';
+							state.attackingDirection = 'south-west';
 						}),
 					);
-					setLastPressedCombination('sa');
 					break;
 				}
 				case keyPressed.s && keyPressed.d: {
@@ -182,9 +181,9 @@ export default function Game() {
 						produce((state) => {
 							state.type = 'moving';
 							state.direction = 'east';
+							state.attackingDirection = 'south-east';
 						}),
 					);
-					setLastPressedCombination('sd');
 					break;
 				}
 				case keyPressed.w: {
@@ -192,9 +191,9 @@ export default function Game() {
 						'state',
 						produce((state) => {
 							state.type = 'moving';
+							state.attackingDirection = 'north';
 						}),
 					);
-					setLastPressedCombination('w');
 					break;
 				}
 				case keyPressed.s: {
@@ -202,9 +201,9 @@ export default function Game() {
 						'state',
 						produce((state) => {
 							state.type = 'moving';
+							state.attackingDirection = 'south';
 						}),
 					);
-					setLastPressedCombination('s');
 					break;
 				}
 				case keyPressed.a: {
@@ -213,9 +212,9 @@ export default function Game() {
 						produce((state) => {
 							state.type = 'moving';
 							state.direction = 'west';
+							state.attackingDirection = 'west';
 						}),
 					);
-					setLastPressedCombination('a');
 					break;
 				}
 				case keyPressed.d: {
@@ -224,9 +223,9 @@ export default function Game() {
 						produce((state) => {
 							state.type = 'moving';
 							state.direction = 'east';
+							state.attackingDirection = 'east';
 						}),
 					);
-					setLastPressedCombination('d');
 					break;
 				}
 
