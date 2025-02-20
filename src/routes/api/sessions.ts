@@ -48,13 +48,11 @@ export async function logoutSession({ request, response }: APIEvent) {
 
 	const session = await getSession(request);
 	if (session) {
-		await db
-			.delete(Sessions)
-			.where(and(eq(Sessions.userId, session.userId), eq(Sessions.cookie, cookies.auth)));
+		await db.delete(Sessions).where(and(eq(Sessions.userId, session.userId)));
 	}
 
 	response.headers.set(
-		'cookie',
+		'Set-Cookie',
 		cookie.serialize('auth', cookies.auth, {
 			...getCookieOptions(),
 			maxAge: undefined,

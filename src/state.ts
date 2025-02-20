@@ -1,4 +1,3 @@
-import { type UseAppKitAccountReturn } from '@reown/appkit';
 import { createTimer } from '@solid-primitives/timer';
 import { batch, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
@@ -6,15 +5,6 @@ import { setPlayer } from '~/components/Player';
 import { BASE_COOLDOWN, BASE_HEALTH, WORLD_SIZE } from '~/constants';
 import { gameServer } from '~/useGameServer';
 import { encodeEvent, getInitialRect } from '~/utils';
-
-export const [connectedUser, setConnectedUser] = createStore<UseAppKitAccountReturn>({
-	address: undefined,
-	allAccounts: [],
-	caipAddress: undefined,
-	isConnected: false,
-	status: undefined,
-	embeddedWalletInfo: undefined,
-});
 
 function getInitialGameState(): GameState {
 	return {

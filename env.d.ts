@@ -6,6 +6,7 @@ interface ImportMetaEnv {
 	VITE_REOWN_PROJECT_ID: string;
 	VITE_ZERION_API_URL: string;
 	VITE_ZERION_API_KEY: string;
+	REFERRER_ID: string;
 	REFERRER_ADDRESS: string;
 }
 
@@ -20,6 +21,7 @@ declare namespace NodeJS {
 		readonly VITE_REOWN_PROJECT_ID: string;
 		readonly VITE_ZERION_API_URL: string;
 		readonly VITE_ZERION_API_KEY: string;
+		readonly REFERRER_ID: string;
 		readonly REFERRER_ADDRESS: string;
 	}
 }

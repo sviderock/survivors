@@ -1,22 +1,23 @@
+import { type UseAppKitAccountReturn } from '@reown/appkit';
+import { createAsync } from '@solidjs/router';
 import { batch, createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
-import { produce } from 'solid-js/store';
+import { createStore, produce } from 'solid-js/store';
 import { appkitModal } from '~/appkit';
-import Banner from '~/components/Banner';
+import * as divvi from '~/blockchain/divvi';
 import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
 import Player, { setPlayer } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
-import UserAccount, { useLogout } from '~/components/UserAccount';
+import UserAccount, { useCurrentUser, useLogout } from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
 import { PLAYER_FREE_MOVEMENT, WORLD_SIZE } from '~/constants';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
+import type { PatchUsersBody } from '~/routes/api/users';
 import {
-	connectedUser,
 	gameState,
 	keyPressed,
 	resetGameState,
-	setConnectedUser,
 	setGameState,
 	setKeyPressed,
 	stageTimer,
@@ -98,10 +99,72 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
 	);
 }
 
+function useDivviSync() {
+	const user = useCurrentUser();
+	return createAsync(async () => {
+		return;
+		if (!user.data) return;
+		console.log('???');
+
+		// if we haven't checked this user yet
+		if (user.data.divviRegistration.status === 'unchecked') {
+			const unregisteredProtocols = await divvi.getUnrigesteredProtocols(
+				user.data.addresses[0]!.address,
+			);
+
+			// it was unchecked but it is already registered so just update the user
+			if (unregisteredProtocols.length === 0) {
+				console.log('user was unchecked but check confirmed he was already registered');
+				await fetch('/api/users', {
+					method: 'PATCH',
+					body: encodeJson<PatchUsersBody>({
+						divviRegistration: { status: 'was_already_registered' },
+					}),
+				});
+				user.refetch();
+				return;
+			}
+
+			// try to register user
+			const registerTxHash = await divvi.sendRegistrationTransaction();
+			if (!registerTxHash) {
+				console.error("couldn't register tx");
+				return;
+			}
+			console.log(123);
+
+			// if transaction sent successfully then update the user
+			await fetch('/api/users', {
+				method: 'PATCH',
+				body: encodeJson<PatchUsersBody>({
+					divviRegistration: { status: 'transaction_submitted', hash: registerTxHash },
+				}),
+			});
+			user.refetch();
+		}
+
+		console.log('ah?');
+	});
+}
+
+const [account, setAccount] = createStore<UseAppKitAccountReturn>({
+	allAccounts: [],
+	caipAddress: undefined,
+	address: undefined,
+	isConnected: false,
+	embeddedWalletInfo: undefined,
+	status: 'disconnected',
+});
+export function useAppkitAccount() {
+	return account;
+}
+
 export default function Game() {
 	const logout = useLogout();
+	const appkitAccount = useAppkitAccount();
 	useGameServer();
 	useGameTimer();
+	useDivviSync();
 
 	// createEffect(() => {
 	// 	if (gameState.status !== 'in_progress' && gameState.status !== 'paused') return;
@@ -112,16 +175,21 @@ export default function Game() {
 	// 	});
 	// });
 
+	// createEffect(() => {
+	// 	if (!appkitAccount.address) return;
+	// 	bla();
+	// });
+
 	onMount(async () => {
 		appkitModal.subscribeAccount((data) => {
-			if (
-				connectedUser.status === 'connected' &&
-				data.status === 'disconnected' &&
-				data.isConnected === false
-			) {
+			setAccount(data);
+		});
+
+		appkitModal.subscribeEvents((event) => {
+			console.log(event);
+			if (event.data.event === 'DISCONNECT_SUCCESS') {
 				logout.mutate();
 			}
-			setConnectedUser(data);
 		});
 
 		document.addEventListener('keydown', onKeyDown);
@@ -241,7 +309,7 @@ export default function Game() {
 			<Bullet />
 			<Gems />
 
-			<Banner />
+			{/* <Banner /> */}
 			<UserAccount />
 			<StageTimer />
 			<UIStats />

@@ -39,3 +39,5 @@ export const TERRAIN_TILE_SIZE = 32;
 export const WORLD_SIZE = 10_000;
 
 export const SHOOTING_ANIMATION_DURATION_SS = 0.2;
+
+export const SUPPORTED_PROTOCOLS = ['celo'] as const;

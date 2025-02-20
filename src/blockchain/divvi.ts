@@ -1,8 +1,16 @@
-import { createPublicClient, http, stringToHex, type Address } from 'viem';
-import { celo } from 'viem/chains';
-import { appkitModal, wagmiConfig } from '~/appkit';
-import { useReadContract } from 'wagmi';
-import { readContract } from '@wagmi/core';
+import { estimateGas, readContract, sendTransaction, waitForTransactionReceipt } from '@wagmi/core';
+import {
+	type Address,
+	decodeFunctionData,
+	encodeFunctionData,
+	type Hex,
+	hexToString,
+	parseEventLogs,
+	parseGwei,
+	stringToHex,
+} from 'viem';
+import { wagmiConfig } from '~/appkit';
+import { SUPPORTED_PROTOCOLS } from '~/constants';
 
 export const abi = [
 	{
@@ -749,51 +757,59 @@ export const abi = [
 	},
 ] as const;
 
-export const address: Address = '0xba9655677f4e42dd289f5b7888170bc0c7da8cdc';
+export const REGISTRY_CONTRACT_ADDRESS: Address = '0xba9655677f4e42dd289f5b7888170bc0c7da8cdc';
 
-const storageSC = '0xEe6D291CC60d7CeD6627fA4cd8506912245c8cA4';
-
-const storageABI = [
-	{
-		inputs: [],
-		name: 'retrieve',
-		outputs: [
-			{
-				internalType: 'uint256',
-				name: '',
-				type: 'uint256',
-			},
-		],
-		stateMutability: 'view',
-		type: 'function',
-	},
-	{
-		inputs: [
-			{
-				internalType: 'uint256',
-				name: 'num',
-				type: 'uint256',
-			},
-		],
-		name: 'store',
-		outputs: [],
-		stateMutability: 'nonpayable',
-		type: 'function',
-	},
-];
-
-export async function readIsRegistered() {
-	console.log(123);
+export async function getUnrigesteredProtocols(walletAddress: string) {
+	const protocolsHex = SUPPORTED_PROTOCOLS.map((protocol) => stringToHex(protocol, { size: 32 }));
 
 	try {
-		const data = await readContract(wagmiConfig, {
-			address,
+		const isUserRegisteredForProtocols = await readContract(wagmiConfig, {
+			address: REGISTRY_CONTRACT_ADDRESS,
 			abi,
 			functionName: 'isUserRegistered',
-			args: [stringToHex('survivors', { size: 20 }), [stringToHex('celo', { size: 32 })]],
+			args: [walletAddress as Address, protocolsHex],
 		});
-		console.log({ data });
+
+		const protocolsToRegisterHex = protocolsHex.filter((_, i) => !isUserRegisteredForProtocols[i]);
+		return protocolsToRegisterHex;
 	} catch (error) {
-		console.log(error);
+		console.error(error);
+		return [];
+	}
+}
+
+export async function sendRegistrationTransaction() {
+	const protocolsHex = SUPPORTED_PROTOCOLS.map((protocol) => stringToHex(protocol, { size: 32 }));
+
+	try {
+		const hash = await sendTransaction(wagmiConfig, {
+			to: REGISTRY_CONTRACT_ADDRESS,
+			data: encodeFunctionData({
+				abi,
+				functionName: 'registerReferrals',
+				args: [stringToHex(import.meta.env.REFERRER_ID, { size: 32 }), protocolsHex],
+			}),
+		});
+		return hash;
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
+}
+
+export async function checkIfRegistrationConfirmed(hash: Hex) {
+	try {
+		const receipt = await waitForTransactionReceipt(wagmiConfig, { hash, timeout: 5_000 });
+		if (receipt.status !== 'success') return false;
+		const parsedLogs = parseEventLogs({
+			abi,
+			eventName: ['ReferralRegistered'],
+			logs: receipt.logs,
+		});
+
+		const [registeredHex] = parsedLogs.map((log) => hexToString(log.args.protocolId, { size: 32 }));
+		return { receipt, isRegistered: !!registeredHex };
+	} catch (error) {
+		console.error(error);
 	}
 }

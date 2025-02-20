@@ -3,13 +3,13 @@ import { produce } from 'solid-js/store';
 import { destroyEnemy, spawnEnemy } from '~/components/Enemies';
 import { destroyGem, spawnGem } from '~/components/Gems';
 import { movePlayer, player, playerRect, setPlayer } from '~/components/Player';
-import { destroyBullet, spawnBullet } from '~/components/weapons/Bullets';
+import { destroyBullet } from '~/components/weapons/Bullets';
 import { BULLET_SPEED, ENEMY_SPEED, WORLD_SIZE } from '~/constants';
-import { gameState, setGameState, worldRect } from '~/state';
+import { gameState, setGameState } from '~/state';
 import { collisionDetected, getDirection, getNewPos, getRotationDeg } from '~/utils';
 
 const SPAWN_ENEMIES = true;
-const SPAWN_BULLETS = true;
+const SPAWN_GEMS = false;
 
 const ENEMY_SPAWN_INTERVAL_MS = 500;
 
@@ -135,7 +135,9 @@ async function gameLoop(timestamp: number) {
 						destroyBullet(j);
 
 						if (enemy.health <= bullet.damage) {
-							spawnGem({ x: newEnemyX, y: newEnemyY });
+							if (SPAWN_GEMS) {
+								spawnGem({ x: newEnemyX, y: newEnemyY });
+							}
 
 							destroyEnemy(i);
 							setGameState('enemiesKilled', gameState.enemiesKilled + 1);
@@ -162,7 +164,7 @@ async function gameLoop(timestamp: number) {
 	}
 
 	// detect player collisions with gems
-	if (GEMS_COLLISIONS) {
+	if (SPAWN_GEMS && GEMS_COLLISIONS) {
 		for (let i = 0; i < gameState.gems.length; i++) {
 			const gem = gameState.gems[i]!;
 			gem.ref!.style.transform = `translate3d(${gem.rect.x - relativePlayerPos.centerX}px, ${gem.rect.y + newWorldY}px, 0)`;

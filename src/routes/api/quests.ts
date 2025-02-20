@@ -15,12 +15,12 @@ export async function checkQuestsForUser(userId: UserType['id']) {
 	if (!activeQuests.length) return;
 
 	activeQuests.forEach(async (data) => {
-		if (data.Quests.type.type === 'coins_multiplier') {
-			const transactions = await getTransactions({
-				address: data.UserWallets!.address,
-				since: data.Quests.pickedUpAt,
-			});
-			console.log(transactions);
-		}
+		// if (data.Quests.status === 'coins_multiplier') {
+		// 	const transactions = await getTransactions({
+		// 		address: data.UserWallets!.address,
+		// 		since: data.Quests.pickedUpAt,
+		// 	});
+		// 	console.log(transactions);
+		// }
 	});
 }

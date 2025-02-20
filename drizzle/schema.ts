@@ -1,9 +1,19 @@
 import { relations } from 'drizzle-orm';
 import { integer, json, pgEnum, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
 
+export type DivviRegistration =
+	| {
+			status: 'unchecked' | 'was_already_registered';
+			hash?: never;
+			receipt?: never;
+	  }
+	| { status: 'transaction_submitted'; hash: string; receipt?: never }
+	| { status: 'registered'; hash?: never; receipt: any };
+
 export type UserType = typeof Users.$inferSelect;
 export const Users = pgTable('Users', {
 	id: serial().primaryKey(),
+	divviRegistration: json().$type<DivviRegistration>().default({ status: 'unchecked' }).notNull(),
 	coins: integer().default(0).notNull(),
 });
 
