@@ -22,7 +22,7 @@ import {
 	useGameTimer,
 	worldRect,
 } from '~/state';
-import { gameServer } from '~/useGameServer';
+import useGameServer, { gameServer } from '~/useGameServer';
 import { encodeEvent, encodeJson } from '~/utils';
 import type { ContinueGameEvent, GameServerEvent, PauseGameEvent } from '~/ws';
 
@@ -46,6 +46,7 @@ function onKeyDown(e: KeyboardEvent) {
 	}
 
 	if (e.code === 'Space') {
+		console.log(gameState.status);
 		if (gameState.status === 'not_started') {
 			gameServer?.send(encodeJson({ type: 'init_game_start' } as GameServerEvent));
 			return;
@@ -112,6 +113,7 @@ export function useAppkitAccount() {
 export default function Game() {
 	const logout = useLogout();
 	useGameTimer();
+	useGameServer();
 
 	createEffect(() => {
 		if (gameState.status !== 'in_progress' && gameState.status !== 'paused') return;

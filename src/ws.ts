@@ -58,6 +58,7 @@ export default eventHandler({
 				}
 
 				case 'init_game_start': {
+					console.log(123);
 					const newGame = await startNewGame(session.userId);
 					const encoded = encodeEvent({ type: 'game_start_confirmed', game: newGame });
 					if (encoded) {

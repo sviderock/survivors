@@ -25,8 +25,6 @@ import '@fontsource/poppins/900-italic.css';
 import '@fontsource/poppins/900.css';
 import './app.css';
 
-import 'core-js/actual/array';
-
 export const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {

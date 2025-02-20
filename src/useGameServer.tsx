@@ -41,7 +41,6 @@ export default function useGameServer() {
 
 	onMount(() => {
 		if (!gameServer) return;
-
 		gameServer.addEventListener('open', () => {
 			const abruptlyStoppedGame = getPersistedData<{ timePassedInMs: number }>(
 				ABRUPTLY_STOPPPED_GAME_LS_KEY,
