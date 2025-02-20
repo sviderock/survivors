@@ -31,6 +31,10 @@ export default function UIStats() {
 				<span>Enemies spawned:</span>
 				<strong>{gameState.enemies.length}</strong>
 			</div>
+			<div class="flex flex-row items-end gap-1 px-1">
+				<span>Enemies killed:</span>
+				<strong>{gameState.enemiesKilled}</strong>
+			</div>
 
 			<Suspense fallback={'Fetching coins...'}>
 				<Show when={user.data}>

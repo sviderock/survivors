@@ -9,7 +9,7 @@ export default function Banner() {
 	return (
 		<Switch fallback={null}>
 			<Match when={gameState.status === 'not_started'}>
-				<FullScreenBanner class="bg-zinc-500/50 text-7xl">
+				<FullScreenBanner class="gap-4 bg-zinc-500/50 text-7xl">
 					Press <strong>Spacebar</strong> to start
 					<Button
 						onClick={() => {
@@ -18,19 +18,19 @@ export default function Banner() {
 									produce((player) => {
 										player.health = 10_000;
 										player.maxHealth = 10_000;
+										player.attack.cooldown = 50;
 									}),
 								);
 								setGameState(
 									produce((state) => {
 										state.status = 'in_progress';
-										// state.bulletSpawnInterval = 50;
 										state.enemySpawnInterval = 10;
 									}),
 								);
 							});
 						}}
 					>
-						Fun mode
+						Or try "Fun Mode"!
 					</Button>
 				</FullScreenBanner>
 			</Match>
@@ -61,7 +61,7 @@ export default function Banner() {
 
 			<Match when={gameState.status === 'won'}>
 				<FullScreenBanner class="bg-green-500/50">
-					<div class="flex flex-col text-center">
+					<div class="flex flex-col text-center text-7xl">
 						<strong>You won!</strong>
 						You've earned <strong>{gameState.activeGame!.coinsAtStake}</strong> coins!
 					</div>

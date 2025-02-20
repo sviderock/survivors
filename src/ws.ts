@@ -1,6 +1,5 @@
-import { Quests, type PlayedGame } from '@/schema';
+import { type PlayedGame } from '@/schema';
 import { eventHandler } from 'vinxi/http';
-import { db } from '~/db';
 import { continueGame, findActiveGame, startNewGame, updateGame } from '~/routes/api/games';
 import { getSession } from '~/routes/api/sessions';
 import { addCoinsToUser } from '~/routes/api/users';
@@ -17,6 +16,7 @@ export type UpdateAbruptlyStoppedGameEvent = {
 	timePassedInMs: number;
 };
 export type GameWonEvent = { type: 'game_won' };
+export type GameLostEvent = { type: 'game_lost'; timePassedInMs: number };
 export type RewardClaimedEvent = { type: 'reward_claimed' };
 
 export type GameServerEvent =
@@ -28,6 +28,7 @@ export type GameServerEvent =
 	| PauseGameEvent
 	| UpdateAbruptlyStoppedGameEvent
 	| GameWonEvent
+	| GameLostEvent
 	| RewardClaimedEvent;
 
 export default eventHandler({
@@ -112,6 +113,20 @@ export default eventHandler({
 					break;
 				}
 
+				case 'game_lost': {
+					const activeGame = await findActiveGame(session.userId);
+					if (activeGame) {
+						await updateGame(activeGame.id, {
+							status: 'lost',
+							currentlyAt: message.timePassedInMs,
+							finishedAt: new Date(),
+							gameState: null,
+						});
+					}
+					break;
+				}
+
+				case 'reward_claimed':
 				case 'game_start_confirmed':
 				case 'active_game_found': {
 					break;

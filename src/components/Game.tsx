@@ -1,19 +1,17 @@
 import { type UseAppKitAccountReturn } from '@reown/appkit';
-import { createAsync } from '@solidjs/router';
 import { batch, createEffect, onCleanup, onMount, ParentProps } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { appkitModal } from '~/appkit';
-import * as divvi from '~/blockchain/divvi';
+import Banner from '~/components/Banner';
 import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
 import Player, { setPlayer } from '~/components/Player';
 import StageTimer from '~/components/StageTimer';
 import UIStats from '~/components/UIStats';
-import UserAccount, { useCurrentUser, useLogout } from '~/components/UserAccount';
+import UserAccount, { useLogout } from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
 import { PLAYER_FREE_MOVEMENT, WORLD_SIZE } from '~/constants';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
-import type { PatchUsersBody } from '~/routes/api/users';
 import {
 	gameState,
 	keyPressed,
@@ -24,8 +22,8 @@ import {
 	useGameTimer,
 	worldRect,
 } from '~/state';
-import useGameServer, { gameServer } from '~/useGameServer';
-import { encodeJson } from '~/utils';
+import { gameServer } from '~/useGameServer';
+import { encodeEvent, encodeJson } from '~/utils';
 import type { ContinueGameEvent, GameServerEvent, PauseGameEvent } from '~/ws';
 
 function onKeyDown(e: KeyboardEvent) {
@@ -99,54 +97,6 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
 	);
 }
 
-function useDivviSync() {
-	const user = useCurrentUser();
-	return createAsync(async () => {
-		return;
-		if (!user.data) return;
-		console.log('???');
-
-		// if we haven't checked this user yet
-		if (user.data.divviRegistration.status === 'unchecked') {
-			const unregisteredProtocols = await divvi.getUnrigesteredProtocols(
-				user.data.addresses[0]!.address,
-			);
-
-			// it was unchecked but it is already registered so just update the user
-			if (unregisteredProtocols.length === 0) {
-				console.log('user was unchecked but check confirmed he was already registered');
-				await fetch('/api/users', {
-					method: 'PATCH',
-					body: encodeJson<PatchUsersBody>({
-						divviRegistration: { status: 'was_already_registered' },
-					}),
-				});
-				user.refetch();
-				return;
-			}
-
-			// try to register user
-			const registerTxHash = await divvi.sendRegistrationTransaction();
-			if (!registerTxHash) {
-				console.error("couldn't register tx");
-				return;
-			}
-			console.log(123);
-
-			// if transaction sent successfully then update the user
-			await fetch('/api/users', {
-				method: 'PATCH',
-				body: encodeJson<PatchUsersBody>({
-					divviRegistration: { status: 'transaction_submitted', hash: registerTxHash },
-				}),
-			});
-			user.refetch();
-		}
-
-		console.log('ah?');
-	});
-}
-
 const [account, setAccount] = createStore<UseAppKitAccountReturn>({
 	allAccounts: [],
 	caipAddress: undefined,
@@ -161,24 +111,16 @@ export function useAppkitAccount() {
 
 export default function Game() {
 	const logout = useLogout();
-	const appkitAccount = useAppkitAccount();
-	useGameServer();
 	useGameTimer();
-	useDivviSync();
 
-	// createEffect(() => {
-	// 	if (gameState.status !== 'in_progress' && gameState.status !== 'paused') return;
+	createEffect(() => {
+		if (gameState.status !== 'in_progress' && gameState.status !== 'paused') return;
 
-	// 	window.addEventListener('beforeunload', onBeforeUnload);
-	// 	onCleanup(() => {
-	// 		window.removeEventListener('beforeunload', onBeforeUnload);
-	// 	});
-	// });
-
-	// createEffect(() => {
-	// 	if (!appkitAccount.address) return;
-	// 	bla();
-	// });
+		window.addEventListener('beforeunload', onBeforeUnload);
+		onCleanup(() => {
+			window.removeEventListener('beforeunload', onBeforeUnload);
+		});
+	});
 
 	onMount(async () => {
 		appkitModal.subscribeAccount((data) => {
@@ -204,6 +146,12 @@ export default function Game() {
 	createEffect(() => {
 		if (gameState.status === 'in_progress' || PLAYER_FREE_MOVEMENT) {
 			runGameLoop();
+		}
+	});
+
+	createEffect(() => {
+		if (gameState.status === 'lost' && gameServer) {
+			gameServer.send(encodeEvent({ type: 'game_lost', timePassedInMs: stageTimer() }));
 		}
 	});
 
@@ -309,7 +257,7 @@ export default function Game() {
 			<Bullet />
 			<Gems />
 
-			{/* <Banner /> */}
+			<Banner />
 			<UserAccount />
 			<StageTimer />
 			<UIStats />

@@ -119,7 +119,7 @@ export function getInitialRect({ x, y, width, height }: GetInitialRectProps): Re
 }
 
 export type GetRotationDeg = ReturnType<typeof getRotationDeg>;
-export function getRotationDeg(comb: Player['state']['attackingDirection']) {
+export function getRotationDeg(comb: Player['attack']['direction']) {
 	if (comb === 'north-east') return -45;
 	if (comb === 'south-east') return 45;
 	if (comb === 'north-west') return -135;

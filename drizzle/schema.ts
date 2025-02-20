@@ -43,7 +43,13 @@ export const Sessions = pgTable('Sessions', {
 	cookie: varchar({ length: 500 }).notNull(),
 });
 
-export const GameStatusEnum = pgEnum('GameStatus', ['in_progress', 'paused', 'won', 'lost']);
+export const GameStatusEnum = pgEnum('GameStatus', [
+	'in_progress',
+	'paused',
+	'won',
+	'lost',
+	'aborted',
+]);
 
 export type PlayedGame = typeof PlayedGames.$inferSelect;
 export const PlayedGames = pgTable('PlayedGames', {
@@ -69,10 +75,12 @@ export const QuestStatusEnum = pgEnum('QuestStatus', [
 
 export type BlockchainQuest = {
 	type: 'blockchain';
-	txType: Zerion.Attributes['operation_type'];
-	count: number;
+	condition: {
+		type: 'tx_type_count';
+		requiredTxType: Zerion.Attributes['operation_type'];
+		count: number;
+	};
 	reward: { type: 'coins_multiplier'; amount: number };
-	condition: { type: 'tx_type_count'; count: number };
 };
 
 export const Quests = pgTable('Quests', {
