@@ -5,18 +5,14 @@ import { isServer } from 'solid-js/web';
 import { useCurrentUser } from '~/components/UserAccount';
 import { ABRUPTLY_STOPPPED_GAME_LS_KEY } from '~/constants';
 import { gameState, setGameState, setPing, setStageTimer, stageTimer } from '~/state';
-import {
-	encodeEvent,
-	encodeJson,
-	getPersistedData,
-	getWsUrl,
-	parseEvent,
-	persistData,
-} from '~/utils';
-import type { PingEvent } from '~/ws';
+import { encodeJson, getPersistedData, getWsUrl, parseEvent, persistData } from '~/utils';
+import { GameServerEvent } from '~/ws';
 
 let pingInterval: NodeJS.Timeout | undefined;
 export let gameServer: ReconnectingWebSocket | null;
+export function sendWS<T extends GameServerEvent>(event: T) {
+	gameServer?.send(encodeJson(event));
+}
 
 function resetPingInterval() {
 	clearInterval(pingInterval);
@@ -30,9 +26,7 @@ export default function useGameServer() {
 
 	createEffect(() => {
 		if (gameState.pingEnabled && gameServer) {
-			pingInterval = setInterval(() => {
-				gameServer!.send(encodeJson<PingEvent>({ type: 'ping', ts: Date.now() }));
-			}, 1000);
+			pingInterval = setInterval(() => sendWS({ type: 'ping', ts: Date.now() }), 1000);
 			return;
 		}
 
@@ -46,12 +40,10 @@ export default function useGameServer() {
 				ABRUPTLY_STOPPPED_GAME_LS_KEY,
 			);
 			if (abruptlyStoppedGame) {
-				gameServer!.send(
-					encodeEvent({
-						type: 'update_abruptly_stopped_game',
-						timePassedInMs: abruptlyStoppedGame.timePassedInMs,
-					}),
-				);
+				sendWS({
+					type: 'update_abruptly_stopped_game',
+					timePassedInMs: abruptlyStoppedGame.timePassedInMs,
+				});
 			}
 		});
 

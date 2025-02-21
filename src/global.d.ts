@@ -67,7 +67,7 @@ declare global {
 		health: number;
 		maxHealth: number;
 		blocked: Record<keyof RectSides, boolean>;
-		status: 'idle' | 'moving' | 'attacking';
+		status: 'idle' | 'moving' | 'attacking' | 'hit';
 		dirX: 1 | 0 | -1;
 	};
 

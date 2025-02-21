@@ -3,33 +3,24 @@ import { eventHandler } from 'vinxi/http';
 import { continueGame, findActiveGame, startNewGame, updateGame } from '~/routes/api/games';
 import { getSession } from '~/routes/api/sessions';
 import { addCoinsToUser } from '~/routes/api/users';
-import { encodeEvent, parseEvent } from '~/utils';
-
-export type PingEvent = { type: 'ping'; ts: number };
-export type InitGameStartEvent = { type: 'init_game_start' };
-export type GameStartConfirmedEvent = { type: 'game_start_confirmed'; game: PlayedGame };
-export type ActiveGameFoundEvent = { type: 'active_game_found'; game: PlayedGame };
-export type ContinueGameEvent = { type: 'continue_game' };
-export type PauseGameEvent = { type: 'pause_game'; timePassedInMs: number };
-export type UpdateAbruptlyStoppedGameEvent = {
-	type: 'update_abruptly_stopped_game';
-	timePassedInMs: number;
-};
-export type GameWonEvent = { type: 'game_won' };
-export type GameLostEvent = { type: 'game_lost'; timePassedInMs: number };
-export type RewardClaimedEvent = { type: 'reward_claimed' };
+import { encodeJson, parseEvent } from '~/utils';
 
 export type GameServerEvent =
-	| PingEvent
-	| InitGameStartEvent
-	| GameStartConfirmedEvent
-	| ActiveGameFoundEvent
-	| ContinueGameEvent
-	| PauseGameEvent
-	| UpdateAbruptlyStoppedGameEvent
-	| GameWonEvent
-	| GameLostEvent
-	| RewardClaimedEvent;
+	| { type: 'ping'; ts: number }
+	| { type: 'init_game_start' }
+	| { type: 'game_start_confirmed'; game: PlayedGame }
+	| { type: 'active_game_found'; game: PlayedGame }
+	| { type: 'continue_game' }
+	| { type: 'pause_game'; timePassedInMs: number }
+	| { type: 'update_abruptly_stopped_game'; timePassedInMs: number }
+	| { type: 'game_won' }
+	| { type: 'game_lost'; timePassedInMs: number }
+	| { type: 'reward_claimed' }
+	| { type: 'abolish_game'; timePassedInMs: number };
+
+function encodeEvent<T extends GameServerEvent>(event: T) {
+	return encodeJson(event);
+}
 
 export default eventHandler({
 	handler() {},
@@ -58,7 +49,6 @@ export default eventHandler({
 				}
 
 				case 'init_game_start': {
-					console.log(123);
 					const newGame = await startNewGame(session.userId);
 					const encoded = encodeEvent({ type: 'game_start_confirmed', game: newGame });
 					if (encoded) {
@@ -119,6 +109,19 @@ export default eventHandler({
 					if (activeGame) {
 						await updateGame(activeGame.id, {
 							status: 'lost',
+							currentlyAt: message.timePassedInMs,
+							finishedAt: new Date(),
+							gameState: null,
+						});
+					}
+					break;
+				}
+
+				case 'abolish_game': {
+					const activeGame = await findActiveGame(session.userId);
+					if (activeGame) {
+						await updateGame(activeGame.id, {
+							status: 'aborted',
 							currentlyAt: message.timePassedInMs,
 							finishedAt: new Date(),
 							gameState: null,

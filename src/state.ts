@@ -3,8 +3,8 @@ import { batch, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { setPlayer } from '~/components/Player';
 import { BASE_COOLDOWN, BASE_HEALTH, WORLD_SIZE } from '~/constants';
-import { gameServer } from '~/useGameServer';
-import { encodeEvent, getInitialRect } from '~/utils';
+import { sendWS } from '~/useGameServer';
+import { getInitialRect } from '~/utils';
 
 function getInitialGameState(): GameState {
 	return {
@@ -55,9 +55,7 @@ export function useGameTimer() {
 			if (!gameState.activeGame) return;
 			if (stageTimer() >= gameState.activeGame.timeLimit) {
 				setGameState('status', 'won');
-				if (gameServer) {
-					gameServer.send(encodeEvent({ type: 'game_won' }));
-				}
+				sendWS({ type: 'game_won' });
 				return;
 			}
 			setStageTimer((p) => p + 500);

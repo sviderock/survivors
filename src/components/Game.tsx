@@ -22,23 +22,19 @@ import {
 	useGameTimer,
 	worldRect,
 } from '~/state';
-import useGameServer, { gameServer } from '~/useGameServer';
-import { encodeEvent, encodeJson } from '~/utils';
-import type { ContinueGameEvent, GameServerEvent, PauseGameEvent } from '~/ws';
+import useGameServer, { gameServer, sendWS } from '~/useGameServer';
 
 function onKeyDown(e: KeyboardEvent) {
 	if (e.code === 'Escape' || e.code === 'KeyP') {
 		if (gameState.status === 'paused') {
 			setGameState('status', 'in_progress');
-			gameServer!.send(encodeJson<ContinueGameEvent>({ type: 'continue_game' }));
+			sendWS({ type: 'continue_game' });
 			return;
 		}
 
 		if (gameState.status === 'in_progress') {
 			setGameState('status', 'paused');
-			gameServer!.send(
-				encodeJson<PauseGameEvent>({ type: 'pause_game', timePassedInMs: stageTimer() }),
-			);
+			sendWS({ type: 'pause_game', timePassedInMs: stageTimer() });
 			return;
 		}
 
@@ -48,13 +44,13 @@ function onKeyDown(e: KeyboardEvent) {
 	if (e.code === 'Space') {
 		console.log(gameState.status);
 		if (gameState.status === 'not_started') {
-			gameServer?.send(encodeJson({ type: 'init_game_start' } as GameServerEvent));
+			sendWS({ type: 'init_game_start' });
 			return;
 		}
 
 		if (gameState.status === 'active_game_found') {
 			setGameState('status', 'in_progress');
-			gameServer?.send(encodeJson({ type: 'continue_game' } as GameServerEvent));
+			sendWS({ type: 'continue_game' });
 			return;
 		}
 
@@ -93,9 +89,7 @@ function onKeyUp(e: KeyboardEvent) {
 function onBeforeUnload(e: BeforeUnloadEvent) {
 	e.preventDefault();
 	setGameState('status', 'paused');
-	gameServer!.send(
-		encodeJson<PauseGameEvent>({ type: 'pause_game', timePassedInMs: stageTimer() }),
-	);
+	sendWS({ type: 'pause_game', timePassedInMs: stageTimer() });
 }
 
 const [account, setAccount] = createStore<UseAppKitAccountReturn>({
@@ -152,8 +146,8 @@ export default function Game() {
 	});
 
 	createEffect(() => {
-		if (gameState.status === 'lost' && gameServer) {
-			gameServer.send(encodeEvent({ type: 'game_lost', timePassedInMs: stageTimer() }));
+		if (gameState.status === 'lost') {
+			sendWS({ type: 'game_lost', timePassedInMs: stageTimer() });
 		}
 	});
 

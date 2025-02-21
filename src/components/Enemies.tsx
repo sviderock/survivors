@@ -62,16 +62,18 @@ function Enemy(props: EnemyProps) {
 		if (gameState.enemies[props.idx]!.attackStatus === 'hit') {
 			setGameState('enemies', props.idx, 'attackStatus', 'cooldown');
 			setTimeout(() => {
-				setGameState('enemies', props.idx, 'attackStatus', 'ready');
+				if (gameState.enemies[props.idx]) {
+					setGameState('enemies', props.idx, 'attackStatus', 'ready');
+				}
 			}, ENEMY_ATTACK_COOLDOWN);
 		}
 	});
 
 	return (
-		<div ref={props.ref} class="h-enemy-hitbox w-enemy-hitbox absolute">
+		<div ref={props.ref} class="absolute h-enemy-hitbox w-enemy-hitbox">
 			<div
 				class={cn(
-					'animate-move-sprite-sheet-enemy-run w-enemy h-enemy bg-enemy will-change-bp relative left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden [image-rendering:pixelated]',
+					'relative left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 animate-move-sprite-sheet-enemy-run overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated]',
 					props.dirX === -1 && '-scale-x-100',
 				)}
 			/>

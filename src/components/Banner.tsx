@@ -2,7 +2,8 @@ import { batch, Match, ParentProps, Switch } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { setPlayer } from '~/components/Player';
 import { Button } from '~/components/ui/button';
-import { gameState, resetGameState, setGameState } from '~/state';
+import { gameState, resetGameState, setGameState, stageTimer } from '~/state';
+import { sendWS } from '~/useGameServer';
 import { cn } from '~/utils';
 
 export default function Banner() {
@@ -56,6 +57,18 @@ export default function Banner() {
 					<span class="text-3xl">
 						Press <strong>spacebar</strong> to continue
 					</span>
+
+					<Button
+						variant="secondary"
+						onClick={() => {
+							batch(() => {
+								sendWS({ type: 'abolish_game', timePassedInMs: stageTimer() });
+								resetGameState();
+							});
+						}}
+					>
+						Abolish
+					</Button>
 				</FullScreenBanner>
 			</Match>
 

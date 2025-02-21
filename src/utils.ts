@@ -25,10 +25,6 @@ export function encodeJson<T extends object>(obj: T) {
 	}
 }
 
-export function encodeEvent<T extends GameServerEvent>(obj: T) {
-	return encodeJson(obj);
-}
-
 export function parseEvent(str: string) {
 	const parsed = parseJson(str) as GameServerEvent;
 	return parsed.type ? parsed : null;
