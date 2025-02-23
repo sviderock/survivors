@@ -2,11 +2,12 @@ import { createReconnectingWS, type ReconnectingWebSocket } from '@solid-primiti
 import { createEffect, onCleanup, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { isServer } from 'solid-js/web';
-import { useCurrentUser } from '~/components/UserAccount';
+import { setStageTimer, stageTimer } from '~/components/StageTimer';
 import { ABRUPTLY_STOPPPED_GAME_LS_KEY } from '~/constants';
-import { gameState, setGameState, setPing, setStageTimer, stageTimer } from '~/state';
+import { currentUser } from '~/lib/currentUser';
+import { gameState, setGameState, setPing } from '~/state';
 import { encodeJson, getPersistedData, getWsUrl, parseEvent, persistData } from '~/utils';
-import { GameServerEvent } from '~/ws';
+import { type GameServerEvent } from '~/ws';
 
 let pingInterval: NodeJS.Timeout | undefined;
 export let gameServer: ReconnectingWebSocket | null;
@@ -20,8 +21,8 @@ function resetPingInterval() {
 	setPing(0);
 }
 
-export default function useGameServer() {
-	const user = useCurrentUser();
+export function setupGameServerConnection() {
+	const { user } = currentUser();
 	gameServer = isServer ? null : createReconnectingWS(getWsUrl(location));
 
 	createEffect(() => {
@@ -83,6 +84,10 @@ export default function useGameServer() {
 
 				case 'reward_claimed': {
 					user.refetch();
+					break;
+				}
+
+				case 'user_not_connected': {
 					break;
 				}
 			}

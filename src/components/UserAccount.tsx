@@ -1,26 +1,24 @@
-import { createMutation, createQuery } from '@tanstack/solid-query';
-import { Match, Show, Suspense, Switch } from 'solid-js';
+import { createMutation } from '@tanstack/solid-query';
+import { createEffect, Match, Show, Suspense, Switch } from 'solid-js';
 import { type Hex } from 'viem';
 import { appkitModal } from '~/appkit';
 import * as divvi from '~/blockchain/divvi';
-import { useAppkitAccount } from '~/components/Game';
 import { Avatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
 import { LoadingSpinner } from '~/icons/LoadingSpinner';
 import RiUserFacesAccountCircleLine from '~/icons/RiUserFacesAccountCircleLine';
-import type { PatchUsersBody, PostUsers } from '~/routes/api/users';
+import { appkitAccountStatus, currentUser } from '~/lib/currentUser';
+import type { PatchUsersBody } from '~/lib/api/users';
 import { encodeJson } from '~/utils';
 
 export default function UserAccount() {
-	const appkitAccount = useAppkitAccount();
-	const userAddresses = () => appkitAccount.allAccounts.map((acc) => acc.address);
-
+	const { user } = currentUser();
 	return (
 		<Suspense>
 			<div class="absolute left-4 top-4 z-50">
 				<Switch>
-					<Match when={appkitAccount.status === 'disconnected'}>
+					<Match when={appkitAccountStatus() === 'disconnected'}>
 						<Tooltip>
 							<TooltipTrigger>
 								<Avatar
@@ -37,14 +35,16 @@ export default function UserAccount() {
 					</Match>
 
 					<Match
-						when={appkitAccount.status === 'connecting' || appkitAccount.status === 'reconnecting'}
+						when={
+							appkitAccountStatus() === 'connecting' || appkitAccountStatus() === 'reconnecting'
+						}
 					>
 						<Avatar class="size-14 items-center justify-center bg-black p-2 text-4xl text-white">
 							<LoadingSpinner />
 						</Avatar>
 					</Match>
 
-					<Match when={appkitAccount.status === 'connected' && !!userAddresses().length}>
+					<Match when={appkitAccountStatus() === 'connected'}>
 						<ConnectedUser />
 					</Match>
 				</Switch>
@@ -53,36 +53,8 @@ export default function UserAccount() {
 	);
 }
 
-export function useCurrentUser() {
-	const appkitAccount = useAppkitAccount();
-	const userAddresses = () => {
-		return appkitAccount.allAccounts.map((acc) => acc.address);
-	};
-
-	const data = createQuery(() => ({
-		queryKey: ['currentUser', userAddresses()],
-		queryFn: async () => {
-			const resp = await fetch('/api/users/', {
-				method: 'POST',
-				body: encodeJson({ addresses: userAddresses() }),
-			});
-			return (await resp.json()) as PostUsers;
-		},
-		enabled: !!userAddresses().length,
-		// refetchInterval: 10_000,
-	}));
-	return data;
-}
-
-export function useLogout() {
-	return createMutation(() => ({
-		mutationKey: ['logout'],
-		mutationFn: () => fetch('/api/users/logout', { method: 'POST' }),
-	}));
-}
-
 function ConnectedUser() {
-	const user = useCurrentUser();
+	const { user } = currentUser();
 
 	async function syncWithDivvi() {
 		if (!user.data) return;

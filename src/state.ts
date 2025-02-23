@@ -1,9 +1,9 @@
-import { createTimer } from '@solid-primitives/timer';
 import { batch, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { setPlayer } from '~/components/Player';
+import { setStageTimer } from '~/components/StageTimer';
 import { BASE_COOLDOWN, BASE_HEALTH, WORLD_SIZE } from '~/constants';
-import { sendWS } from '~/useGameServer';
+import { setKeyPressed } from '~/lib/keyboardEvents';
 import { getInitialRect } from '~/utils';
 
 function getInitialGameState(): GameState {
@@ -24,8 +24,6 @@ export const [worldRect, setWorldRect] = createSignal(
 	getInitialRect({ x: 0, y: 0, width: WORLD_SIZE, height: WORLD_SIZE }),
 );
 export const [gameState, setGameState] = createStore<GameState>(getInitialGameState());
-export const [keyPressed, setKeyPressed] = createStore({ w: false, s: false, a: false, d: false });
-export const [stageTimer, setStageTimer] = createSignal(0);
 export const [ping, setPing] = createSignal(0);
 
 export function resetGameState() {
@@ -47,20 +45,4 @@ export function resetGameState() {
 			}),
 		);
 	});
-}
-
-export function useGameTimer() {
-	createTimer(
-		async () => {
-			if (!gameState.activeGame) return;
-			if (stageTimer() >= gameState.activeGame.timeLimit) {
-				setGameState('status', 'won');
-				sendWS({ type: 'game_won' });
-				return;
-			}
-			setStageTimer((p) => p + 500);
-		},
-		() => gameState.status === 'in_progress' && 500,
-		setInterval,
-	);
 }

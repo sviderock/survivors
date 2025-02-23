@@ -15,7 +15,8 @@ import {
 	XP_LVL_3_TO_20,
 	XP_LVL_41_AND_UP,
 } from '~/constants';
-import { gameState, keyPressed, setWorldRect, worldRect } from '~/state';
+import { keyPressed } from '~/lib/keyboardEvents';
+import { gameState, setWorldRect, worldRect } from '~/state';
 import { cn, getInitialRect, getNewPos, getRect } from '~/utils';
 
 export const [playerRect, setPlayerRect] = createSignal(
@@ -132,15 +133,15 @@ export default function Player() {
 
 	return (
 		<div class="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
-			<div ref={(ref) => setPlayer('ref', ref)} class="w-player-hitbox h-player-hitbox relative">
+			<div ref={(ref) => setPlayer('ref', ref)} class="relative h-player-hitbox w-player-hitbox">
 				<div
 					class={cn(
-						'animate-move-sprite-sheet-idle bg-player will-change-bp w-player h-player relative left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden [image-rendering:pixelated]',
+						'relative left-1/2 top-1/2 h-player w-player -translate-x-1/2 -translate-y-1/2 animate-move-sprite-sheet-idle overflow-hidden bg-player will-change-bp [image-rendering:pixelated]',
 						player.direction === 'west' && '-scale-x-100',
 						player.movement === 'moving' && 'animate-move-sprite-sheet-run',
 						player.attack.status === 'started_attack' &&
 							player.attack.direction === 'north-west' &&
-							'animate-move-sprite-sheet-shoot-north-east -scale-x-100',
+							'-scale-x-100 animate-move-sprite-sheet-shoot-north-east',
 						player.attack.status === 'started_attack' &&
 							player.attack.direction === 'north' &&
 							'animate-move-sprite-sheet-shoot-north',
@@ -158,10 +159,10 @@ export default function Player() {
 							'animate-move-sprite-sheet-shoot-south',
 						player.attack.status === 'started_attack' &&
 							player.attack.direction === 'south-west' &&
-							'animate-move-sprite-sheet-shoot-south-east -scale-x-100',
+							'-scale-x-100 animate-move-sprite-sheet-shoot-south-east',
 						player.attack.status === 'started_attack' &&
 							player.attack.direction === 'west' &&
-							'animate-move-sprite-sheet-shoot-east -scale-x-100',
+							'-scale-x-100 animate-move-sprite-sheet-shoot-east',
 					)}
 				/>
 			</div>

@@ -17,15 +17,12 @@ function getCookieOptions(): cookie.SerializeOptions {
 	};
 }
 
-export async function getSession<T extends Request>(request: T) {
-	const cookies = cookie.parse(request.headers.get('cookie') || '');
-	if (!cookies.auth) return null;
-
+export async function getSession(request: Request) {
 	try {
+		const cookies = cookie.parse(request.headers.get('cookie') || '');
 		const decoded = jwt.verify(cookies.auth!, process.env.SESSION_SECRET);
 		return decoded as StoredSessionData;
 	} catch (error) {
-		console.warn('An error occured verifying the session', error);
 		return null;
 	}
 }
@@ -42,7 +39,10 @@ export async function createSession(userId: UserType['id'], response: ResponseSt
 	);
 }
 
-export async function logoutSession({ request, response }: APIEvent) {
+export async function logoutSession<T extends Pick<APIEvent, 'request' | 'response'>>({
+	request,
+	response,
+}: T) {
 	const cookies = cookie.parse(request.headers.get('cookie') || '');
 	if (!cookies.auth) return null;
 

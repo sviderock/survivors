@@ -1,8 +1,8 @@
 import { type PlayedGame } from '@/schema';
 import { eventHandler } from 'vinxi/http';
-import { continueGame, findActiveGame, startNewGame, updateGame } from '~/routes/api/games';
-import { getSession } from '~/routes/api/sessions';
-import { addCoinsToUser } from '~/routes/api/users';
+import { continueGame, findActiveGame, startNewGame, updateGame } from '~/lib/api/games';
+import { getSession } from '~/lib/api/sessions';
+import { addCoinsToUser } from '~/lib/api/users';
 import { encodeJson, parseEvent } from '~/utils';
 
 export type GameServerEvent =
@@ -16,7 +16,8 @@ export type GameServerEvent =
 	| { type: 'game_won' }
 	| { type: 'game_lost'; timePassedInMs: number }
 	| { type: 'reward_claimed' }
-	| { type: 'abolish_game'; timePassedInMs: number };
+	| { type: 'abolish_game'; timePassedInMs: number }
+	| { type: 'user_not_connected' };
 
 function encodeEvent<T extends GameServerEvent>(event: T) {
 	return encodeJson(event);
@@ -26,9 +27,12 @@ export default eventHandler({
 	handler() {},
 	websocket: {
 		async open(peer) {
-			console.log('User connected!');
+			console.log('User connected to WS server');
 			const session = await getSession(peer.request as Request);
-			if (!session) return;
+			if (!session) {
+				peer.send(encodeEvent({ type: 'user_not_connected' }));
+				return;
+			}
 
 			const activeGame = await findActiveGame(session.userId);
 			if (activeGame) {
@@ -49,8 +53,10 @@ export default eventHandler({
 				}
 
 				case 'init_game_start': {
+					console.log(123);
 					const newGame = await startNewGame(session.userId);
 					const encoded = encodeEvent({ type: 'game_start_confirmed', game: newGame });
+					console.log(encoded);
 					if (encoded) {
 						peer.send(encoded);
 					}
@@ -138,10 +144,10 @@ export default eventHandler({
 			}
 		},
 		async close(peer, details) {
-			console.log('close', peer.id);
+			console.log('close');
 		},
 		async error(peer, error) {
-			console.log('error', peer.id, error);
+			console.log('error', error);
 		},
 	},
 });

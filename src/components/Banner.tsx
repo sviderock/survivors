@@ -1,10 +1,11 @@
-import { batch, Match, ParentProps, Switch } from 'solid-js';
+import { batch, Match, type ParentProps, Switch } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { setPlayer } from '~/components/Player';
 import { Button } from '~/components/ui/button';
-import { gameState, resetGameState, setGameState, stageTimer } from '~/state';
-import { sendWS } from '~/useGameServer';
+import { gameState, resetGameState, setGameState } from '~/state';
+import { sendWS } from '~/lib/gameServer';
 import { cn } from '~/utils';
+import { stageTimer } from '~/components/StageTimer';
 
 export default function Banner() {
 	return (

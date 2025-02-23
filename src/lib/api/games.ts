@@ -1,6 +1,6 @@
 'use server';
 
-import { PlayedGame, PlayedGames, type UserType } from '@/schema';
+import { type PlayedGame, PlayedGames, type UserType } from '@/schema';
 import { and, eq, inArray } from 'drizzle-orm';
 import { BASE_COINS_REWARD, STAGE_TIME_IN_MINUTES } from '~/constants';
 import { db } from '~/db';

@@ -234,3 +234,32 @@ export function getWsUrl(location: Location) {
 export function getMins(mm: number) {
 	return mm * 60 * 1000;
 }
+
+export async function fetchPost<R extends object, T extends object = object>(
+	url: string,
+	body?: T,
+) {
+	const resp = await fetch(url, { method: 'POST', body: body ? encodeJson(body) : undefined });
+	return (await resp.json()) as R;
+}
+
+export async function fetchGet<
+	R extends object,
+	T extends Record<string, string | number | boolean | null | undefined> = Record<
+		string,
+		string | number | boolean | null | undefined
+	>,
+>(url: string, params?: T) {
+	let searchStr = '';
+	if (params) {
+		const searchParams = new URLSearchParams();
+		for (const key in params) {
+			searchParams.append(key, `${params[key]}`);
+		}
+
+		searchStr = searchParams.toString() ? `?${searchParams.toString()}` : '';
+	}
+
+	const resp = await fetch(`${url}${searchStr}`);
+	return (await resp.json()) as R;
+}

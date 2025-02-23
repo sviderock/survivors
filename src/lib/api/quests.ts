@@ -1,8 +1,7 @@
 import { Quests, UserAddresses, type UserType } from '@/schema';
-import 'core-js/actual/array';
 import { eq } from 'drizzle-orm';
 import { db } from '~/db';
-import { getTransactions } from '~/routes/api/transactions';
+import { getTransactions } from '~/lib/api/transactions';
 import { getRandomBetween } from '~/utils';
 
 function groupBy<T extends object, K extends string>(arr: T[], cb: (item: T) => K): Record<K, T[]> {
