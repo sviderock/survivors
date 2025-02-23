@@ -1,8 +1,9 @@
-import { type PlayedGame } from '@/schema';
+import { Users, type PlayedGame } from '@/schema';
+import { sql } from 'drizzle-orm';
 import { getRequestEvent } from 'solid-js/web';
 import { eventHandler } from 'vinxi/http';
-import { continueGame, findActiveGame, startNewGame, updateGame } from '~/lib/api/games';
-import { addCoinsToUser } from '~/lib/api/users';
+import { db } from '~/db';
+import { continueGame, startNewGame, updateGame } from '~/lib/api/games';
 import { encodeJson, parseEvent } from '~/utils';
 
 export type GameServerEvent =
@@ -34,7 +35,7 @@ export default eventHandler({
 				return;
 			}
 
-			const activeGame = await findActiveGame(session.userId);
+			const activeGame = getRequestEvent()!.locals.activeGame;
 			if (activeGame) {
 				peer.send(encodeEvent({ type: 'active_game_found', game: activeGame }));
 			}
@@ -53,7 +54,7 @@ export default eventHandler({
 				}
 
 				case 'init_game_start': {
-					const newGame = await startNewGame(session.userId);
+					const newGame = await startNewGame();
 					const encoded = encodeEvent({ type: 'game_start_confirmed', game: newGame });
 					if (encoded) {
 						peer.send(encoded);
@@ -62,78 +63,56 @@ export default eventHandler({
 				}
 
 				case 'continue_game': {
-					const activeGame = await findActiveGame(session.userId);
-
-					if (activeGame) {
-						await continueGame(activeGame.id);
-					}
+					await continueGame();
 					break;
 				}
 
 				case 'pause_game': {
-					const activeGame = await findActiveGame(session.userId);
-					if (activeGame) {
-						await updateGame(activeGame.id, {
-							status: 'paused',
-							currentlyAt: message.timePassedInMs,
-						});
-					}
+					await updateGame({ status: 'paused', currentlyAt: message.timePassedInMs });
 					break;
 				}
 
 				case 'update_abruptly_stopped_game': {
-					const activeGame = await findActiveGame(session.userId);
-					if (activeGame) {
-						const updatedGame = await updateGame(activeGame.id, {
-							status: 'paused',
-							currentlyAt: message.timePassedInMs,
-						});
-						peer.send(encodeEvent({ type: 'active_game_found', game: updatedGame }));
-					}
+					const updatedGame = await updateGame({
+						status: 'paused',
+						currentlyAt: message.timePassedInMs,
+					});
+					peer.send(encodeEvent({ type: 'active_game_found', game: updatedGame }));
 					break;
 				}
 
 				case 'game_won': {
-					const activeGame = await findActiveGame(session.userId);
-					if (activeGame) {
-						const updatedGame = await updateGame(activeGame.id, {
-							status: 'won',
-							currentlyAt: activeGame.timeLimit,
-							finishedAt: new Date(),
-							gameState: null,
-						});
-						await addCoinsToUser(session.userId, updatedGame.coinsAtStake);
-						peer.send(encodeEvent({ type: 'reward_claimed' }));
-					}
+					const updatedGame = await updateGame({
+						status: 'won',
+						finishedAt: new Date(),
+						gameState: null,
+					});
+					await db.update(Users).set({ coins: sql`${Users.coins} + ${updatedGame.coinsAtStake}` });
+					peer.send(encodeEvent({ type: 'reward_claimed' }));
 					break;
 				}
 
 				case 'game_lost': {
-					const activeGame = await findActiveGame(session.userId);
-					if (activeGame) {
-						await updateGame(activeGame.id, {
-							status: 'lost',
-							currentlyAt: message.timePassedInMs,
-							finishedAt: new Date(),
-							gameState: null,
-						});
-					}
+					await updateGame({
+						status: 'lost',
+						currentlyAt: message.timePassedInMs,
+						finishedAt: new Date(),
+						gameState: null,
+					});
 					break;
 				}
 
 				case 'abolish_game': {
-					const activeGame = await findActiveGame(session.userId);
-					if (activeGame) {
-						await updateGame(activeGame.id, {
-							status: 'aborted',
-							currentlyAt: message.timePassedInMs,
-							finishedAt: new Date(),
-							gameState: null,
-						});
-					}
+					await updateGame({
+						status: 'aborted',
+						currentlyAt: message.timePassedInMs,
+						finishedAt: new Date(),
+						gameState: null,
+					});
 					break;
 				}
 
+				case 'user_not_connected':
 				case 'reward_claimed':
 				case 'game_start_confirmed':
 				case 'active_game_found': {

@@ -10,7 +10,7 @@ export type DivviRegistration =
 	| { status: 'transaction_submitted'; hash: string; receipt?: never }
 	| { status: 'registered'; hash?: never; receipt: any };
 
-export type UserType = typeof Users.$inferSelect;
+export type User = typeof Users.$inferSelect;
 export const Users = pgTable('Users', {
 	id: serial().primaryKey(),
 	divviRegistration: json().$type<DivviRegistration>().default({ status: 'unchecked' }).notNull(),

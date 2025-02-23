@@ -1,12 +1,12 @@
 'use server';
-import { type PlayedGame, Sessions, type UserType } from '@/schema';
+import { type PlayedGame, Sessions, type User } from '@/schema';
 import cookie from 'cookie';
 import { and, eq } from 'drizzle-orm';
 import jwt from 'jsonwebtoken';
 import { getRequestEvent, isDev } from 'solid-js/web';
 import { db } from '~/db';
 
-export type StoredSessionData = { userId: UserType['id']; gameId?: PlayedGame['id'] };
+export type StoredSessionData = { userId: User['id']; gameId?: PlayedGame['id'] };
 
 function getCookieOptions(): cookie.SerializeOptions {
 	return {
@@ -17,7 +17,7 @@ function getCookieOptions(): cookie.SerializeOptions {
 	};
 }
 
-export async function createSession(userId: UserType['id']) {
+export async function createSession(userId: User['id']) {
 	const token = jwt.sign({ userId } satisfies StoredSessionData, process.env.SESSION_SECRET);
 	const [savedSession] = await db.insert(Sessions).values({ userId, cookie: token }).returning();
 

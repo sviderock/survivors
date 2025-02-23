@@ -1,6 +1,7 @@
 'use server';
-import { Quests, UserAddresses, type UserType } from '@/schema';
+import { Quests, UserAddresses } from '@/schema';
 import { eq } from 'drizzle-orm';
+import { getRequestEvent } from 'solid-js/web';
 import { db } from '~/db';
 import { getTransactions } from '~/lib/api/transactions';
 import { getRandomBetween } from '~/utils';
@@ -23,7 +24,12 @@ function getRandomTxType() {
 	const types: Zerion.Attributes['operation_type'][] = ['trade', 'send', 'mint'];
 	return types[Math.floor(Math.random() * types.length)]!;
 }
-export async function checkQuestsForUser(userId: UserType['id']) {
+export async function checkQuestsForUser() {
+	const userId = getRequestEvent()?.locals.session?.userId;
+	if (!userId) {
+		throw new Error('somehow request to start a game was sent without an active user');
+	}
+
 	const activeQuests = await db
 		.select()
 		.from(Quests)

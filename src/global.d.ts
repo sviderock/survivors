@@ -91,8 +91,8 @@ declare global {
 
 	namespace App {
 		interface RequestEventLocals {
-			session: StoredSessionData | null | undefined;
-			// activeGame: PlayedGame | undefined;
+			session: StoredSessionData | undefined;
+			activeGame: PlayedGame | undefined;
 		}
 	}
 
