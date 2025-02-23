@@ -1,19 +1,17 @@
-import { createMutation } from '@tanstack/solid-query';
-import { createEffect, Match, Show, Suspense, Switch } from 'solid-js';
+import { Match, Show, Suspense, Switch } from 'solid-js';
 import { type Hex } from 'viem';
 import { appkitModal } from '~/appkit';
-import * as divvi from '~/blockchain/divvi';
+import { LoadingSpinner } from '~/components/icons/LoadingSpinner';
+import RiUserFacesAccountCircleLine from '~/components/icons/RiUserFacesAccountCircleLine';
 import { Avatar } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '~/components/ui/tooltip';
-import { LoadingSpinner } from '~/icons/LoadingSpinner';
-import RiUserFacesAccountCircleLine from '~/icons/RiUserFacesAccountCircleLine';
-import { appkitAccountStatus, currentUser } from '~/lib/currentUser';
 import type { PatchUsersBody } from '~/lib/api/users';
+import * as divvi from '~/lib/blockchain/divvi';
+import { appkitAccountStatus, currentUser } from '~/lib/currentUser';
 import { encodeJson } from '~/utils';
 
 export default function UserAccount() {
-	const { user } = currentUser();
 	return (
 		<Suspense>
 			<div class="absolute left-4 top-4 z-50">

@@ -1,12 +1,10 @@
-import { estimateGas, readContract, sendTransaction, waitForTransactionReceipt } from '@wagmi/core';
+import { readContract, sendTransaction, waitForTransactionReceipt } from '@wagmi/core';
 import {
 	type Address,
-	decodeFunctionData,
 	encodeFunctionData,
 	type Hex,
 	hexToString,
 	parseEventLogs,
-	parseGwei,
 	stringToHex,
 } from 'viem';
 import { wagmiConfig } from '~/appkit';

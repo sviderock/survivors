@@ -11,7 +11,7 @@ export function parseJson(str: string) {
 	try {
 		return JSON.parse(str);
 	} catch (error) {
-		console.log('issue parsing JSON', error);
+		console.error('issue parsing JSON', error);
 		return {};
 	}
 }
@@ -20,7 +20,7 @@ export function encodeJson<T extends object>(obj: T) {
 	try {
 		return JSON.stringify(obj);
 	} catch (error) {
-		console.log('issue encoding JSON', error);
+		console.error('issue encoding JSON', error);
 		return '';
 	}
 }
@@ -203,7 +203,6 @@ export function getDirection(a: number, b: number) {
 	return a < b ? 1 : a > b ? -1 : 0;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function slowCollisionDetect() {
 	// for (let j = 0; j < enemies.length; j++) {
 	// 	if (i === j) continue;

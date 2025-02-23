@@ -7,17 +7,14 @@ import { createSignal, onMount } from 'solid-js';
 import { getRequestEvent } from 'solid-js/web';
 import { appkitModal } from '~/appkit';
 import { db } from '~/db';
-import { createSession, getSession, logoutSession } from '~/lib/api/sessions';
+import { createSession, logoutSession } from '~/lib/api/sessions';
 
 export const [appkitAccountStatus, setAppkitAccountStatus] =
 	createSignal<UseAppKitAccountReturn['status']>('disconnected');
 
 const getUserBySession = query(async () => {
 	'use server';
-	const request = getRequestEvent()?.request;
-	if (!request) return null;
-
-	const session = await getSession(request);
+	const session = getRequestEvent()?.locals.session;
 	if (!session) return null;
 
 	const user = await db.query.Users.findFirst({
@@ -30,8 +27,7 @@ const getUserBySession = query(async () => {
 
 const getUserByAddressesOrCreate = action(async (addresses: string[]) => {
 	'use server';
-	const response = getRequestEvent()?.response;
-	if (!response) return null;
+	if (!getRequestEvent()) return null;
 
 	const userByAddresses = await db.query.Users.findFirst({
 		where: (users, { exists }) =>
@@ -48,7 +44,7 @@ const getUserByAddressesOrCreate = action(async (addresses: string[]) => {
 
 	if (userByAddresses) {
 		await db.delete(Sessions).where(eq(Sessions.userId, userByAddresses.id));
-		await createSession(userByAddresses.id, response);
+		await createSession(userByAddresses.id);
 		return userByAddresses;
 	}
 
@@ -60,14 +56,13 @@ const getUserByAddressesOrCreate = action(async (addresses: string[]) => {
 			.returning();
 		return { ...user!, addresses: userAddresses };
 	});
-	await createSession(newUser.id, response);
+	await createSession(newUser.id);
 	return newUser;
 }, 'get-user-by-addresses-or-create1');
 
 const logoutUser = action(async () => {
 	'use server';
-	if (!getRequestEvent()) return null;
-	await logoutSession(getRequestEvent()!);
+	await logoutSession();
 });
 
 export function currentUser() {

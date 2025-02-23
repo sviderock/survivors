@@ -1,9 +1,9 @@
+'use server';
 import { type PlayedGame, Sessions, type UserType } from '@/schema';
-import type { APIEvent, ResponseStub } from '@solidjs/start/server';
 import cookie from 'cookie';
 import { and, eq } from 'drizzle-orm';
 import jwt from 'jsonwebtoken';
-import { isDev } from 'solid-js/web';
+import { getRequestEvent, isDev } from 'solid-js/web';
 import { db } from '~/db';
 
 export type StoredSessionData = { userId: UserType['id']; gameId?: PlayedGame['id'] };
@@ -17,43 +17,28 @@ function getCookieOptions(): cookie.SerializeOptions {
 	};
 }
 
-export async function getSession(request: Request) {
-	try {
-		const cookies = cookie.parse(request.headers.get('cookie') || '');
-		const decoded = jwt.verify(cookies.auth!, process.env.SESSION_SECRET);
-		return decoded as StoredSessionData;
-	} catch (error) {
-		return null;
-	}
-}
-
-export async function createSession(userId: UserType['id'], response: ResponseStub) {
+export async function createSession(userId: UserType['id']) {
 	const token = jwt.sign({ userId } satisfies StoredSessionData, process.env.SESSION_SECRET);
 	const [savedSession] = await db.insert(Sessions).values({ userId, cookie: token }).returning();
 
 	if (!savedSession?.cookie) throw new Error("Couldn't create session for user");
+	if (!getRequestEvent()) throw new Error('Event is missing?');
 
-	response.headers.set(
+	getRequestEvent()!.response.headers.set(
 		'Set-Cookie',
 		cookie.serialize('auth', savedSession.cookie, getCookieOptions()),
 	);
 }
 
-export async function logoutSession<T extends Pick<APIEvent, 'request' | 'response'>>({
-	request,
-	response,
-}: T) {
-	const cookies = cookie.parse(request.headers.get('cookie') || '');
-	if (!cookies.auth) return null;
-
-	const session = await getSession(request);
+export async function logoutSession() {
+	const session = getRequestEvent()?.locals.session;
 	if (session) {
 		await db.delete(Sessions).where(and(eq(Sessions.userId, session.userId)));
 	}
 
-	response.headers.set(
+	getRequestEvent()!.response.headers.set(
 		'Set-Cookie',
-		cookie.serialize('auth', cookies.auth, {
+		cookie.serialize('auth', '', {
 			...getCookieOptions(),
 			maxAge: undefined,
 			expires: new Date(0),

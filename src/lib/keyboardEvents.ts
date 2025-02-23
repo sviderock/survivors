@@ -129,7 +129,6 @@ function onKeyDown(e: KeyboardEvent) {
 	}
 
 	if (e.code === 'Space') {
-		console.log(gameState.status);
 		if (gameState.status === 'not_started') {
 			sendWS({ type: 'init_game_start' });
 			return;

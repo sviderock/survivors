@@ -2,7 +2,7 @@ import { Show, Suspense } from 'solid-js';
 import MemoryUsage from '~/components/Memory';
 import { PingClientOnly } from '~/components/Ping';
 import { playerLevel } from '~/components/Player';
-import { LoadingSpinner } from '~/icons/LoadingSpinner';
+import { LoadingSpinner } from '~/components/icons/LoadingSpinner';
 import { appkitAccountStatus, currentUser } from '~/lib/currentUser';
 import { gameState } from '~/state';
 

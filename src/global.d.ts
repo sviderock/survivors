@@ -1,6 +1,7 @@
 /// <reference types="@solidjs/start/env" />
 
 import type { PlayedGame } from '@/schema';
+import type { StoredSessionData } from '~/lib/api/sessions';
 
 declare global {
 	type RectSides = { left: number; right: number; top: number; bottom: number };
@@ -87,6 +88,13 @@ declare global {
 
 	type RGBStr = `rgb(${number},${'' | ' '}${number},${'' | ' '}${number})`;
 	type RGB = { r: number; g: number; b: number };
+
+	namespace App {
+		interface RequestEventLocals {
+			session: StoredSessionData | null | undefined;
+			// activeGame: PlayedGame | undefined;
+		}
+	}
 
 	namespace Zerion {
 		// Determined from an API response and transformed in TypeScript using https://transform.tools/json-to-typescript

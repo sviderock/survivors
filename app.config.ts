@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export default defineConfig({
+	middleware: './src/middleware.ts',
 	server: {
 		experimental: {
 			websocket: true,

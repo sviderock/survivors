@@ -1,3 +1,4 @@
+'use server';
 import { Quests, UserAddresses, type UserType } from '@/schema';
 import { eq } from 'drizzle-orm';
 import { db } from '~/db';
