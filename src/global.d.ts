@@ -70,6 +70,7 @@ declare global {
 		blocked: Record<keyof RectSides, boolean>;
 		status: 'idle' | 'moving' | 'attacking' | 'hit';
 		dirX: 1 | 0 | -1;
+		dirY: 1 | 0 | -1;
 	};
 
 	type Bullet = {

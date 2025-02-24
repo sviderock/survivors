@@ -3,13 +3,13 @@ import { createStore } from 'solid-js/store';
 import HealthBar from '~/components/HealthBar';
 import { spawnBullet } from '~/components/weapons/Bullets';
 import {
-	BASE_COOLDOWN,
-	BASE_HEALTH,
+	PLAYER_BASE_COOLDOWN,
+	PLAYER_BASE_HEALTH,
 	DIAGONAL_SPEED,
 	PLAYER_SIZE,
 	PLAYER_SPEED,
 	SHOOTING_ANIMATION_DURATION_SS,
-	WORLD_SIZE,
+	GAME_WORLD_SIZE,
 	XP_LVL_2,
 	XP_LVL_21_TO_40,
 	XP_LVL_3_TO_20,
@@ -24,14 +24,14 @@ export const [playerRect, setPlayerRect] = createSignal(
 );
 export const [player, setPlayer] = createStore<Player>({
 	ref: undefined,
-	health: BASE_HEALTH,
-	maxHealth: BASE_HEALTH,
+	health: PLAYER_BASE_HEALTH,
+	maxHealth: PLAYER_BASE_HEALTH,
 	movement: 'idle',
 	direction: 'east',
 	attack: {
 		status: 'ready',
 		direction: 'east',
-		cooldown: BASE_COOLDOWN,
+		cooldown: PLAYER_BASE_COOLDOWN,
 	},
 });
 
@@ -93,7 +93,9 @@ export function movePlayer() {
 	if (keyPressed.s) newWorldY -= (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.a) newWorldX += (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.d) newWorldX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
-	setWorldRect(getNewPos({ x: newWorldX, y: newWorldY, width: WORLD_SIZE, height: WORLD_SIZE }));
+	setWorldRect(
+		getNewPos({ x: newWorldX, y: newWorldY, width: GAME_WORLD_SIZE, height: GAME_WORLD_SIZE }),
+	);
 	return { newWorldX, newWorldY };
 }
 

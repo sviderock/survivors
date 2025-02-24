@@ -2,6 +2,7 @@ import { batch, createEffect, onCleanup, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { setPlayer } from '~/components/Player';
 import { stageTimer } from '~/components/StageTimer';
+import { DEBUG_MECHANICS } from '~/constants';
 import { sendWS } from '~/lib/gameServer';
 import { gameState, resetGameState, setGameState } from '~/state';
 
@@ -155,7 +156,7 @@ function onKeyDown(e: KeyboardEvent) {
 		return;
 	}
 
-	if (gameState.status === 'in_progress') {
+	if (gameState.status === 'in_progress' || DEBUG_MECHANICS) {
 		if (e.code === 'KeyW' || e.code === 'ArrowUp') return setKeyPressed('w', true);
 		if (e.code === 'KeyS' || e.code === 'ArrowDown') return setKeyPressed('s', true);
 		if (e.code === 'KeyA' || e.code === 'ArrowLeft') return setKeyPressed('a', true);
@@ -164,7 +165,7 @@ function onKeyDown(e: KeyboardEvent) {
 }
 
 function onKeyUp(e: KeyboardEvent) {
-	if (gameState.status === 'in_progress') {
+	if (gameState.status === 'in_progress' || DEBUG_MECHANICS) {
 		if (e.code === 'KeyW' || e.code === 'ArrowUp') return setKeyPressed('w', false);
 		if (e.code === 'KeyS' || e.code === 'ArrowDown') return setKeyPressed('s', false);
 		if (e.code === 'KeyA' || e.code === 'ArrowLeft') return setKeyPressed('a', false);

@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { HEALTH_COLOR_FULL, HEALTH_COLOR_HALF, HEALTH_COLOR_NONE } from '~/constants';
+import { gameState } from '~/state';
 import type { GameServerEvent } from '~/ws';
 
 export function cn(...inputs: ClassValue[]) {
@@ -201,29 +202,6 @@ export function interpolateHealth(percentage: number) {
 
 export function getDirection(a: number, b: number) {
 	return a < b ? 1 : a > b ? -1 : 0;
-}
-
-function slowCollisionDetect() {
-	// for (let j = 0; j < enemies.length; j++) {
-	// 	if (i === j) continue;
-	// 	const foreignEnemy = enemies[j]!;
-	// 	// stuck moving right
-	// 	if (dirX === 1 && newPos.right + COLLISION_OFFSET === foreignEnemy.rect().left) {
-	// 		blocked.right = true;
-	// 	}
-	// 	// stuck moving left
-	// 	if (dirX === -1 && newPos.left - COLLISION_OFFSET === foreignEnemy.rect().right) {
-	// 		blocked.left = true;
-	// 	}
-	// 	// stuck moving bottom
-	// 	if (dirY === 1 && newPos.bottom + COLLISION_OFFSET === foreignEnemy.rect().top) {
-	// 		blocked.bottom = true;
-	// 	}
-	// 	// stuck moving top
-	// 	if (dirY === -1 && newPos.top - COLLISION_OFFSET === foreignEnemy.rect().bottom) {
-	// 		blocked.top = true;
-	// 	}
-	// }
 }
 
 export function getWsUrl(location: Location) {

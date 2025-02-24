@@ -1,4 +1,4 @@
-import { createEffect, onCleanup } from 'solid-js';
+import { createEffect, onCleanup, Show } from 'solid-js';
 import Banner from '~/components/Banner';
 import Enemies from '~/components/Enemies';
 import Gems from '~/components/Gems';
@@ -8,6 +8,7 @@ import Terrain from '~/components/Terrain';
 import UIStats from '~/components/UIStats';
 import UserAccount from '~/components/UserAccount';
 import Bullet from '~/components/weapons/Bullets';
+import { DEBUG_MECHANICS } from '~/constants';
 import { clearGameLoop, runGameLoop } from '~/gameLoop';
 import { setupUserSync } from '~/lib/currentUser';
 import { sendWS, setupGameServerConnection } from '~/lib/gameServer';
@@ -32,12 +33,12 @@ export default function Game() {
 			return;
 		}
 
-		if (gameState.status === 'in_progress') {
+		if (gameState.status === 'in_progress' || DEBUG_MECHANICS) {
 			runGameLoop();
-			window.addEventListener('beforeunload', onBeforeUnload);
-			onCleanup(() => {
-				window.removeEventListener('beforeunload', onBeforeUnload);
-			});
+			// window.addEventListener('beforeunload', onBeforeUnload);
+			// onCleanup(() => {
+			// 	window.removeEventListener('beforeunload', onBeforeUnload);
+			// });
 			return;
 		}
 	});
@@ -55,9 +56,11 @@ export default function Game() {
 			<Bullet />
 			<Gems />
 
-			<Banner />
-			<UserAccount />
-			<StageTimer />
+			<Show when={!DEBUG_MECHANICS}>
+				<Banner />
+				<UserAccount />
+				<StageTimer />
+			</Show>
 			<UIStats />
 		</div>
 	);

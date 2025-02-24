@@ -3,7 +3,7 @@
 import { type PlayedGame, PlayedGames } from '@/schema';
 import { eq } from 'drizzle-orm';
 import { getRequestEvent } from 'solid-js/web';
-import { BASE_COINS_REWARD, STAGE_TIME_IN_MINUTES } from '~/constants';
+import { GAME_BASE_COINS_REWARD, GAME_TIME_IN_MINUTES } from '~/constants';
 import { db } from '~/db';
 import { getMins } from '~/utils';
 
@@ -18,8 +18,8 @@ export async function startNewGame() {
 		.values({
 			userId,
 			status: 'in_progress',
-			timeLimit: getMins(STAGE_TIME_IN_MINUTES),
-			coinsAtStake: BASE_COINS_REWARD,
+			timeLimit: getMins(GAME_TIME_IN_MINUTES),
+			coinsAtStake: GAME_BASE_COINS_REWARD,
 		})
 		.returning();
 	return game!;
