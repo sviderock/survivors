@@ -3,6 +3,7 @@
 import {
 	BULLET_SIZE,
 	ENEMY_SIZE,
+	GAME_WORLD_SIZE,
 	GEM_SIZE,
 	PLAYER_SIZE,
 	SHOOTING_ANIMATION_DURATION_SS,
@@ -33,6 +34,7 @@ export default {
 				player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
 				bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
 				gem: GEM_SIZE.w,
+				world: GAME_WORLD_SIZE,
 			},
 			height: {
 				'enemy-hitbox': '80px',
@@ -42,6 +44,7 @@ export default {
 				player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
 				bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
 				gem: GEM_SIZE.h,
+				world: GAME_WORLD_SIZE,
 			},
 			willChange: {
 				bp: 'background-position',

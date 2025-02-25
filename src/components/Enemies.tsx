@@ -97,10 +97,6 @@ function Enemy(props: EnemyProps) {
 		}
 	});
 
-	createEffect(() => {
-		console.log(props.enemy.blocked.x);
-	});
-
 	return (
 		<div
 			ref={props.ref}

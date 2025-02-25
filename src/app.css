@@ -48,6 +48,7 @@
 		--radius: 0.5rem;
 
 		--pixel-size: 6;
+		--tile-size: 80px;
 	}
 
 	.dark,
@@ -96,6 +97,7 @@
 		--radius: 0.5rem;
 
 		--pixel-size: 6;
+		--tile-size: 80px;
 	}
 }
 

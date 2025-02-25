@@ -27,6 +27,10 @@ export default function Game() {
 	setupKeyboardEvents();
 	setupUserSync();
 
+	onCleanup(() => {
+		clearGameLoop();
+	});
+
 	createEffect(() => {
 		if (gameState.status === 'lost') {
 			sendWS({ type: 'game_lost', timePassedInMs: stageTimer() });
@@ -41,10 +45,6 @@ export default function Game() {
 			// });
 			return;
 		}
-	});
-
-	onCleanup(() => {
-		clearGameLoop();
 	});
 
 	return (

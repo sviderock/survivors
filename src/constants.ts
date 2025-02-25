@@ -13,7 +13,7 @@ export const ENEMY_SPEED = 1;
 export const ENEMY_SIZE = 32;
 export const ENEMY_ATTACK_COOLDOWN = 2000;
 export const ENEMY_BASE_HEALTH = 5;
-export const ENEMY_COLLISION_OFFSET = 0;
+export const ENEMY_COLLISION_OFFSET = 10;
 
 export const GEM_SIZE = { w: 16, h: 24 };
 

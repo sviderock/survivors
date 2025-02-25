@@ -67,7 +67,7 @@ declare global {
 		attackStatus: 'ready' | 'hit' | 'cooldown';
 		health: number;
 		maxHealth: number;
-		blocked: Record<keyof RectSides, boolean>;
+		blocked: { x: 1 | 0 | -1; y: 1 | 0 | -1 };
 		status: 'idle' | 'moving' | 'attacking' | 'hit';
 		dirX: 1 | 0 | -1;
 		dirY: 1 | 0 | -1;
