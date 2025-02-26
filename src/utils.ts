@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { HEALTH_COLOR_FULL, HEALTH_COLOR_HALF, HEALTH_COLOR_NONE } from '~/constants';
-import { gameState } from '~/state';
 import type { GameServerEvent } from '~/ws';
 
 export function cn(...inputs: ClassValue[]) {
@@ -239,4 +238,12 @@ export async function fetchGet<
 
 	const resp = await fetch(`${url}${searchStr}`);
 	return (await resp.json()) as R;
+}
+
+export function bitwiseAbs(n: number) {
+	return (n ^ (n >> 31)) - (n >> 31);
+}
+
+export function bitwiseRound(n: number) {
+	return (n + 0.5) | 0;
 }

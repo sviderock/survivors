@@ -58,6 +58,7 @@ declare global {
 			direction: AttackingDirection;
 			cooldown: number;
 		};
+		lastOccupiedTile: { x: number; y: number };
 	};
 
 	type Enemy = {

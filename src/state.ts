@@ -2,12 +2,7 @@ import { batch, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { setPlayer } from '~/components/Player';
 import { setStageTimer } from '~/components/StageTimer';
-import {
-	PLAYER_BASE_COOLDOWN,
-	PLAYER_BASE_HEALTH,
-	DEBUG_MECHANICS,
-	GAME_WORLD_SIZE,
-} from '~/constants';
+import { GAME_WORLD_SIZE, PLAYER_BASE_COOLDOWN, PLAYER_BASE_HEALTH } from '~/constants';
 import { setKeyPressed } from '~/lib/keyboardEvents';
 import { getInitialRect } from '~/utils';
 
@@ -25,7 +20,7 @@ function getInitialGameState(): GameState {
 	};
 }
 
-export const [worldRect, setWorldRect] = createSignal(
+export const [worldRect, setWorldRect] = createStore(
 	getInitialRect({ x: 0, y: 0, width: GAME_WORLD_SIZE, height: GAME_WORLD_SIZE }),
 );
 export const [gameState, setGameState] = createStore<GameState>(getInitialGameState());

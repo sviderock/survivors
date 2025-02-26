@@ -1,15 +1,17 @@
 import { batch, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
-import { createStore } from 'solid-js/store';
+import { createStore, produce } from 'solid-js/store';
 import HealthBar from '~/components/HealthBar';
+import { setTiles, tiles } from '~/components/Terrain';
 import { spawnBullet } from '~/components/weapons/Bullets';
 import {
+	DIAGONAL_SPEED,
+	GAME_WORLD_SIZE,
 	PLAYER_BASE_COOLDOWN,
 	PLAYER_BASE_HEALTH,
-	DIAGONAL_SPEED,
 	PLAYER_SIZE,
 	PLAYER_SPEED,
 	SHOOTING_ANIMATION_DURATION_SS,
-	GAME_WORLD_SIZE,
+	TILE_SIZE,
 	XP_LVL_2,
 	XP_LVL_21_TO_40,
 	XP_LVL_3_TO_20,
@@ -17,7 +19,19 @@ import {
 } from '~/constants';
 import { keyPressed } from '~/lib/keyboardEvents';
 import { gameState, setWorldRect, worldRect } from '~/state';
-import { cn, getInitialRect, getNewPos, getRect } from '~/utils';
+import { bitwiseAbs, bitwiseRound, cn, getInitialRect, getNewPos, getRect } from '~/utils';
+
+function iterateMatrix() {
+	console.time();
+	let count = 0;
+	for (let i = 0; i < tiles.occupiedMatrix.length; i++) {
+		for (let j = 0; j < tiles.occupiedMatrix[i]!.length; j++) {
+			count += tiles.occupiedMatrix[i]![j]! + 1;
+		}
+	}
+	console.timeEnd();
+	return count;
+}
 
 export const [playerRect, setPlayerRect] = createSignal(
 	getInitialRect({ x: 0, y: 0, width: PLAYER_SIZE, height: PLAYER_SIZE }),
@@ -28,6 +42,7 @@ export const [player, setPlayer] = createStore<Player>({
 	maxHealth: PLAYER_BASE_HEALTH,
 	movement: 'idle',
 	direction: 'east',
+	lastOccupiedTile: { x: 0, y: 0 },
 	attack: {
 		status: 'ready',
 		direction: 'east',
@@ -36,12 +51,12 @@ export const [player, setPlayer] = createStore<Player>({
 });
 
 export const relativePlayerPos = () => ({
-	left: playerRect().left - worldRect().x,
-	right: playerRect().right - worldRect().x,
-	top: playerRect().top - worldRect().y,
-	bottom: playerRect().bottom - worldRect().y,
-	centerX: playerRect().left - worldRect().x + playerRect().width / 2,
-	centerY: playerRect().top - worldRect().y + playerRect().height / 2,
+	left: playerRect().left - worldRect.x,
+	right: playerRect().right - worldRect.x,
+	top: playerRect().top - worldRect.y,
+	bottom: playerRect().bottom - worldRect.y,
+	centerX: playerRect().left - worldRect.x + playerRect().width / 2,
+	centerY: playerRect().top - worldRect.y + playerRect().height / 2,
 });
 
 export const playerLevel = () => {
@@ -79,6 +94,10 @@ export const playerLevel = () => {
 };
 
 export function movePlayer() {
+	if (!keyPressed.w && !keyPressed.s && !keyPressed.a && !keyPressed.d) {
+		return { newWorldX: worldRect.x, newWorldY: worldRect.y };
+	}
+
 	const playerSpeedModifier =
 		(keyPressed.w && keyPressed.a) ||
 		(keyPressed.w && keyPressed.d) ||
@@ -87,16 +106,48 @@ export function movePlayer() {
 			? DIAGONAL_SPEED
 			: 1;
 
-	let newWorldX = worldRect().x;
-	let newWorldY = worldRect().y;
+	let newWorldX = worldRect.x;
+	let newWorldY = worldRect.y;
 	if (keyPressed.w) newWorldY += (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.s) newWorldY -= (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.a) newWorldX += (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.d) newWorldX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
-	setWorldRect(
-		getNewPos({ x: newWorldX, y: newWorldY, width: GAME_WORLD_SIZE, height: GAME_WORLD_SIZE }),
-	);
+
+	console.time();
+	batch(() => {
+		setWorldRect(
+			getNewPos({ x: newWorldX, y: newWorldY, width: GAME_WORLD_SIZE, height: GAME_WORLD_SIZE }),
+		);
+		const { x, y } = updateOccupiedMatrix(playerRect().x + newWorldX, playerRect().y + newWorldY);
+
+		if (player.lastOccupiedTile.x !== x || player.lastOccupiedTile.y !== y) {
+			setTiles(
+				'occupiedMatrix',
+				produce((matrix) => {
+					matrix[player.lastOccupiedTile.x]![player.lastOccupiedTile.y] = 0;
+					matrix[x]![y] = 1;
+				}),
+			);
+			setPlayer('lastOccupiedTile', { x, y });
+		}
+	});
+	console.timeEnd();
+
 	return { newWorldX, newWorldY };
+}
+
+function updateOccupiedMatrix(targetX: number, targetY: number) {
+	const offsetTilesX = bitwiseAbs(tiles.rect.x) / TILE_SIZE;
+	const offsetPlayerX = (bitwiseAbs(playerRect().x) / TILE_SIZE) * 2;
+	const offsetWorldX = (targetX / TILE_SIZE) * -1;
+	const x = (offsetTilesX + offsetPlayerX + offsetWorldX + 0.5) | 0;
+
+	const offsetTilesY = bitwiseAbs(tiles.rect.y) / TILE_SIZE;
+	const offsetPlayerY = (bitwiseAbs(playerRect().y) / TILE_SIZE) * 2;
+	const offsetWorldY = (targetY / TILE_SIZE) * -1;
+	const y = (offsetTilesY + offsetPlayerY + offsetWorldY + 1) | 0;
+
+	return { x, y };
 }
 
 export default function Player() {

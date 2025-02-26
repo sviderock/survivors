@@ -7,6 +7,7 @@ import {
 	GEM_SIZE,
 	PLAYER_SIZE,
 	SHOOTING_ANIMATION_DURATION_SS,
+	TILE_SIZE,
 } from './src/constants';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -35,6 +36,7 @@ export default {
 				bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
 				gem: GEM_SIZE.w,
 				world: GAME_WORLD_SIZE,
+				tile: TILE_SIZE,
 			},
 			height: {
 				'enemy-hitbox': '80px',
@@ -45,6 +47,7 @@ export default {
 				bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
 				gem: GEM_SIZE.h,
 				world: GAME_WORLD_SIZE,
+				tile: TILE_SIZE,
 			},
 			willChange: {
 				bp: 'background-position',

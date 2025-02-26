@@ -60,8 +60,8 @@ export default function Game() {
 				<Banner />
 				<UserAccount />
 				<StageTimer />
+				<UIStats />
 			</Show>
-			<UIStats />
 		</div>
 	);
 }

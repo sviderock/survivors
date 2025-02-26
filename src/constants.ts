@@ -26,6 +26,8 @@ export const GAME_BASE_COINS_REWARD = 100;
 export const GAME_TIME_IN_MINUTES = 0.5;
 export const GAME_TERRAIN_TILE_SIZE = 32;
 export const GAME_WORLD_SIZE = 10_000;
+export const GAME_WORLD_HALFSIZE = GAME_WORLD_SIZE / 2;
+export const TILE_SIZE = 60;
 
 export const HEALTH_COLOR_FULL = 'rgb(124,207,0)';
 export const HEALTH_COLOR_HALF = 'rgb(240,177,0)';
