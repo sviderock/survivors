@@ -1,26 +1,27 @@
 import { batch } from 'solid-js';
 import { produce } from 'solid-js/store';
-import { destroyEnemy, spawnEnemy } from '~/components/Enemies';
+import { destroyEnemy, moveEnemy, spawnEnemy } from '~/components/Enemies';
 import { destroyGem, spawnGem } from '~/components/Gems';
 import { movePlayer, player, playerRect, setPlayer } from '~/components/Player';
 import { destroyBullet } from '~/components/weapons/Bullets';
-import { BULLET_SPEED, DEBUG_MECHANICS, ENEMY_SPEED, GAME_WORLD_SIZE } from '~/constants';
+import {
+	BULLET_COLLISIONS,
+	BULLET_MAGIC_OFFSET_X,
+	BULLET_MAGIC_OFFSET_Y,
+	BULLET_SPEED,
+	DEBUG_MECHANICS,
+	ENEMY_COLLISIONS,
+	ENEMY_LIMIT,
+	ENEMY_MOVEMENT,
+	ENEMY_SPAWN_INTERVAL_MS,
+	ENEMY_SPEED,
+	GAME_WORLD_SIZE,
+	GEMS_COLLISIONS,
+	SPAWN_ENEMIES,
+	SPAWN_GEMS,
+} from '~/constants';
 import { gameState, setGameState } from '~/state';
 import { collisionDetected, getDirection, getNewPos, getRotationDeg } from '~/utils';
-
-const SPAWN_ENEMIES = true;
-const SPAWN_GEMS = true;
-
-const ENEMY_SPAWN_INTERVAL_MS = 10;
-
-const ENEMY_MOVEMENT = false;
-const ENEMY_COLLISIONS = true;
-const BULLET_COLLISIONS = true;
-const GEMS_COLLISIONS = true;
-
-const ENEMY_LIMIT = 1;
-const BULLET_MAGIC_OFFSET_X = 20;
-const BULLET_MAGIC_OFFSET_Y = 40;
 
 let enemySpawnTimer = 0;
 
@@ -107,26 +108,7 @@ async function gameLoop(timestamp: number) {
 	// process enemies
 	for (let i = 0; i < gameState.enemies.length; i++) {
 		const enemy = gameState.enemies[i]!;
-		const dirX = getDirection(enemy.rect.centerX, relativePlayerPos.centerX);
-		const dirY = getDirection(enemy.rect.centerY, relativePlayerPos.centerY);
-		const updatedRect = getNewPos({
-			x: enemy.rect.x + (ENEMY_MOVEMENT ? ENEMY_SPEED * dirX : 0),
-			y: enemy.rect.y + (ENEMY_MOVEMENT ? ENEMY_SPEED * dirY : 0),
-			width: enemy.rect.width,
-			height: enemy.rect.height,
-		});
-		setGameState(
-			'enemies',
-			i,
-			produce((state) => {
-				state.rect = updatedRect;
-				state.dirX = dirX;
-			}),
-		);
-
-		const newEnemyX = updatedRect.x + newWorldX;
-		const newEnemyY = updatedRect.y + newWorldY - GAME_WORLD_SIZE;
-		enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
+		moveEnemy(i, relativePlayerPos, newWorldX, newWorldY);
 
 		// for each enemy detect collisions with bullets
 		if (BULLET_COLLISIONS) {

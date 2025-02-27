@@ -8,12 +8,17 @@ export const BULLET_SPEED = 10;
 export const BULLET_SIZE = 32;
 export const BULLET_DISTANCE = 500;
 export const BULLET_DAMAGE = 3;
+export const BULLET_MAGIC_OFFSET_X = 20;
+export const BULLET_MAGIC_OFFSET_Y = 40;
 
 export const ENEMY_SPEED = 1;
 export const ENEMY_SIZE = 32;
 export const ENEMY_ATTACK_COOLDOWN = 2000;
 export const ENEMY_BASE_HEALTH = 5;
 export const ENEMY_COLLISION_OFFSET = 10;
+export const ENEMY_MOVEMENT = true;
+export const ENEMY_SPAWN_INTERVAL_MS = 10;
+export const ENEMY_LIMIT = 100;
 
 export const GEM_SIZE = { w: 16, h: 24 };
 
@@ -37,4 +42,11 @@ export const ABRUPTLY_STOPPPED_GAME_LS_KEY = 'abruptly_stopped_game';
 export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 export const SUPPORTED_PROTOCOLS = ['celo'] as const;
 export const SHOOTING_ANIMATION_DURATION_SS = 0.2;
+
 export const DEBUG_MECHANICS = true;
+export const SPAWN_ENEMIES = true;
+export const SPAWN_GEMS = true;
+
+export const ENEMY_COLLISIONS = true;
+export const BULLET_COLLISIONS = true;
+export const GEMS_COLLISIONS = true;

@@ -1,13 +1,19 @@
-import { createEffect, For } from 'solid-js';
+import { batch, createEffect, For } from 'solid-js';
+import { produce } from 'solid-js/store';
 import { relativePlayerPos } from '~/components/Player';
+import { setTiles, tiles } from '~/components/Terrain';
 import {
 	ENEMY_ATTACK_COOLDOWN,
 	ENEMY_BASE_HEALTH,
 	ENEMY_COLLISION_OFFSET,
+	ENEMY_MOVEMENT,
 	ENEMY_SIZE,
+	ENEMY_SPEED,
+	GAME_WORLD_SIZE,
+	TILE_SIZE,
 } from '~/constants';
 import { gameState, setGameState } from '~/state';
-import { cn, getInitialRect, getRandomBetween } from '~/utils';
+import { bitwiseAbs, cn, getDirection, getInitialRect, getNewPos, getRandomBetween } from '~/utils';
 
 function createSingleEnemy(): Enemy {
 	const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
@@ -21,13 +27,14 @@ function createSingleEnemy(): Enemy {
 		status: 'idle',
 		dirX: 0,
 		dirY: 0,
+		lastOccupiedTile: { x: 0, y: 0 },
 		rect: getInitialRect({
 			width: ENEMY_SIZE,
 			height: ENEMY_SIZE,
-			// x: relativePlayerPos().centerX + getRandomBetween(500, 1000, true),
-			// y: relativePlayerPos().centerY + getRandomBetween(500, 1000, true),
-			x: relativePlayerPos().centerX + 300 + getRandomBetween(10, 30),
-			y: relativePlayerPos().centerY + 0,
+			x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
+			y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
+			// x: relativePlayerPos().centerX + -300 + getRandomBetween(10, 30),
+			// y: relativePlayerPos().centerY + -300,
 		}),
 	};
 }
@@ -37,10 +44,86 @@ export function spawnEnemy() {
 }
 
 export function destroyEnemy(idx: number) {
-	setGameState(
-		'enemies',
-		gameState.enemies.filter((_, i) => idx !== i),
-	);
+	batch(() => {
+		const lastOccupied = gameState.enemies[idx]!.lastOccupiedTile;
+		setTiles('occupiedMatrix', lastOccupied.x, lastOccupied.y, 0);
+		setGameState(
+			'enemies',
+			gameState.enemies.filter((_, i) => idx !== i),
+		);
+	});
+}
+
+export function moveEnemy(
+	idx: number,
+	relativePlayerPos: RectSides & RectCenter,
+	newWorldX: number,
+	newWorldY: number,
+) {
+	const enemy = gameState.enemies[idx]!;
+	const dirX = getDirection(enemy.rect.centerX, relativePlayerPos.centerX);
+	const dirY = getDirection(enemy.rect.centerY, relativePlayerPos.centerY);
+	const updatedRect = getNewPos({
+		x: enemy.rect.x + (ENEMY_MOVEMENT ? ENEMY_SPEED * dirX : 0),
+		y: enemy.rect.y + (ENEMY_MOVEMENT ? ENEMY_SPEED * dirY : 0),
+		width: enemy.rect.width,
+		height: enemy.rect.height,
+	});
+	const newEnemyX = updatedRect.x + newWorldX;
+	const newEnemyY = updatedRect.y + newWorldY - GAME_WORLD_SIZE;
+	enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
+
+	const { x, y } = updateOccupiedMatrix({ enemy, newEnemyX, newEnemyY, newWorldX, newWorldY });
+
+	batch(() => {
+		const lastOccupiedChanged = enemy.lastOccupiedTile.x !== x || enemy.lastOccupiedTile.y !== y;
+		if (lastOccupiedChanged) {
+			setTiles(
+				'occupiedMatrix',
+				produce((matrix) => {
+					matrix[enemy.lastOccupiedTile.x]![enemy.lastOccupiedTile.y] = 0;
+					matrix[x]![y] = 1;
+				}),
+			);
+		}
+		setGameState(
+			'enemies',
+			idx,
+			produce((state) => {
+				state.rect = updatedRect;
+				state.dirX = dirX;
+				if (lastOccupiedChanged) {
+					state.lastOccupiedTile = { x, y };
+				}
+			}),
+		);
+	});
+}
+
+export function updateOccupiedMatrix({
+	enemy,
+	newEnemyX,
+	newEnemyY,
+	newWorldX,
+	newWorldY,
+}: {
+	enemy: Enemy;
+	newWorldX: number;
+	newWorldY: number;
+	newEnemyX: number;
+	newEnemyY: number;
+}) {
+	const offsetTilesX = bitwiseAbs(tiles.rect.x) / TILE_SIZE;
+	const offsetEnemyX = (enemy.rect.x / TILE_SIZE) * 2;
+	const offsetWorldX = ((newEnemyX - newWorldX) / TILE_SIZE) * -1;
+	const x = (offsetTilesX + offsetEnemyX + offsetWorldX + 0.5) | 0;
+
+	const offsetTilesY = bitwiseAbs(tiles.rect.y) / TILE_SIZE;
+	const offsetEnemyY = (enemy.rect.y / TILE_SIZE) * 2;
+	const offsetWorldY = ((newEnemyY + GAME_WORLD_SIZE - newWorldY) / TILE_SIZE) * -1;
+	const y = (offsetTilesY + offsetEnemyY + offsetWorldY + 1) | 0;
+
+	return { x, y };
 }
 
 export function slowCollisionDetect(enemy: Enemy) {

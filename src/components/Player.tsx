@@ -19,19 +19,7 @@ import {
 } from '~/constants';
 import { keyPressed } from '~/lib/keyboardEvents';
 import { gameState, setWorldRect, worldRect } from '~/state';
-import { bitwiseAbs, bitwiseRound, cn, getInitialRect, getNewPos, getRect } from '~/utils';
-
-function iterateMatrix() {
-	console.time();
-	let count = 0;
-	for (let i = 0; i < tiles.occupiedMatrix.length; i++) {
-		for (let j = 0; j < tiles.occupiedMatrix[i]!.length; j++) {
-			count += tiles.occupiedMatrix[i]![j]! + 1;
-		}
-	}
-	console.timeEnd();
-	return count;
-}
+import { bitwiseAbs, cn, getInitialRect, getNewPos, getRect } from '~/utils';
 
 export const [playerRect, setPlayerRect] = createSignal(
 	getInitialRect({ x: 0, y: 0, width: PLAYER_SIZE, height: PLAYER_SIZE }),
@@ -113,12 +101,12 @@ export function movePlayer() {
 	if (keyPressed.a) newWorldX += (PLAYER_SPEED * playerSpeedModifier) | 0;
 	if (keyPressed.d) newWorldX -= (PLAYER_SPEED * playerSpeedModifier) | 0;
 
-	console.time();
+	const { x, y } = updateOccupiedMatrix(playerRect().x + newWorldX, playerRect().y + newWorldY);
+
 	batch(() => {
 		setWorldRect(
 			getNewPos({ x: newWorldX, y: newWorldY, width: GAME_WORLD_SIZE, height: GAME_WORLD_SIZE }),
 		);
-		const { x, y } = updateOccupiedMatrix(playerRect().x + newWorldX, playerRect().y + newWorldY);
 
 		if (player.lastOccupiedTile.x !== x || player.lastOccupiedTile.y !== y) {
 			setTiles(
@@ -131,7 +119,6 @@ export function movePlayer() {
 			setPlayer('lastOccupiedTile', { x, y });
 		}
 	});
-	console.timeEnd();
 
 	return { newWorldX, newWorldY };
 }
