@@ -17,6 +17,14 @@ function getInitialGameState(): GameState {
 		bullets: [],
 		gems: [],
 		activeGame: null,
+		terrainRect: getInitialRect({
+			x: -GAME_WORLD_SIZE / 2,
+			y: -GAME_WORLD_SIZE / 2,
+			width: GAME_WORLD_SIZE,
+			height: GAME_WORLD_SIZE,
+		}),
+		occupiedMatrix: [],
+		tileInfo: {},
 	};
 }
 

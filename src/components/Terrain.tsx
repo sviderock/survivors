@@ -1,25 +1,11 @@
 import { For, onMount, type ParentProps } from 'solid-js';
-import { createStore } from 'solid-js/store';
-import { GAME_WORLD_SIZE, TILE_SIZE } from '~/constants';
-import { worldRect } from '~/state';
-import { getInitialRect, getNewPos, getRect } from '~/utils';
+import { produce } from 'solid-js/store';
+import { TILE_SIZE } from '~/constants';
+import { gameState, setGameState, worldRect } from '~/state';
+import { getNewPos, getRect } from '~/utils';
 
-type TilesOccupiedMatrix = number[][];
-type TileInfo = { [tileXY: string]: Rect };
-
-export const [tiles, setTiles] = createStore({
-	rect: getInitialRect({
-		x: -GAME_WORLD_SIZE / 2,
-		y: -GAME_WORLD_SIZE / 2,
-		width: GAME_WORLD_SIZE,
-		height: GAME_WORLD_SIZE,
-	}),
-	occupiedMatrix: [] as TilesOccupiedMatrix,
-	info: {} as TileInfo,
-});
-
-function getTileInfoKey(y: number, x: number) {
-	return `${y}-${x}`;
+export function getTileInfoKey(row: number, col: number) {
+	return `${row}-${col}`;
 }
 
 export default function Terrain(props: ParentProps) {
@@ -42,29 +28,38 @@ export default function Terrain(props: ParentProps) {
 		return { rows, columns };
 	}
 
-	function buildTiles(gridSize: { rows: number; columns: number }): typeof tiles {
-		const occupiedMatrix: number[][] = [];
-		const info: TileInfo = {};
-		const rect = getRect(worldRef!);
+	function buildTiles(gridSize: {
+		rows: number;
+		columns: number;
+	}): Pick<GameState, 'occupiedMatrix' | 'terrainRect' | 'tileInfo'> {
+		const terrainRect = getRect(worldRef!);
+		const occupiedMatrix: GameState['occupiedMatrix'] = [];
+		const tileInfo: GameState['tileInfo'] = {};
 
-		for (let y = 0; y < gridSize.rows; y++) {
-			occupiedMatrix[y] = [];
-			for (let x = 0; x < gridSize.columns; x++) {
-				occupiedMatrix[y]![x] = 0;
-				info[getTileInfoKey(x, y)] = getNewPos({
-					x: x * TILE_SIZE + rect.x,
-					y: y * TILE_SIZE + rect.y,
+		for (let row = 0; row < gridSize.rows; row++) {
+			occupiedMatrix[row] = [];
+			for (let col = 0; col < gridSize.columns; col++) {
+				occupiedMatrix[row]![col] = 0;
+				tileInfo[getTileInfoKey(row, col)] = getNewPos({
+					x: col * TILE_SIZE + terrainRect.x,
+					y: row * TILE_SIZE + terrainRect.y,
 					width: TILE_SIZE,
 					height: TILE_SIZE,
 				});
 			}
 		}
-		return { occupiedMatrix, info, rect };
+		return { occupiedMatrix, tileInfo, terrainRect };
 	}
 
 	onMount(() => {
-		const tiles = buildTiles(getGridSize());
-		setTiles(tiles);
+		const { occupiedMatrix, tileInfo, terrainRect } = buildTiles(getGridSize());
+		setGameState(
+			produce((state) => {
+				state.occupiedMatrix = occupiedMatrix;
+				state.terrainRect = terrainRect;
+				state.tileInfo = tileInfo;
+			}),
+		);
 	});
 
 	return (
@@ -84,7 +79,7 @@ export default function Terrain(props: ParentProps) {
 function TileGrid() {
 	return (
 		<div class="absolute bottom-0 left-1/2 right-0 top-1/2">
-			<For each={tiles.occupiedMatrix}>
+			<For each={gameState.occupiedMatrix}>
 				{(tileY, idxY) => (
 					<For each={tileY}>
 						{(tileX, idxX) => {
@@ -93,8 +88,8 @@ function TileGrid() {
 								<span
 									class="absolute flex h-tile w-tile items-end border border-red-500 text-sm"
 									style={{
-										top: `${tiles.info[getTileInfoKey(idxY(), idxX())]!.top}px`,
-										left: `${tiles.info[getTileInfoKey(idxY(), idxX())]!.left}px`,
+										top: `${gameState.tileInfo[getTileInfoKey(idxY(), idxX())]!.top}px`,
+										left: `${gameState.tileInfo[getTileInfoKey(idxY(), idxX())]!.left}px`,
 										'background-color': tileX ? 'red' : 'unset',
 									}}
 								>

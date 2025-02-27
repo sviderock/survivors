@@ -4,9 +4,9 @@ export const PLAYER_BASE_HEALTH = 100;
 export const PLAYER_BASE_DAMAGE = 3;
 export const PLAYER_BASE_COOLDOWN = 1_000;
 
-export const BULLET_SPEED = 10;
+export const BULLET_SPEED = 15;
 export const BULLET_SIZE = 32;
-export const BULLET_DISTANCE = 500;
+export const BULLET_DISTANCE = 800;
 export const BULLET_DAMAGE = 3;
 export const BULLET_MAGIC_OFFSET_X = 20;
 export const BULLET_MAGIC_OFFSET_Y = 40;
@@ -32,7 +32,7 @@ export const GAME_TIME_IN_MINUTES = 0.5;
 export const GAME_TERRAIN_TILE_SIZE = 32;
 export const GAME_WORLD_SIZE = 10_000;
 export const GAME_WORLD_HALFSIZE = GAME_WORLD_SIZE / 2;
-export const TILE_SIZE = 60;
+export const TILE_SIZE = 70;
 
 export const HEALTH_COLOR_FULL = 'rgb(124,207,0)';
 export const HEALTH_COLOR_HALF = 'rgb(240,177,0)';

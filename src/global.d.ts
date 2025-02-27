@@ -15,6 +15,8 @@ declare global {
 		rect: Rect;
 	};
 
+	type TileInfo = { [tileXY: string]: Rect };
+
 	type BaseGameStateProps = {
 		pingEnabled: boolean;
 		enemySpawnInterval: number;
@@ -23,6 +25,9 @@ declare global {
 		enemies: Enemy[];
 		bullets: Bullet[];
 		gems: Gem[];
+		terrainRect: Rect;
+		occupiedMatrix: number[][];
+		tileInfo: TileInfo;
 	};
 
 	type StatusBasedProps =
@@ -58,7 +63,7 @@ declare global {
 			direction: AttackingDirection;
 			cooldown: number;
 		};
-		lastOccupiedTile: { x: number; y: number };
+		lastOccupiedTile: { row: number; col: number };
 	};
 
 	type Enemy = {
@@ -72,7 +77,7 @@ declare global {
 		status: 'idle' | 'moving' | 'attacking' | 'hit';
 		dirX: 1 | 0 | -1;
 		dirY: 1 | 0 | -1;
-		lastOccupiedTile: { x: number; y: number };
+		lastOccupiedTile: { row: number; col: number };
 	};
 
 	type Bullet = {

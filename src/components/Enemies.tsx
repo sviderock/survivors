@@ -1,7 +1,7 @@
 import { batch, createEffect, For } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { relativePlayerPos } from '~/components/Player';
-import { setTiles, tiles } from '~/components/Terrain';
+import { getTileInfoKey } from '~/components/Terrain';
 import {
 	ENEMY_ATTACK_COOLDOWN,
 	ENEMY_BASE_HEALTH,
@@ -13,11 +13,29 @@ import {
 	TILE_SIZE,
 } from '~/constants';
 import { gameState, setGameState } from '~/state';
-import { bitwiseAbs, cn, getDirection, getInitialRect, getNewPos, getRandomBetween } from '~/utils';
+import {
+	bitwiseAbs,
+	bitwiseRound,
+	cn,
+	getDirection,
+	getInitialRect,
+	getNewPos,
+	getRandomBetween,
+} from '~/utils';
 
 function createSingleEnemy(): Enemy {
 	const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
+	const rect = getInitialRect({
+		width: ENEMY_SIZE,
+		height: ENEMY_SIZE,
+		// x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
+		// y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
+		x: relativePlayerPos().centerX + (gameState.enemies.length === 0 ? -200 : -350),
+		y: relativePlayerPos().centerY + 0,
+	});
+
 	return {
+		rect,
 		ref: undefined,
 		attack: 3,
 		attackStatus: 'ready',
@@ -27,31 +45,28 @@ function createSingleEnemy(): Enemy {
 		status: 'idle',
 		dirX: 0,
 		dirY: 0,
-		lastOccupiedTile: { x: 0, y: 0 },
-		rect: getInitialRect({
-			width: ENEMY_SIZE,
-			height: ENEMY_SIZE,
-			// x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
-			// y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
-			x: relativePlayerPos().centerX + -300 + getRandomBetween(10, 30),
-			y: relativePlayerPos().centerY + 0,
-		}),
+		lastOccupiedTile: updateOccupiedMatrix(rect),
 	};
 }
 
 export function spawnEnemy() {
-	setGameState('enemies', gameState.enemies.length, createSingleEnemy());
+	setGameState(
+		produce((state) => {
+			const newEnemy = createSingleEnemy();
+			state.enemies[state.enemies.length] = newEnemy;
+			state.occupiedMatrix[newEnemy.lastOccupiedTile.row]![newEnemy.lastOccupiedTile.col] = 1;
+		}),
+	);
 }
 
 export function destroyEnemy(idx: number) {
-	batch(() => {
-		const lastOccupied = gameState.enemies[idx]!.lastOccupiedTile;
-		setTiles('occupiedMatrix', lastOccupied.x, lastOccupied.y, 0);
-		setGameState(
-			'enemies',
-			gameState.enemies.filter((_, i) => idx !== i),
-		);
-	});
+	setGameState(
+		produce((state) => {
+			const lastOccupied = state.enemies[idx]!.lastOccupiedTile;
+			state.occupiedMatrix[lastOccupied.row]![lastOccupied.col] = 0;
+			state.enemies = state.enemies.filter((_, i) => idx !== i);
+		}),
+	);
 }
 
 export function moveEnemy(
@@ -71,88 +86,61 @@ export function moveEnemy(
 	});
 	const newEnemyX = updatedRect.x + newWorldX;
 	const newEnemyY = updatedRect.y + newWorldY - GAME_WORLD_SIZE;
+	const { row, col } = updateOccupiedMatrix(enemy.rect);
+
 	enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
-	const { x, y } = updateOccupiedMatrix({ enemy, newEnemyX, newEnemyY, newWorldX, newWorldY });
 
-	batch(() => {
-		const tileChanged = enemy.lastOccupiedTile.x !== x || enemy.lastOccupiedTile.y !== y;
-		const newTileOccupied = tiles.occupiedMatrix[x]![y];
-		const canMove = (tileChanged && !newTileOccupied) || !tileChanged;
-
-		if (canMove) {
-			setTiles(
-				'occupiedMatrix',
-				produce((matrix) => {
-					matrix[enemy.lastOccupiedTile.x]![enemy.lastOccupiedTile.y] = 0;
-					matrix[x]![y] = 1;
-				}),
-			);
-		}
-
-		setGameState(
-			'enemies',
-			idx,
-			produce((state) => {
-				state.dirX = dirX;
-				if (canMove) {
-					state.rect = updatedRect;
-					state.lastOccupiedTile = { x, y };
-				}
-			}),
-		);
-	});
-}
-
-export function updateOccupiedMatrix({
-	enemy,
-	newEnemyX,
-	newEnemyY,
-	newWorldX,
-	newWorldY,
-}: {
-	enemy: Enemy;
-	newWorldX: number;
-	newWorldY: number;
-	newEnemyX: number;
-	newEnemyY: number;
-}) {
-	const offsetTilesX = bitwiseAbs(tiles.rect.x) / TILE_SIZE;
-	const offsetEnemyX = (enemy.rect.x / TILE_SIZE) * 2;
-	const offsetWorldX = ((newEnemyX - newWorldX) / TILE_SIZE) * -1;
-	const x = (offsetTilesX + offsetEnemyX + offsetWorldX + 0.5) | 0;
-
-	const offsetTilesY = bitwiseAbs(tiles.rect.y) / TILE_SIZE;
-	const offsetEnemyY = (enemy.rect.y / TILE_SIZE) * 2;
-	const offsetWorldY = ((newEnemyY + GAME_WORLD_SIZE - newWorldY) / TILE_SIZE) * -1;
-	const y = (offsetTilesY + offsetEnemyY + offsetWorldY + 1) | 0;
-
-	return { x, y };
-}
-
-export function slowCollisionDetect(enemy: Enemy) {
-	const blocked: Enemy['blocked'] = { x: 0, y: 0 };
-	for (let j = 0; j < gameState.enemies.length; j++) {
-		const foreignEnemy = gameState.enemies[j]!;
-		if (enemy === foreignEnemy) continue;
-		if (blocked.x !== 0 && blocked.y !== 0) break;
-
-		if (blocked.x === 0) {
-			const blockedRight =
-				enemy.dirX === 1 && enemy.rect.right + ENEMY_COLLISION_OFFSET >= foreignEnemy.rect.left;
-			const blockedLeft =
-				enemy.dirX === -1 && enemy.rect.left - ENEMY_COLLISION_OFFSET <= foreignEnemy.rect.right;
-			blocked.x = blockedRight ? 1 : blockedLeft ? -1 : 0;
-		}
-
-		if (blocked.y === 0) {
-			const blockedBottom =
-				enemy.dirY === 1 && enemy.rect.bottom + ENEMY_COLLISION_OFFSET === foreignEnemy.rect.top;
-			const blockedTop =
-				enemy.dirY === -1 && enemy.rect.top - ENEMY_COLLISION_OFFSET === foreignEnemy.rect.bottom;
-			blocked.y = blockedBottom ? 1 : blockedTop ? -1 : 0;
-		}
+	if (idx === 0) {
+		return;
 	}
-	return blocked;
+
+	setGameState(
+		produce((state) => {
+			state.enemies[idx]!.dirX = dirX;
+			state.enemies[idx]!.dirY = dirY;
+
+			// keep moving while in the same tile
+			if (enemy.lastOccupiedTile.row === row && enemy.lastOccupiedTile.col === col) {
+				state.enemies[idx]!.rect = updatedRect;
+				// console.log(idx, 'im walking in the same tile');
+				return;
+			}
+
+			// if its a new tile but it is occupied - then stop
+			if (state.occupiedMatrix[row]![col]) {
+				// console.log(idx, 'i cannot move to the new tile');
+
+				if (dirX === 0) {
+					console.log('stuck Y');
+				}
+
+				if (dirY === 0) {
+					// console.log('stuck X');
+				}
+				return;
+			}
+
+			// if its a new tile and its not occupied - then keep moving and update matrix
+			state.enemies[idx]!.rect = updatedRect;
+			state.occupiedMatrix[enemy.lastOccupiedTile.row]![enemy.lastOccupiedTile.col] = 0;
+			state.occupiedMatrix[row]![col] = 1;
+			state.enemies[idx]!.lastOccupiedTile = { row, col };
+		}),
+	);
+}
+
+export function updateOccupiedMatrix(enemyRect: Enemy['rect']) {
+	const offsetTilesY = bitwiseAbs(gameState.terrainRect.y) / TILE_SIZE;
+	const offsetEnemyY = (enemyRect.y / TILE_SIZE) * 2;
+	const offsetWorldY = (enemyRect.y / TILE_SIZE) * -1;
+	const row = (offsetTilesY + offsetEnemyY + offsetWorldY + 1) | 0;
+
+	const offsetTilesX = bitwiseAbs(gameState.terrainRect.x) / TILE_SIZE;
+	const offsetEnemyX = (enemyRect.x / TILE_SIZE) * 2;
+	const offsetWorldX = (enemyRect.x / TILE_SIZE) * -1;
+	const col = bitwiseRound(offsetTilesX + offsetEnemyX + offsetWorldX + 0.5);
+
+	return { col: col < 0 ? 0 : col, row: row < 0 ? 0 : row };
 }
 
 export default function Enemies() {
