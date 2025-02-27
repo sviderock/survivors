@@ -31,10 +31,10 @@ function createSingleEnemy(): Enemy {
 		rect: getInitialRect({
 			width: ENEMY_SIZE,
 			height: ENEMY_SIZE,
-			x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
-			y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
-			// x: relativePlayerPos().centerX + -300 + getRandomBetween(10, 30),
-			// y: relativePlayerPos().centerY + -300,
+			// x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
+			// y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
+			x: relativePlayerPos().centerX + -300 + getRandomBetween(10, 30),
+			y: relativePlayerPos().centerY + 0,
 		}),
 	};
 }
@@ -72,12 +72,14 @@ export function moveEnemy(
 	const newEnemyX = updatedRect.x + newWorldX;
 	const newEnemyY = updatedRect.y + newWorldY - GAME_WORLD_SIZE;
 	enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
-
 	const { x, y } = updateOccupiedMatrix({ enemy, newEnemyX, newEnemyY, newWorldX, newWorldY });
 
 	batch(() => {
-		const lastOccupiedChanged = enemy.lastOccupiedTile.x !== x || enemy.lastOccupiedTile.y !== y;
-		if (lastOccupiedChanged) {
+		const tileChanged = enemy.lastOccupiedTile.x !== x || enemy.lastOccupiedTile.y !== y;
+		const newTileOccupied = tiles.occupiedMatrix[x]![y];
+		const canMove = (tileChanged && !newTileOccupied) || !tileChanged;
+
+		if (canMove) {
 			setTiles(
 				'occupiedMatrix',
 				produce((matrix) => {
@@ -86,13 +88,14 @@ export function moveEnemy(
 				}),
 			);
 		}
+
 		setGameState(
 			'enemies',
 			idx,
 			produce((state) => {
-				state.rect = updatedRect;
 				state.dirX = dirX;
-				if (lastOccupiedChanged) {
+				if (canMove) {
+					state.rect = updatedRect;
 					state.lastOccupiedTile = { x, y };
 				}
 			}),

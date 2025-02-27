@@ -18,7 +18,7 @@ export const ENEMY_BASE_HEALTH = 5;
 export const ENEMY_COLLISION_OFFSET = 10;
 export const ENEMY_MOVEMENT = true;
 export const ENEMY_SPAWN_INTERVAL_MS = 10;
-export const ENEMY_LIMIT = 100;
+export const ENEMY_LIMIT = 2;
 
 export const GEM_SIZE = { w: 16, h: 24 };
 

@@ -134,7 +134,7 @@ function updateOccupiedMatrix(targetX: number, targetY: number) {
 	const offsetWorldY = (targetY / TILE_SIZE) * -1;
 	const y = (offsetTilesY + offsetPlayerY + offsetWorldY + 1) | 0;
 
-	return { x, y };
+	return { x: x < 0 ? 0 : x, y: y < 0 ? 0 : y };
 }
 
 export default function Player() {

@@ -91,7 +91,7 @@ function TileGrid() {
 							if (!tileX) return null;
 							return (
 								<span
-									class="absolute h-tile w-tile border border-red-500 text-sm"
+									class="absolute flex h-tile w-tile items-end border border-red-500 text-sm"
 									style={{
 										top: `${tiles.info[getTileInfoKey(idxY(), idxX())]!.top}px`,
 										left: `${tiles.info[getTileInfoKey(idxY(), idxX())]!.left}px`,
