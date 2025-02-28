@@ -1,11 +1,9 @@
-import { batch, createEffect, For } from 'solid-js';
+import { createEffect, For } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { relativePlayerPos } from '~/components/Player';
-import { getTileInfoKey } from '~/components/Terrain';
 import {
 	ENEMY_ATTACK_COOLDOWN,
 	ENEMY_BASE_HEALTH,
-	ENEMY_COLLISION_OFFSET,
 	ENEMY_MOVEMENT,
 	ENEMY_SIZE,
 	ENEMY_SPEED,
@@ -45,6 +43,7 @@ function createSingleEnemy(): Enemy {
 		status: 'idle',
 		dirX: 0,
 		dirY: 0,
+		pathfinding: false,
 		lastOccupiedTile: updateOccupiedMatrix(rect),
 	};
 }
@@ -76,19 +75,78 @@ export function moveEnemy(
 	newWorldY: number,
 ) {
 	const enemy = gameState.enemies[idx]!;
+
+	const { row, col } = updateOccupiedMatrix(enemy.rect);
+	const inSameTile = enemy.lastOccupiedTile.row === row && enemy.lastOccupiedTile.col === col;
+	const newTileOccupied = !inSameTile && !!gameState.occupiedMatrix[row]![col];
+
 	const dirX = getDirection(enemy.rect.centerX, relativePlayerPos.centerX);
 	const dirY = getDirection(enemy.rect.centerY, relativePlayerPos.centerY);
-	const updatedRect = getNewPos({
-		x: enemy.rect.x + (ENEMY_MOVEMENT ? ENEMY_SPEED * dirX : 0),
-		y: enemy.rect.y + (ENEMY_MOVEMENT ? ENEMY_SPEED * dirY : 0),
-		width: enemy.rect.width,
-		height: enemy.rect.height,
-	});
-	const newEnemyX = updatedRect.x + newWorldX;
-	const newEnemyY = updatedRect.y + newWorldY - GAME_WORLD_SIZE;
-	const { row, col } = updateOccupiedMatrix(enemy.rect);
 
-	enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
+	let x = enemy.rect.x + (ENEMY_MOVEMENT ? ENEMY_SPEED * dirX : 0);
+	let y = enemy.rect.y + (ENEMY_MOVEMENT ? ENEMY_SPEED * dirY : 0);
+
+	// keep moving while in the same tile
+	if (inSameTile) {
+		const updatedRect = getNewPos({ x, y, width: enemy.rect.width, height: enemy.rect.height });
+		const newEnemyX = updatedRect.x + newWorldX;
+		const newEnemyY = updatedRect.y + newWorldY - GAME_WORLD_SIZE;
+		enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
+
+		setGameState(
+			produce((state) => {
+				state.enemies[idx]!.dirX = dirX;
+				state.enemies[idx]!.dirY = dirY;
+				state.enemies[idx]!.pathfinding = inSameTile ? false : newTileOccupied;
+				state.enemies[idx]!.rect = updatedRect;
+			}),
+		);
+
+		return;
+	}
+
+	// if its a new tile but it is occupied - then stop
+	if (newTileOccupied) {
+		let updatedRect: Rect | null = null;
+
+		// TODO
+		if (enemy.pathfinding === 'x') {
+		}
+
+		// stuck on Y axis
+		if (dirX === 0) {
+			// console.log('stuck Y');
+		}
+
+		// stuck on X axis
+		if (dirY === 0) {
+			// console.log('stuck X');
+
+			if (gameState.occupiedMatrix[row - 1]![col] === 0) {
+				y += enemy.pathfinding ? ENEMY_SPEED * -1 : 0;
+				updatedRect = getNewPos({ x, y, width: enemy.rect.width, height: enemy.rect.height });
+				const newEnemyX = updatedRect.x + newWorldX;
+				const newEnemyY = updatedRect.y + newWorldY - GAME_WORLD_SIZE;
+				enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
+			}
+		}
+
+		setGameState(
+			produce((state) => {
+				state.enemies[idx]!.dirX = dirX;
+				state.enemies[idx]!.dirY = dirY;
+				state.enemies[idx]!.pathfinding = inSameTile ? false : newTileOccupied;
+
+				if (updatedRect) {
+					state.enemies[idx]!.rect = updatedRect;
+				}
+				// state.occupiedMatrix[enemy.lastOccupiedTile.row]![enemy.lastOccupiedTile.col] = 0;
+				// state.occupiedMatrix[row]![col] = 1;
+				// state.enemies[idx]!.lastOccupiedTile = { row, col };
+			}),
+		);
+		return;
+	}
 
 	if (idx === 0) {
 		return;
@@ -96,37 +154,50 @@ export function moveEnemy(
 
 	setGameState(
 		produce((state) => {
-			state.enemies[idx]!.dirX = dirX;
-			state.enemies[idx]!.dirY = dirY;
-
-			// keep moving while in the same tile
-			if (enemy.lastOccupiedTile.row === row && enemy.lastOccupiedTile.col === col) {
-				state.enemies[idx]!.rect = updatedRect;
-				// console.log(idx, 'im walking in the same tile');
-				return;
-			}
-
-			// if its a new tile but it is occupied - then stop
-			if (state.occupiedMatrix[row]![col]) {
-				// console.log(idx, 'i cannot move to the new tile');
-
-				if (dirX === 0) {
-					console.log('stuck Y');
-				}
-
-				if (dirY === 0) {
-					// console.log('stuck X');
-				}
-				return;
-			}
-
-			// if its a new tile and its not occupied - then keep moving and update matrix
-			state.enemies[idx]!.rect = updatedRect;
 			state.occupiedMatrix[enemy.lastOccupiedTile.row]![enemy.lastOccupiedTile.col] = 0;
 			state.occupiedMatrix[row]![col] = 1;
 			state.enemies[idx]!.lastOccupiedTile = { row, col };
 		}),
 	);
+
+	// setGameState(
+	// 	produce((state) => {
+	// 		state.enemies[idx]!.dirX = dirX;
+	// 		state.enemies[idx]!.dirY = dirY;
+	// 		state.enemies[idx]!.pathfinding = inSameTile ? false : newTileOccupied;
+
+	// 		if (updatedRect) {
+	// 			state.enemies[idx]!.rect = updatedRect;
+	// 		}
+
+	// 		// if (inSameTile) {
+	// 		// 	state.enemies[idx]!.rect = updatedRect;
+
+	// 		// 	return;
+	// 		// }
+
+	// 		// if (newTileOccupied) {
+	// 		// 	return;
+	// 		// }
+
+	// 		// // keep moving while in the same tile
+	// 		// if (inSameTile) {
+	// 		// 	// state.enemies[idx]!.rect = updatedRect;
+	// 		// 	// console.log(idx, 'im walking in the same tile');
+	// 		// 	return;
+	// 		// }
+
+	// 		// // if its a new tile but it is occupied - then stop
+	// 		// if (newTileOccupied) {
+	// 		// 	return;
+	// 		// }
+
+	// 		// if its a new tile and its not occupied - then keep moving and update matrix
+	// state.occupiedMatrix[enemy.lastOccupiedTile.row]![enemy.lastOccupiedTile.col] = 0;
+	// state.occupiedMatrix[row]![col] = 1;
+	// state.enemies[idx]!.lastOccupiedTile = { row, col };
+	// 	}),
+	// );
 }
 
 export function updateOccupiedMatrix(enemyRect: Enemy['rect']) {

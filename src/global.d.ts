@@ -78,6 +78,7 @@ declare global {
 		dirX: 1 | 0 | -1;
 		dirY: 1 | 0 | -1;
 		lastOccupiedTile: { row: number; col: number };
+		pathfinding: boolean;
 	};
 
 	type Bullet = {
