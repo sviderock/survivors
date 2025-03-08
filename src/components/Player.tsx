@@ -28,11 +28,11 @@ export const [player, setPlayer] = createStore<Player>({
 	health: PLAYER_BASE_HEALTH,
 	maxHealth: PLAYER_BASE_HEALTH,
 	movement: 'idle',
-	direction: 'east',
+	direction: 'west',
 	lastOccupiedTile: { row: 0, col: 0 },
 	attack: {
 		status: 'ready',
-		direction: 'east',
+		direction: 'west',
 		cooldown: PLAYER_BASE_COOLDOWN,
 	},
 });
