@@ -1,278 +1,285 @@
 /// <reference types="@solidjs/start/env" />
 
-import type { PlayedGame } from '@/schema';
-import type { StoredSessionData } from '~/lib/api/sessions';
+import type { PlayedGame } from "@/schema";
+import type { StoredSessionData } from "~/lib/api/sessions";
 
 declare global {
-	type RectSides = { left: number; right: number; top: number; bottom: number };
-	type RectCoords = { x: number; y: number };
-	type RectSize = { width: number; height: number };
-	type RectCenter = { centerX: number; centerY: number };
-	type Rect = RectSides & RectCoords & RectSize & RectCenter;
+  type RectSides = { left: number; right: number; top: number; bottom: number };
+  type RectCoords = { x: number; y: number };
+  type RectSize = { width: number; height: number };
+  type RectCenter = { centerX: number; centerY: number };
+  type Rect = RectSides & RectCoords & RectSize & RectCenter;
 
-	type World = {
-		ref: HTMLDivElement | undefined;
-		rect: Rect;
-	};
+  type World = {
+    ref: HTMLDivElement | undefined;
+    rect: Rect;
+  };
 
-	type TileInfo = { [tileXY: string]: Rect };
+  type TileRecord<T> = { [tileXY: string]: T };
 
-	type BaseGameStateProps = {
-		pingEnabled: boolean;
-		enemySpawnInterval: number;
-		experience: number;
-		enemiesKilled: number;
-		enemies: Enemy[];
-		bullets: Bullet[];
-		gems: Gem[];
-		terrainRect: Rect;
-		occupiedMatrix: number[][];
-		tileInfo: TileInfo;
-	};
+  type BaseGameStateProps = {
+    pingEnabled: boolean;
+    enemySpawnInterval: number;
+    experience: number;
+    enemiesKilled: number;
+    enemies: Enemy[];
+    bullets: Bullet[];
+    gems: Gem[];
+    terrainRect: Rect;
+    tileInfo: TileRecord<Rect>;
+    occupiedTile: TileRecord<1 | undefined>;
+    projectedTile: TileRecord<1 | undefined>;
+  };
 
-	type StatusBasedProps =
-		| {
-				status: 'in_progress' | 'paused' | 'won' | 'lost' | 'active_game_found';
-				activeGame: PlayedGame;
-		  }
-		| {
-				status: 'not_started';
-				activeGame: null;
-		  };
+  type StatusBasedProps =
+    | {
+        status: "in_progress" | "paused" | "won" | "lost" | "active_game_found";
+        activeGame: PlayedGame;
+      }
+    | {
+        status: "not_started";
+        activeGame: null;
+      };
 
-	type GameState = BaseGameStateProps & StatusBasedProps;
+  type GameState = BaseGameStateProps & StatusBasedProps;
 
-	type AttackingDirection =
-		| 'north-west'
-		| 'north'
-		| 'north-east'
-		| 'east'
-		| 'south-east'
-		| 'south'
-		| 'south-west'
-		| 'west';
+  type Tile = { row: number; col: number };
 
-	type Player = {
-		ref: HTMLDivElement | undefined;
-		health: number;
-		maxHealth: number;
-		movement: 'idle' | 'moving';
-		direction: 'east' | 'west';
-		attack: {
-			status: 'ready' | 'started_attack' | 'cooldown';
-			direction: AttackingDirection;
-			cooldown: number;
-		};
-		lastOccupiedTile: { row: number; col: number };
-	};
+  type AttackingDirection =
+    | "north-west"
+    | "north"
+    | "north-east"
+    | "east"
+    | "south-east"
+    | "south"
+    | "south-west"
+    | "west";
 
-	type Enemy = {
-		ref: HTMLDivElement | undefined;
-		rect: Rect;
-		attack: number;
-		attackStatus: 'ready' | 'hit' | 'cooldown';
-		health: number;
-		maxHealth: number;
-		blocked: { x: 1 | 0 | -1; y: 1 | 0 | -1 };
-		status: 'idle' | 'moving' | 'attacking' | 'hit';
-		dirX: 1 | 0 | -1;
-		dirY: 1 | 0 | -1;
-		lastOccupiedTile: { row: number; col: number };
-	};
+  type Player = {
+    ref: HTMLDivElement | undefined;
+    health: number;
+    maxHealth: number;
+    movement: "idle" | "moving";
+    direction: "east" | "west";
+    attack: {
+      status: "ready" | "started_attack" | "cooldown";
+      direction: AttackingDirection;
+      cooldown: number;
+    };
+    occupiedTile: Tile;
+  };
 
-	type Bullet = {
-		ref: HTMLSpanElement | undefined;
-		rect: Rect;
-		target: { x: number; y: number };
-		damage: number;
-		direction: AttackingDirection;
-	};
+  type Direction = 1 | 0 | -1;
 
-	type Gem = {
-		ref: HTMLSpanElement | undefined;
-		rect: Rect;
-		value: number;
-	};
+  type Enemy = {
+    ref: HTMLDivElement | undefined;
+    rect: Rect;
+    attack: number;
+    attackStatus: "ready" | "hit" | "cooldown";
+    health: number;
+    maxHealth: number;
+    blocked: { x: Direction; y: Direction };
+    status: "idle" | "moving" | "attacking" | "hit";
+    dirX: Direction;
+    dirY: Direction;
+    occupiedTile: Tile;
+    nextTile: Tile;
+    playerReached: boolean;
+  };
 
-	type RGBStr = `rgb(${number},${'' | ' '}${number},${'' | ' '}${number})`;
-	type RGB = { r: number; g: number; b: number };
+  type Bullet = {
+    ref: HTMLSpanElement | undefined;
+    rect: Rect;
+    target: { x: number; y: number };
+    damage: number;
+    direction: AttackingDirection;
+  };
 
-	namespace App {
-		interface RequestEventLocals {
-			session: StoredSessionData | undefined;
-			activeGame: PlayedGame | undefined;
-		}
-	}
+  type Gem = {
+    ref: HTMLSpanElement | undefined;
+    rect: Rect;
+    value: number;
+  };
 
-	namespace Zerion {
-		// Determined from an API response and transformed in TypeScript using https://transform.tools/json-to-typescript
-		interface Root {
-			links: Links;
-			data: Data[];
-		}
+  type RGBStr = `rgb(${number},${"" | " "}${number},${"" | " "}${number})`;
+  type RGB = { r: number; g: number; b: number };
 
-		interface Links {
-			self: string;
-			next: string;
-		}
+  namespace App {
+    interface RequestEventLocals {
+      session: StoredSessionData | undefined;
+      activeGame: PlayedGame | undefined;
+    }
+  }
 
-		interface Data {
-			type: string; // 'transactions'
-			id: string;
-			attributes: Attributes;
-			relationships: Relationships;
-		}
+  namespace Zerion {
+    // Determined from an API response and transformed in TypeScript using https://transform.tools/json-to-typescript
+    interface Root {
+      links: Links;
+      data: Data[];
+    }
 
-		interface Attributes {
-			operation_type:
-				| 'approve'
-				| 'borrow'
-				| 'burn'
-				| 'cancel'
-				| 'claim'
-				| 'deploy'
-				| 'deposit'
-				| 'execute'
-				| 'mint'
-				| 'receive'
-				| 'repay'
-				| 'send'
-				| 'stake'
-				| 'trade'
-				| 'unstake'
-				| 'withdraw';
-			hash: string;
-			mined_at_block: number;
-			mined_at: string;
-			sent_from: string;
-			sent_to: string;
-			status: 'confirmed' | 'failed' | 'pending';
-			nonce: number;
-			fee: Fee;
-			transfers: Transfer[];
-			approvals: Approval[];
-			application_metadata?: ApplicationMetadata;
-			flags: AttributesFlags;
-		}
+    interface Links {
+      self: string;
+      next: string;
+    }
 
-		interface Fee {
-			fungible_info: FungibleInfo;
-			quantity: Quantity;
-			price?: number | null;
-			value?: number | null;
-		}
+    interface Data {
+      type: string; // 'transactions'
+      id: string;
+      attributes: Attributes;
+      relationships: Relationships;
+    }
 
-		interface FungibleInfo {
-			name: string;
-			symbol: string;
-			icon?: Icon | null;
-			flags: Flags;
-			implementations: Implementation[];
-		}
+    interface Attributes {
+      operation_type:
+        | "approve"
+        | "borrow"
+        | "burn"
+        | "cancel"
+        | "claim"
+        | "deploy"
+        | "deposit"
+        | "execute"
+        | "mint"
+        | "receive"
+        | "repay"
+        | "send"
+        | "stake"
+        | "trade"
+        | "unstake"
+        | "withdraw";
+      hash: string;
+      mined_at_block: number;
+      mined_at: string;
+      sent_from: string;
+      sent_to: string;
+      status: "confirmed" | "failed" | "pending";
+      nonce: number;
+      fee: Fee;
+      transfers: Transfer[];
+      approvals: Approval[];
+      application_metadata?: ApplicationMetadata;
+      flags: AttributesFlags;
+    }
 
-		interface Icon {
-			url: string;
-		}
+    interface Fee {
+      fungible_info: FungibleInfo;
+      quantity: Quantity;
+      price?: number | null;
+      value?: number | null;
+    }
 
-		interface Flags {
-			verified?: boolean;
-			is_spam?: boolean;
-		}
+    interface FungibleInfo {
+      name: string;
+      symbol: string;
+      icon?: Icon | null;
+      flags: Flags;
+      implementations: Implementation[];
+    }
 
-		interface Implementation {
-			chain_id: string;
-			address: string;
-			decimals: number;
-		}
+    interface Icon {
+      url: string;
+    }
 
-		interface Quantity {
-			int: string;
-			decimals: number;
-			float: number;
-			numeric: string;
-		}
+    interface Flags {
+      verified?: boolean;
+      is_spam?: boolean;
+    }
 
-		interface NftInfo {
-			contract_address: string;
-			token_id: string;
-			name: string;
-			interface: string;
-			content: Content;
-			flags: Flags;
-		}
+    interface Implementation {
+      chain_id: string;
+      address: string;
+      decimals: number;
+    }
 
-		interface Content {
-			preview: Preview;
-			detail: Detail;
-		}
+    interface Quantity {
+      int: string;
+      decimals: number;
+      float: number;
+      numeric: string;
+    }
 
-		interface Preview {
-			url: string;
-		}
+    interface NftInfo {
+      contract_address: string;
+      token_id: string;
+      name: string;
+      interface: string;
+      content: Content;
+      flags: Flags;
+    }
 
-		interface Detail {
-			url: string;
-		}
+    interface Content {
+      preview: Preview;
+      detail: Detail;
+    }
 
-		interface Transfer {
-			nft_info?: NftInfo;
-			fungible_info?: FungibleInfo;
-			direction: 'in' | 'out' | 'self';
-			quantity: Quantity;
-			value?: number | null;
-			price?: number | null;
-			sender: string;
-			recipient: string;
-		}
+    interface Preview {
+      url: string;
+    }
 
-		interface Approval {
-			fungible_info: FungibleInfo;
-			quantity: Quantity;
-			sender: string;
-		}
+    interface Detail {
+      url: string;
+    }
 
-		interface ApplicationMetadata {
-			contract_address: string;
-			method?: Method;
-			name?: string;
-			icon?: Icon;
-		}
+    interface Transfer {
+      nft_info?: NftInfo;
+      fungible_info?: FungibleInfo;
+      direction: "in" | "out" | "self";
+      quantity: Quantity;
+      value?: number | null;
+      price?: number | null;
+      sender: string;
+      recipient: string;
+    }
 
-		interface Method {
-			id: string;
-			name: string;
-		}
+    interface Approval {
+      fungible_info: FungibleInfo;
+      quantity: Quantity;
+      sender: string;
+    }
 
-		interface AttributesFlags {
-			is_trash: boolean;
-		}
+    interface ApplicationMetadata {
+      contract_address: string;
+      method?: Method;
+      name?: string;
+      icon?: Icon;
+    }
 
-		interface Relationships {
-			chain: Chain;
-			dapp?: Dapp;
-		}
+    interface Method {
+      id: string;
+      name: string;
+    }
 
-		interface Chain {
-			links: ChainLinks;
-			data: ChainData;
-		}
+    interface AttributesFlags {
+      is_trash: boolean;
+    }
 
-		interface ChainLinks {
-			related: string;
-		}
+    interface Relationships {
+      chain: Chain;
+      dapp?: Dapp;
+    }
 
-		interface ChainData {
-			type: string;
-			id: string;
-		}
+    interface Chain {
+      links: ChainLinks;
+      data: ChainData;
+    }
 
-		interface Dapp {
-			data: DappData;
-		}
+    interface ChainLinks {
+      related: string;
+    }
 
-		interface DappData {
-			type: string;
-			id: string;
-		}
-	}
+    interface ChainData {
+      type: string;
+      id: string;
+    }
+
+    interface Dapp {
+      data: DappData;
+    }
+
+    interface DappData {
+      type: string;
+      id: string;
+    }
+  }
 }
