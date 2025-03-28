@@ -131,6 +131,7 @@ async function gameLoop(timestamp: number) {
             i,
             produce((e) => {
               e.health -= bullet.damage;
+              e.status = "hit";
             })
           );
         }

@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 
 import {
+  BLOOD_SIZE,
   BULLET_SIZE,
   ENEMY_SIZE,
   GAME_WORLD_SIZE,
@@ -34,6 +35,7 @@ export default {
         enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
         player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
         bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
+        blood: BLOOD_SIZE.w,
         gem: GEM_SIZE.w,
         world: GAME_WORLD_SIZE,
         tile: TILE_SIZE,
@@ -45,6 +47,7 @@ export default {
         enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
         player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
         bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
+        blood: BLOOD_SIZE.h,
         gem: GEM_SIZE.h,
         world: GAME_WORLD_SIZE,
         tile: TILE_SIZE,
@@ -60,6 +63,7 @@ export default {
         enemy: `url('/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png')`,
         player: `url('/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png')`,
         bullet: `url('/game-assets/Factions/Knights/Troops/Archer/Arrow/Arrow.png')`,
+        blood: `url('/game-assets/Effects/Blood.png')`,
       },
       colors: {
         border: "hsl(var(--border))",
@@ -251,6 +255,16 @@ export default {
             backgroundPosition: `calc(-${ENEMY_SIZE}px * var(--pixel-size) * 6) calc(-${ENEMY_SIZE}px * var(--pixel-size))`,
           },
         },
+
+        // blood spill
+        "blood-spill": {
+          "0%": {
+            backgroundPosition: `0 calc(-${BLOOD_SIZE.h}px * 2)`,
+          },
+          "100%": {
+            backgroundPosition: `calc(-${BLOOD_SIZE.w}px * 7) calc(-${BLOOD_SIZE.h}px * 2)`,
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -274,6 +288,9 @@ export default {
         // enemy animations
         "move-sprite-sheet-enemy-idle": "move-sprite-sheet-enemy-idle .5s steps(7) infinite",
         "move-sprite-sheet-enemy-run": `move-sprite-sheet-enemy-run .3s steps(6) infinite`,
+
+        // blood spill
+        "blood-spill": "blood-spill .5s steps(7)",
       },
     },
   },

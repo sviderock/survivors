@@ -1,4 +1,4 @@
-import { batch, createEffect, createSignal, For, onMount } from "solid-js";
+import { batch, createEffect, createSignal, For, onMount, Show } from "solid-js";
 import { createStore, produce, unwrap } from "solid-js/store";
 import { player, playerRect, relativePlayerPos } from "~/components/Player";
 import { getTileInfoKey } from "~/components/Terrain";
@@ -187,12 +187,14 @@ export function moveEnemy(
   const dirY = getDirection(enemy.rect.centerY, relativePlayerPos.centerY);
   let { x, y } = enemy.rect;
 
-  // if (idx === 0) {
-  //   const newEnemyX = x + newWorldX;
-  //   const newEnemyY = y + newWorldY - GAME_WORLD_SIZE;
-  //   enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
-  //   return;
-  // }
+  if (DEBUG) {
+    if (idx === 0) {
+      const newEnemyX = x + newWorldX;
+      const newEnemyY = y + newWorldY - GAME_WORLD_SIZE;
+      enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
+      return;
+    }
+  }
 
   const projectedTile = updateOccupiedMatrix(enemy.rect);
   const nextTile = getNextTile(enemy.occupiedTile.row, enemy.occupiedTile.col);
@@ -274,18 +276,21 @@ function Enemy(props: EnemyProps) {
         const rect = getInitialRect({
           width: boundingRect.width,
           height: boundingRect.height,
-          x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
-          y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
-          // x: relativePlayerPos().centerX + -(state.enemies.length === 1 ? 200 : 350),
-          // y: relativePlayerPos().centerY + 0,
+          ...(DEBUG
+            ? {
+                x: relativePlayerPos().centerX + -(state.enemies.length === 1 ? 200 : 350),
+                y: relativePlayerPos().centerY + 0,
+              }
+            : {
+                x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
+                y: relativePlayerPos().centerY + getRandomBetween(500, 1500, true),
+              }),
         });
         const occupiedTile = updateOccupiedMatrix(rect);
-        const dirX = getDirection(rect.centerX, relativePlayerPos().centerX);
-        const dirY = getDirection(rect.centerY, relativePlayerPos().centerY);
         const nextTile = getNextTile(occupiedTile.row, occupiedTile.col);
 
-        state.enemies[props.idx]!.dirX = dirX;
-        state.enemies[props.idx]!.dirY = dirY;
+        state.enemies[props.idx]!.dirX = getDirection(rect.centerX, relativePlayerPos().centerX);
+        state.enemies[props.idx]!.dirY = getDirection(rect.centerY, relativePlayerPos().centerY);
         state.enemies[props.idx]!.rect = rect;
         state.enemies[props.idx]!.occupiedTile = occupiedTile;
         state.enemies[props.idx]!.nextTile = nextTile;
@@ -303,6 +308,14 @@ function Enemy(props: EnemyProps) {
           setGameState("enemies", props.idx, "attackStatus", "ready");
         }
       }, ENEMY_ATTACK_COOLDOWN);
+    }
+  });
+
+  createEffect(() => {
+    if (props.enemy.status === "hit") {
+      setTimeout(() => {
+        setGameState("enemies", props.idx, "status", "moving");
+      }, 500);
     }
   });
 
@@ -336,10 +349,14 @@ function Enemy(props: EnemyProps) {
     >
       <div
         class={cn(
-          "relative left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 animate-move-sprite-sheet-enemy-run overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated]",
+          "relative left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 animate-move-sprite-sheet-enemy-run overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated] animate-move-sprite-sheet-enemy-idle",
           props.enemy.dirX === -1 && "-scale-x-100"
         )}
       />
+
+      <Show when={props.enemy.status === "hit"}>
+        <div class="absolute left-1/2 top-1/2 w-blood h-blood [background-position:0px_0px] [image-rendering:pixelated] translate-x-[calc(-50%+20px)] translate-y-[calc(-50%-20px)] bg-blood animate-blood-spill" />
+      </Show>
     </div>
   );
 }
