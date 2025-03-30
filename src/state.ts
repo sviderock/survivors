@@ -14,7 +14,7 @@ function getInitialGameState(): GameState {
     enemiesKilled: 0,
     status: "not_started",
     enemies: [],
-    bullets: [],
+    arrows: [],
     gems: [],
     activeGame: null,
     terrainRect: getInitialRect({

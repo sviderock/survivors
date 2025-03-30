@@ -1,8 +1,9 @@
 /* eslint-disable no-undef */
 
 import {
+  BLOOD_ANIMATION_DURATION_SS,
   BLOOD_SIZE,
-  BULLET_SIZE,
+  ARROW_SIZE,
   ENEMY_SIZE,
   GAME_WORLD_SIZE,
   GEM_SIZE,
@@ -31,11 +32,11 @@ export default {
       width: {
         "enemy-hitbox": "50px",
         "player-hitbox": "80px",
-        "bullet-hitbox": "64px",
+        "arrow-hitbox": "64px",
         enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
         player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
-        bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
-        blood: BLOOD_SIZE.w,
+        arrow: `calc(${ARROW_SIZE}px * var(--pixel-size))`,
+        blood: `calc(${BLOOD_SIZE.w}px * var(--pixel-size) / 6)`,
         gem: GEM_SIZE.w,
         world: GAME_WORLD_SIZE,
         tile: TILE_SIZE,
@@ -43,11 +44,11 @@ export default {
       height: {
         "enemy-hitbox": "50px",
         "player-hitbox": "80px",
-        "bullet-hitbox": "20px",
+        "arrow-hitbox": "20px",
         enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
         player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
-        bullet: `calc(${BULLET_SIZE}px * var(--pixel-size))`,
-        blood: BLOOD_SIZE.h,
+        arrow: `calc(${ARROW_SIZE}px * var(--pixel-size))`,
+        blood: `calc(${BLOOD_SIZE.h}px * var(--pixel-size) / 6)`,
         gem: GEM_SIZE.h,
         world: GAME_WORLD_SIZE,
         tile: TILE_SIZE,
@@ -62,7 +63,7 @@ export default {
         forest: `url('/game-assets/Terrain/Ground/Tiles/tile011.png')`,
         enemy: `url('/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png')`,
         player: `url('/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png')`,
-        bullet: `url('/game-assets/Factions/Knights/Troops/Archer/Arrow/Arrow.png')`,
+        arrow: `url('/game-assets/Factions/Knights/Troops/Archer/Arrow/Arrow.png')`,
         blood: `url('/game-assets/Effects/Blood.png')`,
       },
       colors: {
@@ -259,10 +260,10 @@ export default {
         // blood spill
         "blood-spill": {
           "0%": {
-            backgroundPosition: `0 calc(-${BLOOD_SIZE.h}px * 2)`,
+            backgroundPosition: `0 calc(-${BLOOD_SIZE.h}px * 5)`,
           },
           "100%": {
-            backgroundPosition: `calc(-${BLOOD_SIZE.w}px * 7) calc(-${BLOOD_SIZE.h}px * 2)`,
+            backgroundPosition: `calc(-${BLOOD_SIZE.w}px * 8) calc(-${BLOOD_SIZE.h}px * 5)`,
           },
         },
       },
@@ -290,7 +291,7 @@ export default {
         "move-sprite-sheet-enemy-run": `move-sprite-sheet-enemy-run .3s steps(6) infinite`,
 
         // blood spill
-        "blood-spill": "blood-spill .5s steps(7)",
+        "blood-spill": `blood-spill ${BLOOD_ANIMATION_DURATION_SS}s steps(8)`,
       },
     },
   },

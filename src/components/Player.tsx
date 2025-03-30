@@ -2,7 +2,7 @@ import { batch, createEffect, createSignal, onCleanup, onMount } from "solid-js"
 import { createStore, produce } from "solid-js/store";
 import HealthBar from "~/components/HealthBar";
 import { getTileInfoKey } from "~/components/Terrain";
-import { spawnBullet } from "~/components/weapons/Bullets";
+import { spawnArrow } from "~/components/weapons/Arrows";
 import {
   DIAGONAL_SPEED,
   GAME_WORLD_SIZE,
@@ -153,7 +153,7 @@ export default function Player() {
     if (player.attack.status === "started_attack") {
       attackTimeout = setTimeout(() => {
         batch(() => {
-          spawnBullet(player.attack.direction);
+          spawnArrow(player.attack.direction);
           setPlayer("attack", "status", "cooldown");
         });
       }, SHOOTING_ANIMATION_DURATION_SS * 1000);

@@ -23,7 +23,7 @@ declare global {
     experience: number;
     enemiesKilled: number;
     enemies: Enemy[];
-    bullets: Bullet[];
+    arrows: Arrow[];
     gems: Gem[];
     terrainRect: Rect;
     tileInfo: TileRecord<Rect>;
@@ -87,7 +87,7 @@ declare global {
     playerReached: boolean;
   };
 
-  type Bullet = {
+  type Arrow = {
     ref: HTMLSpanElement | undefined;
     rect: Rect;
     target: { x: number; y: number };

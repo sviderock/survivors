@@ -4,12 +4,12 @@ export const PLAYER_BASE_HEALTH = 100;
 export const PLAYER_BASE_DAMAGE = 3;
 export const PLAYER_BASE_COOLDOWN = 1_000;
 
-export const BULLET_SPEED = 15;
-export const BULLET_SIZE = 32;
-export const BULLET_DISTANCE = 800;
-export const BULLET_DAMAGE = 3;
-export const BULLET_MAGIC_OFFSET_X = 20;
-export const BULLET_MAGIC_OFFSET_Y = 40;
+export const ARROW_SPEED = 15;
+export const ARROW_SIZE = 32;
+export const ARROW_DISTANCE = 800;
+export const ARROW_DAMAGE = 3;
+export const ARROW_MAGIC_OFFSET_X = 20;
+export const ARROW_MAGIC_OFFSET_Y = 40;
 
 export const ENEMY_SPEED = 1;
 export const ENEMY_SIZE = 32;
@@ -20,6 +20,7 @@ export const ENEMY_SPAWN_INTERVAL_MS = 10;
 export const ENEMY_LIMIT = 1;
 
 export const BLOOD_SIZE = { w: 110, h: 93 };
+export const BLOOD_ANIMATION_DURATION_SS = 0.4;
 
 export const GEM_SIZE = { w: 16, h: 24 };
 
@@ -49,7 +50,7 @@ export const SPAWN_ENEMIES = true;
 export const SPAWN_GEMS = true;
 
 export const ENEMY_COLLISIONS = true;
-export const BULLET_COLLISIONS = true;
+export const ARROW_COLLISIONS = true;
 export const GEMS_COLLISIONS = true;
 
-export const DEBUG = false;
+export const DEBUG = true;

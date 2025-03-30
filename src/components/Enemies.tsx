@@ -3,6 +3,7 @@ import { createStore, produce, unwrap } from "solid-js/store";
 import { player, playerRect, relativePlayerPos } from "~/components/Player";
 import { getTileInfoKey } from "~/components/Terrain";
 import {
+  BLOOD_ANIMATION_DURATION_SS,
   DEBUG,
   ENEMY_ATTACK_COOLDOWN,
   ENEMY_BASE_HEALTH,
@@ -315,7 +316,7 @@ function Enemy(props: EnemyProps) {
     if (props.enemy.status === "hit") {
       setTimeout(() => {
         setGameState("enemies", props.idx, "status", "moving");
-      }, 500);
+      }, BLOOD_ANIMATION_DURATION_SS * 1000);
     }
   });
 
@@ -349,13 +350,23 @@ function Enemy(props: EnemyProps) {
     >
       <div
         class={cn(
-          "relative left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 animate-move-sprite-sheet-enemy-run overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated] animate-move-sprite-sheet-enemy-idle",
+          "relative left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated] animate-move-sprite-sheet-enemy-idle",
           props.enemy.dirX === -1 && "-scale-x-100"
         )}
       />
 
       <Show when={props.enemy.status === "hit"}>
-        <div class="absolute left-1/2 top-1/2 w-blood h-blood [background-position:0px_0px] [image-rendering:pixelated] translate-x-[calc(-50%+20px)] translate-y-[calc(-50%-20px)] bg-blood animate-blood-spill" />
+        <div
+          style={{
+            "--blood-scale": "1.2",
+            "--blood-translate-x": `calc(-50% - (var(--blood-scale) * 20px * ${props.enemy.dirX}))`,
+            "--blood-translate-y": `calc(-50% - (var(--blood-scale) * -20px * ${props.enemy.dirY}))`,
+          }}
+          class={cn(
+            "absolute left-1/2 top-1/2 w-blood h-blood [background-position:0px_0px] [image-rendering:pixelated] translate-x-[--blood-translate-x] translate-y-[--blood-translate-y] bg-blood animate-blood-spill scale-[--blood-scale]",
+            props.enemy.dirX === 1 && "-scale-x-[--blood-scale]"
+          )}
+        />
       </Show>
     </div>
   );

@@ -3,12 +3,12 @@ import { produce } from "solid-js/store";
 import { destroyEnemy, moveEnemy, spawnEnemy } from "~/components/Enemies";
 import { destroyGem, spawnGem } from "~/components/Gems";
 import { movePlayer, player, playerRect, setPlayer } from "~/components/Player";
-import { destroyBullet } from "~/components/weapons/Bullets";
+import { destroyArrow } from "~/components/weapons/Arrows";
 import {
-  BULLET_COLLISIONS,
-  BULLET_MAGIC_OFFSET_X,
-  BULLET_MAGIC_OFFSET_Y,
-  BULLET_SPEED,
+  ARROW_COLLISIONS,
+  ARROW_MAGIC_OFFSET_X,
+  ARROW_MAGIC_OFFSET_Y,
+  ARROW_SPEED,
   DEBUG_MECHANICS,
   ENEMY_COLLISIONS,
   ENEMY_LIMIT,
@@ -58,49 +58,49 @@ async function gameLoop(timestamp: number) {
     setPlayer("attack", "status", "started_attack");
   }
 
-  // move bullets
-  for (let i = 0; i < gameState.bullets.length; i++) {
-    const bullet = gameState.bullets[i]!;
+  // move arrows
+  for (let i = 0; i < gameState.arrows.length; i++) {
+    const arrow = gameState.arrows[i]!;
 
     if (
-      (bullet.rect.x | 0) === (bullet.target.x | 0) &&
-      (bullet.rect.y | 0) === (bullet.target.y | 0)
+      (arrow.rect.x | 0) === (arrow.target.x | 0) &&
+      (arrow.rect.y | 0) === (arrow.target.y | 0)
     ) {
-      destroyBullet(i);
+      destroyArrow(i);
     } else {
-      let newBulletX = bullet.rect.x;
-      let newBulletY = bullet.rect.y;
+      let newArrowX = arrow.rect.x;
+      let newArrowY = arrow.rect.y;
 
-      const deltaX = Math.abs(bullet.rect.x - bullet.target.x);
+      const deltaX = Math.abs(arrow.rect.x - arrow.target.x);
       if (deltaX) {
         switch (true) {
-          case bullet.rect.x < bullet.target.x:
-            newBulletX += deltaX < BULLET_SPEED ? deltaX : BULLET_SPEED;
+          case arrow.rect.x < arrow.target.x:
+            newArrowX += deltaX < ARROW_SPEED ? deltaX : ARROW_SPEED;
             break;
-          case bullet.rect.x > bullet.target.x:
-            newBulletX -= deltaX <= BULLET_SPEED ? deltaX : BULLET_SPEED;
+          case arrow.rect.x > arrow.target.x:
+            newArrowX -= deltaX <= ARROW_SPEED ? deltaX : ARROW_SPEED;
             break;
         }
       }
 
-      const deltaY = Math.abs(bullet.rect.y - bullet.target.y);
+      const deltaY = Math.abs(arrow.rect.y - arrow.target.y);
       switch (true) {
-        case bullet.rect.y < bullet.target.y:
-          newBulletY += deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED;
+        case arrow.rect.y < arrow.target.y:
+          newArrowY += deltaY <= ARROW_SPEED ? deltaY : ARROW_SPEED;
           break;
-        case bullet.rect.y > bullet.target.y:
-          newBulletY -= deltaY <= BULLET_SPEED ? deltaY : BULLET_SPEED;
+        case arrow.rect.y > arrow.target.y:
+          newArrowY -= deltaY <= ARROW_SPEED ? deltaY : ARROW_SPEED;
           break;
       }
 
       const updatedRect = getNewPos({
-        x: newBulletX,
-        y: newBulletY,
-        width: bullet.rect.width,
-        height: bullet.rect.height,
+        x: newArrowX,
+        y: newArrowY,
+        width: arrow.rect.width,
+        height: arrow.rect.height,
       });
-      setGameState("bullets", i, "rect", updatedRect);
-      bullet.ref!.style.transform = `translate3d(calc(${updatedRect.x}px + ${newWorldX}px + ${BULLET_MAGIC_OFFSET_X}px), calc(${updatedRect.y}px + ${newWorldY}px - ${GAME_WORLD_SIZE}px + ${BULLET_MAGIC_OFFSET_Y}px), 0) rotate(${getRotationDeg(bullet.direction)}deg)`;
+      setGameState("arrows", i, "rect", updatedRect);
+      arrow.ref!.style.transform = `translate3d(calc(${updatedRect.x}px + ${newWorldX}px + ${ARROW_MAGIC_OFFSET_X}px), calc(${updatedRect.y}px + ${newWorldY}px - ${GAME_WORLD_SIZE}px + ${ARROW_MAGIC_OFFSET_Y}px), 0) rotate(${getRotationDeg(arrow.direction)}deg)`;
     }
   }
 
@@ -109,12 +109,12 @@ async function gameLoop(timestamp: number) {
     const enemy = gameState.enemies[i]!;
     moveEnemy(i, relativePlayerPos, newWorldX, newWorldY);
 
-    // for each enemy detect collisions with bullets
-    if (BULLET_COLLISIONS) {
-      for (let j = 0; j < gameState.bullets.length; j++) {
-        const bullet = gameState.bullets[j]!;
+    // for each enemy detect collisions with arrows
+    if (ARROW_COLLISIONS) {
+      for (let j = 0; j < gameState.arrows.length; j++) {
+        const bullet = gameState.arrows[j]!;
         if (collisionDetected(bullet.rect, enemy.rect)) {
-          destroyBullet(j);
+          destroyArrow(j);
 
           if (enemy.health <= bullet.damage) {
             if (SPAWN_GEMS) {
