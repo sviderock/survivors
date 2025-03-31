@@ -80,6 +80,7 @@ declare global {
     maxHealth: number;
     blocked: { x: Direction; y: Direction };
     status: "idle" | "moving" | "attacking" | "hit";
+    lifeStatus: "alive" | "died" | "show_skull";
     dirX: Direction;
     dirY: Direction;
     occupiedTile: Tile;

@@ -1,6 +1,6 @@
 import { batch } from "solid-js";
 import { produce } from "solid-js/store";
-import { destroyEnemy, moveEnemy, spawnEnemy } from "~/components/Enemies";
+import { moveEnemy, spawnEnemy } from "~/components/Enemies";
 import { destroyGem, spawnGem } from "~/components/Gems";
 import { movePlayer, player, playerRect, setPlayer } from "~/components/Player";
 import { destroyArrow } from "~/components/weapons/Arrows";
@@ -9,20 +9,21 @@ import {
   ARROW_MAGIC_OFFSET_X,
   ARROW_MAGIC_OFFSET_Y,
   ARROW_SPEED,
+  DEBUG,
   DEBUG_MECHANICS,
   ENEMY_COLLISIONS,
   ENEMY_LIMIT,
   ENEMY_SPAWN_INTERVAL_MS,
-  ENEMY_SPEED,
   GAME_WORLD_SIZE,
   GEMS_COLLISIONS,
   SPAWN_ENEMIES,
   SPAWN_GEMS,
 } from "~/constants";
 import { gameState, setGameState } from "~/state";
-import { collisionDetected, getDirection, getNewPos, getRotationDeg } from "~/utils";
+import { collisionDetected, getNewPos, getRotationDeg } from "~/utils";
 
 let enemySpawnTimer = 0;
+let stopSpawningEnemies = false;
 
 export let mainGameLoop: number | undefined;
 
@@ -32,11 +33,14 @@ async function gameLoop(timestamp: number) {
     return;
   }
 
-  if (SPAWN_ENEMIES) {
+  if (SPAWN_ENEMIES && !stopSpawningEnemies) {
     if (!enemySpawnTimer) enemySpawnTimer = timestamp;
     if (timestamp - enemySpawnTimer >= (gameState.enemySpawnInterval || ENEMY_SPAWN_INTERVAL_MS)) {
       if (gameState.enemies.length < ENEMY_LIMIT) {
         spawnEnemy();
+        if (DEBUG) {
+          stopSpawningEnemies = true;
+        }
       }
       enemySpawnTimer += gameState.enemySpawnInterval || ENEMY_SPAWN_INTERVAL_MS;
     }
@@ -110,19 +114,23 @@ async function gameLoop(timestamp: number) {
     moveEnemy(i, relativePlayerPos, newWorldX, newWorldY);
 
     // for each enemy detect collisions with arrows
-    if (ARROW_COLLISIONS) {
+    if (ARROW_COLLISIONS && enemy.lifeStatus === "alive") {
       for (let j = 0; j < gameState.arrows.length; j++) {
-        const bullet = gameState.arrows[j]!;
-        if (collisionDetected(bullet.rect, enemy.rect)) {
+        const arrow = gameState.arrows[j]!;
+        if (collisionDetected(arrow.rect, enemy.rect)) {
           destroyArrow(j);
 
-          if (enemy.health <= bullet.damage) {
+          if (enemy.health <= arrow.damage) {
             if (SPAWN_GEMS) {
               spawnGem({ x: enemy.rect.centerX, y: enemy.rect.centerY });
             }
 
-            destroyEnemy(i);
-            setGameState("enemiesKilled", gameState.enemiesKilled + 1);
+            setGameState(
+              produce((state) => {
+                state.enemiesKilled++;
+                state.enemies[i]!.lifeStatus = "died";
+              })
+            );
             break;
           }
 
@@ -130,7 +138,7 @@ async function gameLoop(timestamp: number) {
             "enemies",
             i,
             produce((e) => {
-              e.health -= bullet.damage;
+              e.health -= arrow.damage;
               e.status = "hit";
             })
           );

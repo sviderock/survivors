@@ -15,10 +15,10 @@ import { sendWS, setupGameServerConnection } from "~/lib/gameServer";
 import { setupKeyboardEvents } from "~/lib/keyboardEvents";
 import { gameState, setGameState } from "~/state";
 
-function onBeforeUnload(e: BeforeUnloadEvent) {
-  e.preventDefault();
-  setGameState("status", "paused");
-  sendWS({ type: "pause_game", timePassedInMs: stageTimer() });
+function onBeforeUnload(_e: BeforeUnloadEvent) {
+  // e.preventDefault();
+  // setGameState("status", "paused");
+  // sendWS({ type: "pause_game", timePassedInMs: stageTimer() });
 }
 
 export default function Game() {
@@ -39,10 +39,10 @@ export default function Game() {
 
     if (gameState.status === "in_progress" || DEBUG_MECHANICS) {
       runGameLoop();
-      // window.addEventListener('beforeunload', onBeforeUnload);
-      // onCleanup(() => {
-      // 	window.removeEventListener('beforeunload', onBeforeUnload);
-      // });
+      window.addEventListener("beforeunload", onBeforeUnload);
+      onCleanup(() => {
+        window.removeEventListener("beforeunload", onBeforeUnload);
+      });
       return;
     }
   });

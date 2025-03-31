@@ -1,31 +1,23 @@
-import { batch, createEffect, createSignal, For, onMount, Show } from "solid-js";
-import { createStore, produce, unwrap } from "solid-js/store";
-import { player, playerRect, relativePlayerPos } from "~/components/Player";
+import { For, Match, Switch, createEffect, onMount } from "solid-js";
+import { produce } from "solid-js/store";
+import { player, relativePlayerPos } from "~/components/Player";
 import { getTileInfoKey } from "~/components/Terrain";
 import {
   BLOOD_ANIMATION_DURATION_SS,
   DEBUG,
   ENEMY_ATTACK_COOLDOWN,
-  ENEMY_BASE_HEALTH,
-  ENEMY_SIZE,
+  ENEMY_DIED_HIDE_MODEL_DURATION_SS,
   ENEMY_SPEED,
   GAME_WORLD_SIZE,
+  SKULL_SIZE,
   TILE_SIZE,
 } from "~/constants";
 import { gameState, setGameState } from "~/state";
-import {
-  bitwiseAbs,
-  bitwiseRound,
-  cn,
-  getDirection,
-  getInitialRect,
-  getNewPos,
-  getRandomBetween,
-  getRect,
-} from "~/utils";
+import { bitwiseAbs, cn, getDirection, getInitialRect, getNewPos, getRandomBetween } from "~/utils";
 
 function createSingleEnemy(): Enemy {
-  const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
+  // const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
+  const health = 1;
 
   return {
     rect: {} as Rect,
@@ -35,7 +27,8 @@ function createSingleEnemy(): Enemy {
     health,
     maxHealth: health,
     blocked: { x: 0, y: 0 },
-    status: "idle",
+    status: "moving",
+    lifeStatus: "alive",
     dirX: 0,
     dirY: 0,
     occupiedTile: {} as Enemy["occupiedTile"],
@@ -200,8 +193,11 @@ export function moveEnemy(
   const projectedTile = updateOccupiedMatrix(enemy.rect);
   const nextTile = getNextTile(enemy.occupiedTile.row, enemy.occupiedTile.col);
 
-  x += ENEMY_SPEED * getDirection(enemy.occupiedTile.col, nextTile.col);
-  y += ENEMY_SPEED * getDirection(enemy.occupiedTile.row, nextTile.row);
+  if (enemy.lifeStatus === "alive") {
+    x += ENEMY_SPEED * getDirection(enemy.occupiedTile.col, nextTile.col);
+    y += ENEMY_SPEED * getDirection(enemy.occupiedTile.row, nextTile.row);
+  }
+
   const updatedRect = getNewPos({ x, y, width: enemy.rect.width, height: enemy.rect.height });
 
   setGameState(
@@ -302,22 +298,42 @@ function Enemy(props: EnemyProps) {
   });
 
   createEffect(() => {
-    if (props.enemy.attackStatus === "hit") {
-      setGameState("enemies", props.idx, "attackStatus", "cooldown");
-      setTimeout(() => {
-        if (gameState.enemies[props.idx]) {
-          setGameState("enemies", props.idx, "attackStatus", "ready");
-        }
-      }, ENEMY_ATTACK_COOLDOWN);
+    switch (true) {
+      case props.enemy.attackStatus === "hit": {
+        setGameState("enemies", props.idx, "attackStatus", "cooldown");
+        setTimeout(() => {
+          if (gameState.enemies[props.idx]) {
+            setGameState("enemies", props.idx, "attackStatus", "ready");
+          }
+        }, ENEMY_ATTACK_COOLDOWN);
+        break;
+      }
+
+      case props.enemy.status === "hit": {
+        setTimeout(() => {
+          setGameState("enemies", props.idx, "status", "moving");
+        }, BLOOD_ANIMATION_DURATION_SS * 1000);
+        break;
+      }
+
+      case props.enemy.lifeStatus === "died": {
+        console.log(123);
+        setTimeout(
+          () => {
+            setGameState("enemies", props.idx, "lifeStatus", "show_skull");
+            // setTimeout(() => {
+
+            // });
+          },
+          (ENEMY_DIED_HIDE_MODEL_DURATION_SS * 1000) / 3
+        );
+        break;
+      }
     }
   });
 
   createEffect(() => {
-    if (props.enemy.status === "hit") {
-      setTimeout(() => {
-        setGameState("enemies", props.idx, "status", "moving");
-      }, BLOOD_ANIMATION_DURATION_SS * 1000);
-    }
+    console.log(props.enemy.status);
   });
 
   return (
@@ -350,24 +366,57 @@ function Enemy(props: EnemyProps) {
     >
       <div
         class={cn(
-          "relative left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated] animate-move-sprite-sheet-enemy-idle",
-          props.enemy.dirX === -1 && "-scale-x-100"
+          "relative left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated]",
+          props.enemy.lifeStatus === "alive" &&
+            props.enemy.status === "idle" &&
+            "animate-move-sprite-sheet-enemy-idle",
+          props.enemy.lifeStatus === "alive" &&
+            props.enemy.status === "moving" &&
+            "animate-move-sprite-sheet-enemy-run",
+          props.enemy.lifeStatus === "alive" && props.enemy.dirX === -1 && "-scale-x-100",
+          props.enemy.lifeStatus === "died" && "origin-[0_0] animate-hide-model rounded-full",
+          props.enemy.lifeStatus === "show_skull" && "opacity-0"
         )}
       />
 
-      <Show when={props.enemy.status === "hit"}>
-        <div
-          style={{
-            "--blood-scale": "1.2",
-            "--blood-translate-x": `calc(-50% - (var(--blood-scale) * 20px * ${props.enemy.dirX}))`,
-            "--blood-translate-y": `calc(-50% - (var(--blood-scale) * -20px * ${props.enemy.dirY}))`,
-          }}
-          class={cn(
-            "absolute left-1/2 top-1/2 w-blood h-blood [background-position:0px_0px] [image-rendering:pixelated] translate-x-[--blood-translate-x] translate-y-[--blood-translate-y] bg-blood animate-blood-spill scale-[--blood-scale]",
-            props.enemy.dirX === 1 && "-scale-x-[--blood-scale]"
-          )}
-        />
-      </Show>
+      <Switch>
+        <Match when={props.enemy.status === "hit" || props.enemy.lifeStatus === "died"}>
+          <BloodSpill dirX={props.enemy.dirX} dirY={props.enemy.dirY} />
+        </Match>
+
+        <Match when={props.enemy.lifeStatus === "show_skull"}>
+          <Skull />
+        </Match>
+      </Switch>
     </div>
+  );
+}
+
+function BloodSpill(props: Pick<Enemy, "dirX" | "dirY">) {
+  return (
+    <div
+      style={{
+        "--blood-scale": "1.2",
+        "--blood-translate-x": `calc(-50% - (var(--blood-scale) * 20px * ${props.dirX}))`,
+        "--blood-translate-y": `calc(-50% - (var(--blood-scale) * -20px * ${props.dirY}))`,
+      }}
+      class={cn(
+        "absolute will-change-bp left-1/2 top-1/2 w-blood h-blood [background-position:0px_0px] [image-rendering:pixelated] translate-x-[--blood-translate-x] translate-y-[--blood-translate-y] bg-blood animate-blood-spill scale-[--blood-scale]",
+        props.dirX === 1 && "-scale-x-[--blood-scale]"
+      )}
+    />
+  );
+}
+
+function Skull() {
+  return (
+    <div
+      style={{
+        "background-position": `${SKULL_SIZE}px ${SKULL_SIZE}px`,
+      }}
+      class={cn(
+        "absolute left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-skull will-change-bp [image-rendering:pixelated] animate-skull-appear"
+      )}
+    />
   );
 }

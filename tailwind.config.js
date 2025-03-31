@@ -10,6 +10,9 @@ import {
   PLAYER_SIZE,
   SHOOTING_ANIMATION_DURATION_SS,
   TILE_SIZE,
+  SKULL_SIZE,
+  ENEMY_DIED_HIDE_MODEL_DURATION_SS,
+  SKULL_APPEAR_DURATIONS_SS,
 } from "./src/constants";
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -37,6 +40,7 @@ export default {
         player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
         arrow: `calc(${ARROW_SIZE}px * var(--pixel-size))`,
         blood: `calc(${BLOOD_SIZE.w}px * var(--pixel-size) / 6)`,
+        skull: `calc(${SKULL_SIZE}px * var(--pixel-size))`,
         gem: GEM_SIZE.w,
         world: GAME_WORLD_SIZE,
         tile: TILE_SIZE,
@@ -49,6 +53,7 @@ export default {
         player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
         arrow: `calc(${ARROW_SIZE}px * var(--pixel-size))`,
         blood: `calc(${BLOOD_SIZE.h}px * var(--pixel-size) / 6)`,
+        skull: `calc(${SKULL_SIZE}px * var(--pixel-size))`,
         gem: GEM_SIZE.h,
         world: GAME_WORLD_SIZE,
         tile: TILE_SIZE,
@@ -65,6 +70,10 @@ export default {
         player: `url('/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png')`,
         arrow: `url('/game-assets/Factions/Knights/Troops/Archer/Arrow/Arrow.png')`,
         blood: `url('/game-assets/Effects/Blood.png')`,
+        skull: `url('/game-assets/Factions/Knights/Troops/Dead/Dead.png')`,
+      },
+      animationDelay: {
+        skull: `${SKULL_APPEAR_DURATIONS_SS}s`,
       },
       colors: {
         border: "hsl(var(--border))",
@@ -236,6 +245,18 @@ export default {
             transform: "translate3d(0, 0, 0) scaleX(-1)",
           },
         },
+        "hide-model": {
+          "0%": {
+            opacity: 1,
+            scale: 1,
+            rotate: 0,
+          },
+          "100%": {
+            opacity: 0,
+            scale: 0,
+            rotate: "360deg",
+          },
+        },
 
         // enemy idle
         "move-sprite-sheet-enemy-idle": {
@@ -266,6 +287,16 @@ export default {
             backgroundPosition: `calc(-${BLOOD_SIZE.w}px * 8) calc(-${BLOOD_SIZE.h}px * 5)`,
           },
         },
+
+        // skull appear
+        "skull-appear": {
+          "0%": {
+            backgroundPosition: `${SKULL_SIZE}px ${SKULL_SIZE}px`,
+          },
+          "100%": {
+            backgroundPosition: `calc(${SKULL_SIZE}px + -128px * 6) ${SKULL_SIZE}px`,
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -285,6 +316,7 @@ export default {
         "move-sprite-sheet-shoot-south-west": `move-sprite-sheet-shoot-south-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
         "move-sprite-sheet-shoot-west": `move-sprite-sheet-shoot-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
         "move-sprite-sheet-shoot-north-west": `move-sprite-sheet-shoot-north-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
+        "hide-model": `hide-model ${ENEMY_DIED_HIDE_MODEL_DURATION_SS}s forwards`,
 
         // enemy animations
         "move-sprite-sheet-enemy-idle": "move-sprite-sheet-enemy-idle .5s steps(7) infinite",
@@ -292,6 +324,9 @@ export default {
 
         // blood spill
         "blood-spill": `blood-spill ${BLOOD_ANIMATION_DURATION_SS}s steps(8)`,
+
+        // skull
+        "skull-appear": `skull-appear ${SKULL_APPEAR_DURATIONS_SS}s steps(6) forwards`,
       },
     },
   },
