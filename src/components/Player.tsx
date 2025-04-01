@@ -10,6 +10,7 @@ import {
   PLAYER_BASE_HEALTH,
   PLAYER_SIZE,
   PLAYER_SPEED,
+  RAPID_MODE,
   SHOOTING_ANIMATION_DURATION_SS,
   TILE_SIZE,
   XP_LVL_2,
@@ -20,6 +21,18 @@ import {
 import { keyPressed } from "~/lib/keyboardEvents";
 import { gameState, setGameState, setWorldRect, worldRect } from "~/state";
 import { bitwiseAbs, cn, getInitialRect, getNewPos, getRect } from "~/utils";
+
+const [lastDir, setLastDir] = createSignal(0);
+const dirs: AttackingDirection[] = [
+  "east",
+  "south-east",
+  "south",
+  "south-west",
+  "west",
+  "north-west",
+  "north",
+  "north-east",
+];
 
 export const [playerRect, setPlayerRect] = createSignal(
   getInitialRect({ x: 0, y: 0, width: PLAYER_SIZE, height: PLAYER_SIZE })
@@ -34,7 +47,7 @@ export const [player, setPlayer] = createStore<Player>({
   attack: {
     status: "ready",
     direction: "west",
-    cooldown: PLAYER_BASE_COOLDOWN,
+    cooldown: RAPID_MODE ? 10 : PLAYER_BASE_COOLDOWN,
   },
 });
 
@@ -151,12 +164,18 @@ export default function Player() {
   createEffect(() => {
     let attackTimeout: NodeJS.Timeout;
     if (player.attack.status === "started_attack") {
-      attackTimeout = setTimeout(() => {
-        batch(() => {
-          spawnArrow(player.attack.direction);
-          setPlayer("attack", "status", "cooldown");
-        });
-      }, SHOOTING_ANIMATION_DURATION_SS * 1000);
+      attackTimeout = setTimeout(
+        () => {
+          batch(() => {
+            if (RAPID_MODE) {
+              spawnArrow(dirs[lastDir()]!);
+              setLastDir((d) => (d === 7 ? 0 : d + 1));
+              setPlayer("attack", "status", "cooldown");
+            }
+          });
+        },
+        (RAPID_MODE ? SHOOTING_ANIMATION_DURATION_SS : 10) * 1000
+      );
     }
 
     onCleanup(() => {

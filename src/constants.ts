@@ -52,10 +52,11 @@ export const SHOOTING_ANIMATION_DURATION_SS = 0.2;
 
 export const DEBUG_MECHANICS = true;
 export const SPAWN_ENEMIES = true;
-export const SPAWN_GEMS = true;
+export const SPAWN_GEMS = false;
 
 export const ENEMY_COLLISIONS = true;
 export const ARROW_COLLISIONS = true;
 export const GEMS_COLLISIONS = true;
 
 export const DEBUG = false;
+export const RAPID_MODE = true;
