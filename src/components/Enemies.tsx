@@ -318,7 +318,6 @@ function Enemy(props: EnemyProps) {
       }
 
       case props.enemy.lifeStatus === "died": {
-        console.log(123);
         setTimeout(
           () => {
             setGameState("enemies", props.idx, "lifeStatus", "show_skull");
@@ -329,7 +328,6 @@ function Enemy(props: EnemyProps) {
       }
 
       case props.enemy.lifeStatus === "show_skull": {
-        console.log(123);
         setTimeout(() => {
           setGameState("enemies", props.idx, "lifeStatus", "skull_gone");
         }, 3000);
