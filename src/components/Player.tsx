@@ -22,7 +22,6 @@ import { keyPressed } from "~/lib/keyboardEvents";
 import { gameState, setGameState, setWorldRect, worldRect } from "~/state";
 import { bitwiseAbs, cn, getInitialRect, getNewPos, getRect } from "~/utils";
 
-const [lastDir, setLastDir] = createSignal(0);
 const dirs: AttackingDirection[] = [
   "east",
   "south-east",
@@ -168,8 +167,7 @@ export default function Player() {
         () => {
           batch(() => {
             if (RAPID_MODE) {
-              spawnArrow(dirs[lastDir()]!);
-              setLastDir((d) => (d === 7 ? 0 : d + 1));
+              dirs.forEach((d) => spawnArrow(d));
               setPlayer("attack", "status", "cooldown");
             }
           });
