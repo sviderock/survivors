@@ -48,7 +48,8 @@
     "tailwindcss-animate": "^1.0.7",
     "valibot": "^1.0.0-rc.1",
     "vinxi": "^0.5.3",
-    "vite-plugin-comlink": "^5.1.0"
+    "vite-plugin-comlink": "^5.1.0",
+    "ws": "^8.18.1"
   },
   "overrides": {
     "vite": "5.4.10"
