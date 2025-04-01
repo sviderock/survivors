@@ -17,7 +17,7 @@ export const ENEMY_ATTACK_COOLDOWN = 2000;
 export const ENEMY_BASE_HEALTH = 1;
 export const ENEMY_COLLISION_OFFSET = 10;
 export const ENEMY_SPAWN_INTERVAL_MS = 10;
-export const ENEMY_LIMIT = 11;
+export const ENEMY_LIMIT = 100;
 export const ENEMY_DIED_HIDE_MODEL_DURATION_SS = 0.8;
 
 export const BLOOD_SIZE = { w: 110, h: 93 };
@@ -27,6 +27,7 @@ export const GEM_SIZE = { w: 16, h: 24 };
 
 export const SKULL_SIZE = 32;
 export const SKULL_APPEAR_DURATIONS_SS = 0.4;
+export const SKULL_GONE_DURATIONS_SS = 0.4;
 
 export const XP_LVL_2 = 5;
 export const XP_LVL_3_TO_20 = 10;

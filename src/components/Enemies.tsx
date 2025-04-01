@@ -9,6 +9,7 @@ import {
   ENEMY_DIED_HIDE_MODEL_DURATION_SS,
   ENEMY_SPEED,
   GAME_WORLD_SIZE,
+  SKULL_GONE_DURATIONS_SS,
   SKULL_SIZE,
   TILE_SIZE,
 } from "~/constants";
@@ -321,12 +322,24 @@ function Enemy(props: EnemyProps) {
         setTimeout(
           () => {
             setGameState("enemies", props.idx, "lifeStatus", "show_skull");
-            // setTimeout(() => {
-
-            // });
           },
           (ENEMY_DIED_HIDE_MODEL_DURATION_SS * 1000) / 3
         );
+        break;
+      }
+
+      case props.enemy.lifeStatus === "show_skull": {
+        console.log(123);
+        setTimeout(() => {
+          setGameState("enemies", props.idx, "lifeStatus", "skull_gone");
+        }, 3000);
+        break;
+      }
+
+      case props.enemy.lifeStatus === "skull_gone": {
+        setTimeout(() => {
+          destroyEnemy(props.idx);
+        }, SKULL_GONE_DURATIONS_SS * 1000);
         break;
       }
     }
@@ -375,7 +388,7 @@ function Enemy(props: EnemyProps) {
             "animate-move-sprite-sheet-enemy-run",
           props.enemy.lifeStatus === "alive" && props.enemy.dirX === -1 && "-scale-x-100",
           props.enemy.lifeStatus === "died" && "origin-[0_0] animate-hide-model rounded-full",
-          props.enemy.lifeStatus === "show_skull" && "opacity-0"
+          props.enemy.lifeStatus !== "alive" && "opacity-0"
         )}
       />
 
@@ -385,7 +398,11 @@ function Enemy(props: EnemyProps) {
         </Match>
 
         <Match when={props.enemy.lifeStatus === "show_skull"}>
-          <Skull />
+          <SkullAppear />
+        </Match>
+
+        <Match when={props.enemy.lifeStatus === "skull_gone"}>
+          <SkullGone />
         </Match>
       </Switch>
     </div>
@@ -408,14 +425,21 @@ function BloodSpill(props: Pick<Enemy, "dirX" | "dirY">) {
   );
 }
 
-function Skull() {
+function SkullAppear() {
   return (
     <div
-      style={{
-        "background-position": `${SKULL_SIZE}px ${SKULL_SIZE}px`,
-      }}
       class={cn(
-        "absolute left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-skull will-change-bp [image-rendering:pixelated] animate-skull-appear"
+        "absolute left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-skull will-change-bp [image-rendering:pixelated] animate-skull-appear z-0"
+      )}
+    />
+  );
+}
+
+function SkullGone() {
+  return (
+    <div
+      class={cn(
+        "absolute left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-skull will-change-bp [image-rendering:pixelated] animate-skull-gone z-0"
       )}
     />
   );

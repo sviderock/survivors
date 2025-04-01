@@ -51,8 +51,8 @@ export default function Game() {
     <div class="relative h-lvh w-full overflow-hidden">
       <Terrain />
 
-      <Player />
       <Enemies />
+      <Player />
       <Arrow />
       <Gems />
 

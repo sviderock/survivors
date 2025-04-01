@@ -13,6 +13,7 @@ import {
   SKULL_SIZE,
   ENEMY_DIED_HIDE_MODEL_DURATION_SS,
   SKULL_APPEAR_DURATIONS_SS,
+  SKULL_GONE_DURATIONS_SS,
 } from "./src/constants";
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -288,13 +289,23 @@ export default {
           },
         },
 
-        // skull appear
+        // skull
         "skull-appear": {
           "0%": {
             backgroundPosition: `${SKULL_SIZE}px ${SKULL_SIZE}px`,
           },
           "100%": {
             backgroundPosition: `calc(${SKULL_SIZE}px + -128px * 6) ${SKULL_SIZE}px`,
+          },
+        },
+        "skull-gone": {
+          "0%": {
+            opacity: 1,
+            backgroundPosition: `${SKULL_SIZE}px calc(${SKULL_SIZE}px + 128px)`,
+          },
+          "100%": {
+            opacity: 0.5,
+            backgroundPosition: `calc(${SKULL_SIZE}px + -128px * 6) calc(${SKULL_SIZE}px + 128px)`,
           },
         },
       },
@@ -327,6 +338,7 @@ export default {
 
         // skull
         "skull-appear": `skull-appear ${SKULL_APPEAR_DURATIONS_SS}s steps(6) forwards`,
+        "skull-gone": `skull-gone ${SKULL_GONE_DURATIONS_SS}s steps(6) forwards`,
       },
     },
   },
