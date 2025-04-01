@@ -58,5 +58,5 @@ export const ENEMY_COLLISIONS = true;
 export const ARROW_COLLISIONS = true;
 export const GEMS_COLLISIONS = true;
 
-export const DEBUG = false;
-export const RAPID_MODE = true;
+export const DEBUG = true;
+export const RAPID_MODE = false;

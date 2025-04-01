@@ -1,5 +1,5 @@
-import { For, type ParentProps, Show, createEffect, createMemo, onMount } from "solid-js";
-import { produce, unwrap } from "solid-js/store";
+import { For, type ParentProps, Show, createMemo, onMount } from "solid-js";
+import { produce } from "solid-js/store";
 import { DEBUG, TILE_SIZE } from "~/constants";
 import { gameState, setGameState, worldRect } from "~/state";
 import { getNewPos, getRect } from "~/utils";

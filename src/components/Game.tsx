@@ -1,4 +1,4 @@
-import { createEffect, onCleanup, Show } from "solid-js";
+import { Show, createEffect, onCleanup } from "solid-js";
 import Banner from "~/components/Banner";
 import Enemies from "~/components/Enemies";
 import Gems from "~/components/Gems";
@@ -6,16 +6,14 @@ import Player from "~/components/Player";
 import StageTimer, { setupGameTimer, stageTimer } from "~/components/StageTimer";
 import Terrain from "~/components/Terrain";
 import UIStats from "~/components/UIStats";
-import UserAccount from "~/components/UserAccount";
 import Arrow from "~/components/weapons/Arrows";
 import { DEBUG_MECHANICS } from "~/constants";
 import { clearGameLoop, runGameLoop } from "~/gameLoop";
-import { setupUserSync } from "~/lib/currentUser";
 import { sendWS, setupGameServerConnection } from "~/lib/gameServer";
 import { setupKeyboardEvents } from "~/lib/keyboardEvents";
-import { gameState, setGameState } from "~/state";
+import { gameState } from "~/state";
 
-function onBeforeUnload(_e: BeforeUnloadEvent) {
+function onBeforeUnload(e: BeforeUnloadEvent) {
   // e.preventDefault();
   // setGameState("status", "paused");
   // sendWS({ type: "pause_game", timePassedInMs: stageTimer() });
@@ -25,7 +23,6 @@ export default function Game() {
   setupGameServerConnection();
   setupGameTimer();
   setupKeyboardEvents();
-  setupUserSync();
 
   onCleanup(() => {
     clearGameLoop();
@@ -58,7 +55,6 @@ export default function Game() {
 
       <Show when={!DEBUG_MECHANICS}>
         <Banner />
-        <UserAccount />
         <StageTimer />
         <UIStats />
       </Show>
