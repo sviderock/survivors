@@ -3,22 +3,23 @@ import { produce } from "solid-js/store";
 import { player, relativePlayerPos } from "~/components/Player";
 import { getTileInfoKey } from "~/components/Terrain";
 import {
-  BLOOD_ANIMATION_DURATION_SS,
+  BLOOD_ANIMATION_DURATION_MS,
   DEBUG,
   ENEMY_ATTACK_COOLDOWN,
-  ENEMY_DIED_HIDE_MODEL_DURATION_SS,
+  ENEMY_BASE_HEALTH,
+  ENEMY_DIED_HIDE_MODEL_DURATION_MS,
   ENEMY_SPEED,
   GAME_WORLD_SIZE,
-  SKULL_GONE_DURATIONS_SS,
-  SKULL_SIZE,
+  SKULL_DESTROY_DELAY_MS,
+  SKULL_GONE_DURATIONS_MS,
   TILE_SIZE,
 } from "~/constants";
 import { gameState, setGameState } from "~/state";
 import { bitwiseAbs, cn, getDirection, getInitialRect, getNewPos, getRandomBetween } from "~/utils";
 
 function createSingleEnemy(): Enemy {
-  // const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
-  const health = 1;
+  const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
+  // const health = 1;
 
   return {
     rect: {} as Rect,
@@ -277,7 +278,9 @@ function Enemy(props: EnemyProps) {
           ...(DEBUG
             ? {
                 x: relativePlayerPos().centerX + -(state.enemies.length === 1 ? 200 : 350),
-                y: relativePlayerPos().centerY + 0,
+                y: relativePlayerPos().centerY - 50,
+                // x: relativePlayerPos().centerX + -(state.enemies.length === 1 ? 200 : 350),
+                // y: relativePlayerPos().centerY + 0,
               }
             : {
                 x: relativePlayerPos().centerX + getRandomBetween(500, 1500, true),
@@ -313,38 +316,35 @@ function Enemy(props: EnemyProps) {
       case props.enemy.status === "hit": {
         setTimeout(() => {
           setGameState("enemies", props.idx, "status", "moving");
-        }, BLOOD_ANIMATION_DURATION_SS * 1000);
+        }, BLOOD_ANIMATION_DURATION_MS);
         break;
       }
 
       case props.enemy.lifeStatus === "died": {
-        setTimeout(
-          () => {
-            setGameState("enemies", props.idx, "lifeStatus", "show_skull");
-          },
-          (ENEMY_DIED_HIDE_MODEL_DURATION_SS * 1000) / 3
-        );
+        setTimeout(() => {
+          setGameState("enemies", props.idx, "lifeStatus", "show_skull");
+        }, ENEMY_DIED_HIDE_MODEL_DURATION_MS / 3);
         break;
       }
 
       case props.enemy.lifeStatus === "show_skull": {
         setTimeout(() => {
           setGameState("enemies", props.idx, "lifeStatus", "skull_gone");
-        }, 3000);
+        }, SKULL_DESTROY_DELAY_MS);
         break;
       }
 
       case props.enemy.lifeStatus === "skull_gone": {
         setTimeout(() => {
           destroyEnemy(props.idx);
-        }, SKULL_GONE_DURATIONS_SS * 1000);
+        }, SKULL_GONE_DURATIONS_MS);
         break;
       }
     }
   });
 
   createEffect(() => {
-    console.log(props.enemy.status);
+    console.log(props.enemy.rect.bottom, props.enemy.rect.left);
   });
 
   return (

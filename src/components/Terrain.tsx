@@ -1,8 +1,8 @@
 import { For, type ParentProps, Show, createMemo, onMount } from "solid-js";
 import { produce } from "solid-js/store";
-import { DEBUG, TILE_SIZE } from "~/constants";
+import { DEBUG, SPAWN_TERRAIN, TILE_SIZE } from "~/constants";
 import { gameState, setGameState, worldRect } from "~/state";
-import { getNewPos, getRect } from "~/utils";
+import { cn, getNewPos, getRect } from "~/utils";
 
 export function getTileInfoKey(row: number, col: number) {
   return `${row}-${col}`;
@@ -62,7 +62,7 @@ export default function Terrain(props: ParentProps) {
   return (
     <div
       ref={worldRef}
-      class="h-world w-world bg-forest [image-rendering:pixelated]"
+      class={cn("h-world w-world", SPAWN_TERRAIN && "bg-forest [image-rendering:pixelated]")}
       style={{
         transform: `translate3d(calc(-50% + ${worldRect.x}px), calc(-50% + ${worldRect.y}px), 0)`,
       }}

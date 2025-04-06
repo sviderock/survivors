@@ -6,8 +6,7 @@ import { movePlayer, player, playerRect, setPlayer } from "~/components/Player";
 import { destroyArrow } from "~/components/weapons/Arrows";
 import {
   ARROW_COLLISIONS,
-  ARROW_MAGIC_OFFSET_X,
-  ARROW_MAGIC_OFFSET_Y,
+  ARROW_MODEL_SIZE,
   ARROW_SPEED,
   DEBUG,
   DEBUG_MECHANICS,
@@ -18,16 +17,37 @@ import {
   GEMS_COLLISIONS,
   SPAWN_ENEMIES,
   SPAWN_GEMS,
+  ARROW_HITBOX_SIZE,
 } from "~/constants";
 import { gameState, setGameState } from "~/state";
-import { collisionDetected, getNewPos, getRotationDeg } from "~/utils";
+import {
+  calculateRotatedPosition,
+  collisionDetected,
+  getInitialRect,
+  getNewPos,
+  getRotationDeg,
+} from "~/utils";
 
+const TICK = 16.66666666; // 60 fps
+let tickTimer = 0;
 let enemySpawnTimer = 0;
+
 let stopSpawningEnemies = false;
 
 export let mainGameLoop: number | undefined;
 
 async function gameLoop(timestamp: number) {
+  /**
+   * In order to keep the game updates more consistent – we need to limit amount of updates per second.
+   * 120 fps was way too inconsistent.
+   * 60 fps seems to be working good so far.
+   */
+  if (!tickTimer) tickTimer = timestamp;
+  if (timestamp - tickTimer < TICK) {
+    return runGameLoop();
+  }
+  tickTimer += TICK;
+
   if (gameState.status !== "in_progress" && !DEBUG_MECHANICS) {
     enemySpawnTimer = 0;
     return;
@@ -39,7 +59,7 @@ async function gameLoop(timestamp: number) {
       if (gameState.enemies.length < ENEMY_LIMIT) {
         spawnEnemy();
         if (DEBUG) {
-          stopSpawningEnemies = true;
+          // stopSpawningEnemies = true;
         }
       }
       enemySpawnTimer += gameState.enemySpawnInterval || ENEMY_SPAWN_INTERVAL_MS;
@@ -97,14 +117,43 @@ async function gameLoop(timestamp: number) {
           break;
       }
 
+      const arrowDirection = getRotationDeg(arrow.direction);
       const updatedRect = getNewPos({
         x: newArrowX,
         y: newArrowY,
         width: arrow.rect.width,
         height: arrow.rect.height,
       });
-      setGameState("arrows", i, "rect", updatedRect);
-      arrow.ref!.style.transform = `translate3d(calc(${updatedRect.x}px + ${newWorldX}px + ${ARROW_MAGIC_OFFSET_X}px), calc(${updatedRect.y}px + ${newWorldY}px - ${GAME_WORLD_SIZE}px + ${ARROW_MAGIC_OFFSET_Y}px), 0) rotate(${getRotationDeg(arrow.direction)}deg)`;
+
+      const modelTransformX = updatedRect.x + newWorldX;
+      const modelTransformY = updatedRect.y + newWorldY - GAME_WORLD_SIZE;
+      const hitboxTopLeft = calculateRotatedPosition({
+        angle: arrowDirection,
+        startOffsetX: updatedRect.x,
+        startOffsetY: updatedRect.y,
+        modelSize: ARROW_MODEL_SIZE,
+        hitboxSize: ARROW_HITBOX_SIZE,
+        shiftHitbox: true,
+      });
+      const hitboxRect = getInitialRect({
+        ...hitboxTopLeft,
+        width: ARROW_HITBOX_SIZE.w,
+        height: ARROW_HITBOX_SIZE.h,
+      });
+
+      const hitboxTransformX = arrow.hitbox.left + newWorldX;
+      const hitboxTransformY = arrow.hitbox.top + newWorldY - GAME_WORLD_SIZE;
+
+      setGameState(
+        "arrows",
+        i,
+        produce((arrow) => {
+          arrow.rect = updatedRect;
+          arrow.hitbox = hitboxRect;
+        })
+      );
+      arrow.ref!.style.transform = `translate3d(${modelTransformX}px, ${modelTransformY}px, 0) rotate(${-arrowDirection}deg)`;
+      arrow.hitboxRef!.style.transform = `translate3d(${hitboxTransformX}px, ${hitboxTransformY}px, 0)`;
     }
   }
 
@@ -117,7 +166,8 @@ async function gameLoop(timestamp: number) {
     if (ARROW_COLLISIONS && enemy.lifeStatus === "alive") {
       for (let j = 0; j < gameState.arrows.length; j++) {
         const arrow = gameState.arrows[j]!;
-        if (collisionDetected(arrow.rect, enemy.rect)) {
+
+        if (collisionDetected(arrow.hitbox, enemy.rect)) {
           destroyArrow(j);
 
           if (enemy.health <= arrow.damage) {
@@ -147,7 +197,7 @@ async function gameLoop(timestamp: number) {
     }
 
     // for each enemy detect collisions with player
-    if (ENEMY_COLLISIONS) {
+    if (ENEMY_COLLISIONS && enemy.lifeStatus === "alive") {
       if (collisionDetected(relativePlayerPos, enemy.rect)) {
         if (enemy.attackStatus === "ready") {
           batch(() => {
@@ -157,17 +207,15 @@ async function gameLoop(timestamp: number) {
         }
       }
     }
-
-    // if (gameState.enemies[i]) {
-    // 	setGameState('enemies', i, 'blocked', slowCollisionDetect(enemy));
-    // }
   }
 
   // detect player collisions with gems
   if (SPAWN_GEMS && GEMS_COLLISIONS) {
     for (let i = 0; i < gameState.gems.length; i++) {
       const gem = gameState.gems[i]!;
-      gem.ref!.style.transform = `translate3d(${gem.rect.x + newWorldX}px, ${gem.rect.y + newWorldY - GAME_WORLD_SIZE}px, 0)`;
+      const transformX = gem.rect.x + newWorldX;
+      const transformY = gem.rect.y + newWorldY - GAME_WORLD_SIZE;
+      gem.ref!.style.transform = `translate3d(${transformX}px, ${transformY}px, 0)`;
 
       if (collisionDetected(relativePlayerPos, gem.rect)) {
         batch(() => {

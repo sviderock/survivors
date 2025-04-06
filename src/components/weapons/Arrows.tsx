@@ -1,8 +1,14 @@
 import { For } from "solid-js";
 import { relativePlayerPos } from "~/components/Player";
-import { ARROW_DAMAGE, ARROW_DISTANCE, ARROW_SIZE } from "~/constants";
+import { ARROW_DAMAGE, ARROW_DISTANCE, ARROW_HITBOX_SIZE, ARROW_MODEL_SIZE } from "~/constants";
 import { gameState, setGameState } from "~/state";
-import { cn, getDiagonalDistance, getInitialRect } from "~/utils";
+import {
+  calculateRotatedPosition,
+  cn,
+  getDiagonalDistance,
+  getInitialRect,
+  getRotationDeg,
+} from "~/utils";
 
 function getArrowDistance(direction: Arrow["direction"]) {
   if (direction === "north") return { x: 0, y: -ARROW_DISTANCE };
@@ -23,18 +29,34 @@ function getArrowDistance(direction: Arrow["direction"]) {
 }
 
 export function createSingleArrow(direction: Arrow["direction"]): Arrow {
-  const arrowStartX = relativePlayerPos().centerX - ARROW_SIZE / 2;
-  const arrowStartY = relativePlayerPos().centerY - ARROW_SIZE / 2;
+  const arrowStartX = relativePlayerPos().centerX;
+  const arrowStartY = relativePlayerPos().centerY + ARROW_MODEL_SIZE.h * 1.5;
   const rect = getInitialRect({
-    width: ARROW_SIZE,
-    height: ARROW_SIZE,
     x: arrowStartX,
     y: arrowStartY,
+    width: ARROW_MODEL_SIZE.w,
+    height: ARROW_MODEL_SIZE.h,
   });
+  const hitboxTopLeft = calculateRotatedPosition({
+    angle: getRotationDeg(direction),
+    startOffsetX: arrowStartX,
+    startOffsetY: arrowStartY,
+    modelSize: ARROW_MODEL_SIZE,
+    hitboxSize: ARROW_HITBOX_SIZE,
+    shiftHitbox: true,
+  });
+  const hitboxRect = getInitialRect({
+    ...hitboxTopLeft,
+    width: ARROW_HITBOX_SIZE.w,
+    height: ARROW_HITBOX_SIZE.h,
+  });
+
   return {
     ref: undefined,
+    hitboxRef: undefined,
     rect,
     direction,
+    hitbox: hitboxRect,
     damage: ARROW_DAMAGE,
     target: {
       x: arrowStartX + getArrowDistance(direction).x,
@@ -56,19 +78,28 @@ export function destroyArrow(idx: number) {
 
 export default function Arrows() {
   return (
-    <For each={gameState.arrows}>
-      {(_, idx) => (
-        <div
-          ref={(el) => setGameState("arrows", idx(), "ref", el)}
-          class="w-arrow-hitbox h-arrow-hitbox absolute overflow-hidden"
-        >
-          <div
-            class={cn(
-              "bg-arrow w-arrow h-arrow relative overflow-hidden bg-[position:0_calc(var(--pixel-size)_*_4px_*-1)] bg-no-repeat [image-rendering:pixelated]"
-            )}
-          />
-        </div>
-      )}
-    </For>
+    <>
+      <For each={gameState.arrows}>
+        {(arrow, idx) => (
+          <>
+            <div
+              ref={(el) => setGameState("arrows", idx(), "ref", el)}
+              class="w-arrow-model h-arrow-model absolute border-none border-yellow-500 box-content"
+            >
+              <div
+                class={cn(
+                  "border-blue-500 box-content border-none bg-arrow w-arrow h-arrow relative bg-no-repeat [image-rendering:pixelated] bg-[position:-1px_-28px]"
+                )}
+              />
+            </div>
+
+            <span
+              ref={(el) => setGameState("arrows", idx(), "hitboxRef", el)}
+              // class="bg-purple-500/80 w-arrow-hitbox h-arrow-hitbox absolute z-10 "
+            />
+          </>
+        )}
+      </For>
+    </>
   );
 }

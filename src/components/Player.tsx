@@ -11,7 +11,7 @@ import {
   PLAYER_SIZE,
   PLAYER_SPEED,
   RAPID_MODE,
-  SHOOTING_ANIMATION_DURATION_SS,
+  SHOOTING_ANIMATION_DURATION_MS,
   TILE_SIZE,
   XP_LVL_2,
   XP_LVL_21_TO_40,
@@ -41,12 +41,12 @@ export const [player, setPlayer] = createStore<Player>({
   health: PLAYER_BASE_HEALTH,
   maxHealth: PLAYER_BASE_HEALTH,
   movement: "idle",
-  direction: "west",
+  direction: "east",
   occupiedTile: { row: 0, col: 0 },
   attack: {
     status: "ready",
-    direction: "west",
-    cooldown: RAPID_MODE ? 10 : PLAYER_BASE_COOLDOWN,
+    direction: "east",
+    cooldown: RAPID_MODE ? 300 : PLAYER_BASE_COOLDOWN,
   },
 });
 
@@ -168,11 +168,13 @@ export default function Player() {
           batch(() => {
             if (RAPID_MODE) {
               dirs.forEach((d) => spawnArrow(d));
-              setPlayer("attack", "status", "cooldown");
+            } else {
+              spawnArrow(player.attack.direction);
             }
+            setPlayer("attack", "status", "cooldown");
           });
         },
-        (RAPID_MODE ? SHOOTING_ANIMATION_DURATION_SS : 10) * 1000
+        RAPID_MODE ? 100 : SHOOTING_ANIMATION_DURATION_MS
       );
     }
 
@@ -194,8 +196,12 @@ export default function Player() {
     });
   });
 
+  // onMount(() => {
+  //   spawnArrow("east");
+  // });
+
   return (
-    <div class="pointer-events-none absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
+    <div class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
       <div ref={(ref) => setPlayer("ref", ref)} class="relative h-player-hitbox w-player-hitbox">
         <div
           class={cn(
@@ -228,6 +234,10 @@ export default function Player() {
               "-scale-x-100 animate-move-sprite-sheet-shoot-east"
           )}
         />
+
+        {/* <span class=" text-sm bg-white border-2 border-black absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center">
+          c
+        </span> */}
       </div>
 
       <HealthBar class="mt-1 h-3" currentHealth={player.health} maxHealth={player.maxHealth} />

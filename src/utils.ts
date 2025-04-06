@@ -116,13 +116,13 @@ export function getInitialRect({ x, y, width, height }: GetInitialRectProps): Re
 
 export type GetRotationDeg = ReturnType<typeof getRotationDeg>;
 export function getRotationDeg(comb: Player["attack"]["direction"]) {
-  if (comb === "north-east") return -45;
-  if (comb === "south-east") return 45;
-  if (comb === "north-west") return -135;
-  if (comb === "south-west") return 135;
-  if (comb === "south") return 90;
-  if (comb === "north") return -90;
+  if (comb === "north-east") return 45;
+  if (comb === "north") return 90;
+  if (comb === "north-west") return 135;
   if (comb === "west") return 180;
+  if (comb === "south-west") return 225;
+  if (comb === "south") return 270;
+  if (comb === "south-east") return 315;
   return 0;
 }
 
@@ -246,4 +246,34 @@ export function bitwiseAbs(n: number) {
 
 export function bitwiseRound(n: number) {
   return (n + 0.5) | 0;
+}
+
+export type CalculatedRotatedPosition = ReturnType<typeof calculateRotatedPosition>;
+export function calculateRotatedPosition(args: {
+  angle: number;
+  startOffsetX: number;
+  startOffsetY: number;
+  modelSize: Nums<"w" | "h">;
+  hitboxSize: Nums<"w" | "h">;
+  shiftHitbox?: boolean;
+}) {
+  const radians = ((args.angle * Math.PI) / 180) * -1;
+  const cos = Math.cos(radians);
+  const sin = Math.sin(radians);
+
+  const x1 = args.modelSize.w / 2;
+  const y1 = 0;
+  const x2 = x1 * cos - y1 * sin;
+  const y2 = x1 * sin + y1 * cos;
+
+  const finalOffsetX = args.modelSize.w / 2 - args.hitboxSize.w / 2;
+  const finalOffsetY = args.modelSize.h / 2 - args.hitboxSize.h / 2;
+
+  const shiftX = args.shiftHitbox ? (args.hitboxSize.w / 2) * -cos : 0;
+  const shiftY = args.shiftHitbox ? (args.hitboxSize.h / 2) * -sin : 0;
+
+  return {
+    x: x2 + args.startOffsetX + finalOffsetX + shiftX,
+    y: y2 + args.startOffsetY + finalOffsetY + shiftY,
+  };
 }

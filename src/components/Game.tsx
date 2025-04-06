@@ -1,6 +1,7 @@
 import { Show, createEffect, onCleanup } from "solid-js";
 import Banner from "~/components/Banner";
 import Enemies from "~/components/Enemies";
+import FPSCounter from "~/components/FPSCounter";
 import Gems from "~/components/Gems";
 import Player from "~/components/Player";
 import StageTimer, { setupGameTimer, stageTimer } from "~/components/StageTimer";
@@ -58,6 +59,8 @@ export default function Game() {
         <StageTimer />
         <UIStats />
       </Show>
+
+      <FPSCounter />
     </div>
   );
 }

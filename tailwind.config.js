@@ -1,19 +1,21 @@
 /* eslint-disable no-undef */
 
 import {
-  BLOOD_ANIMATION_DURATION_SS,
+  BLOOD_ANIMATION_DURATION_MS,
   BLOOD_SIZE,
   ARROW_SIZE,
   ENEMY_SIZE,
   GAME_WORLD_SIZE,
   GEM_SIZE,
   PLAYER_SIZE,
-  SHOOTING_ANIMATION_DURATION_SS,
+  SHOOTING_ANIMATION_DURATION_MS,
   TILE_SIZE,
   SKULL_SIZE,
-  ENEMY_DIED_HIDE_MODEL_DURATION_SS,
-  SKULL_APPEAR_DURATIONS_SS,
-  SKULL_GONE_DURATIONS_SS,
+  ENEMY_DIED_HIDE_MODEL_DURATION_MS,
+  SKULL_APPEAR_DURATIONS_MS,
+  SKULL_GONE_DURATIONS_MS,
+  ARROW_MODEL_SIZE,
+  ARROW_HITBOX_SIZE,
 } from "./src/constants";
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -36,10 +38,11 @@ export default {
       width: {
         "enemy-hitbox": "50px",
         "player-hitbox": "80px",
-        "arrow-hitbox": "64px",
+        "arrow-model": `${ARROW_MODEL_SIZE.w}px`,
+        "arrow-hitbox": `${ARROW_HITBOX_SIZE.w}px`,
         enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
         player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
-        arrow: `calc(${ARROW_SIZE}px * var(--pixel-size))`,
+        arrow: `calc(${ARROW_SIZE}px)`,
         blood: `calc(${BLOOD_SIZE.w}px * var(--pixel-size) / 6)`,
         skull: `calc(${SKULL_SIZE}px * var(--pixel-size))`,
         gem: GEM_SIZE.w,
@@ -49,10 +52,11 @@ export default {
       height: {
         "enemy-hitbox": "50px",
         "player-hitbox": "80px",
-        "arrow-hitbox": "20px",
+        "arrow-model": `${ARROW_MODEL_SIZE.h}px`,
+        "arrow-hitbox": `${ARROW_HITBOX_SIZE.h}px`,
         enemy: `calc(${ENEMY_SIZE}px * var(--pixel-size))`,
         player: `calc(${PLAYER_SIZE}px * var(--pixel-size))`,
-        arrow: `calc(${ARROW_SIZE}px * var(--pixel-size))`,
+        arrow: `calc(${ARROW_SIZE}px)`,
         blood: `calc(${BLOOD_SIZE.h}px * var(--pixel-size) / 6)`,
         skull: `calc(${SKULL_SIZE}px * var(--pixel-size))`,
         gem: GEM_SIZE.h,
@@ -72,9 +76,6 @@ export default {
         arrow: `url('/game-assets/Factions/Knights/Troops/Archer/Arrow/Arrow.png')`,
         blood: `url('/game-assets/Effects/Blood.png')`,
         skull: `url('/game-assets/Factions/Knights/Troops/Dead/Dead.png')`,
-      },
-      animationDelay: {
-        skull: `${SKULL_APPEAR_DURATIONS_SS}s`,
       },
       colors: {
         border: "hsl(var(--border))",
@@ -246,18 +247,6 @@ export default {
             transform: "translate3d(0, 0, 0) scaleX(-1)",
           },
         },
-        "hide-model": {
-          "0%": {
-            opacity: 1,
-            scale: 1,
-            rotate: 0,
-          },
-          "100%": {
-            opacity: 0,
-            scale: 0,
-            rotate: "360deg",
-          },
-        },
 
         // enemy idle
         "move-sprite-sheet-enemy-idle": {
@@ -278,6 +267,21 @@ export default {
             backgroundPosition: `calc(-${ENEMY_SIZE}px * var(--pixel-size) * 6) calc(-${ENEMY_SIZE}px * var(--pixel-size))`,
           },
         },
+        "hide-model": {
+          "0%": {
+            opacity: 1,
+            scale: 1,
+            rotate: 0,
+          },
+          "100%": {
+            opacity: 0,
+            scale: 0,
+            rotate: "360deg",
+          },
+        },
+
+        // enemy attack
+        "move-move-sprite-sheet-enemy-attack-east": {},
 
         // blood spill
         "blood-spill": {
@@ -319,26 +323,26 @@ export default {
         // player animations
         "move-sprite-sheet-idle": "move-sprite-sheet-idle .5s steps(6) infinite",
         "move-sprite-sheet-run": `move-sprite-sheet-run .3s steps(6) infinite`,
-        "move-sprite-sheet-shoot-north": `move-sprite-sheet-shoot-north ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
-        "move-sprite-sheet-shoot-north-east": `move-sprite-sheet-shoot-north-east ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
-        "move-sprite-sheet-shoot-east": `move-sprite-sheet-shoot-east ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
-        "move-sprite-sheet-shoot-south-east": `move-sprite-sheet-shoot-south-east ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
-        "move-sprite-sheet-shoot-south": `move-sprite-sheet-shoot-south ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
-        "move-sprite-sheet-shoot-south-west": `move-sprite-sheet-shoot-south-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
-        "move-sprite-sheet-shoot-west": `move-sprite-sheet-shoot-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
-        "move-sprite-sheet-shoot-north-west": `move-sprite-sheet-shoot-north-west ${SHOOTING_ANIMATION_DURATION_SS}s steps(8)`,
-        "hide-model": `hide-model ${ENEMY_DIED_HIDE_MODEL_DURATION_SS}s forwards`,
+        "move-sprite-sheet-shoot-north": `move-sprite-sheet-shoot-north ${SHOOTING_ANIMATION_DURATION_MS}ms steps(8)`,
+        "move-sprite-sheet-shoot-north-east": `move-sprite-sheet-shoot-north-east ${SHOOTING_ANIMATION_DURATION_MS}ms steps(8)`,
+        "move-sprite-sheet-shoot-east": `move-sprite-sheet-shoot-east ${SHOOTING_ANIMATION_DURATION_MS}ms steps(8)`,
+        "move-sprite-sheet-shoot-south-east": `move-sprite-sheet-shoot-south-east ${SHOOTING_ANIMATION_DURATION_MS}ms steps(8)`,
+        "move-sprite-sheet-shoot-south": `move-sprite-sheet-shoot-south ${SHOOTING_ANIMATION_DURATION_MS}ms steps(8)`,
+        "move-sprite-sheet-shoot-south-west": `move-sprite-sheet-shoot-south-west ${SHOOTING_ANIMATION_DURATION_MS}ms steps(8)`,
+        "move-sprite-sheet-shoot-west": `move-sprite-sheet-shoot-west ${SHOOTING_ANIMATION_DURATION_MS}ms steps(8)`,
+        "move-sprite-sheet-shoot-north-west": `move-sprite-sheet-shoot-north-west ${SHOOTING_ANIMATION_DURATION_MS}ms steps(8)`,
+        "hide-model": `hide-model ${ENEMY_DIED_HIDE_MODEL_DURATION_MS}ms forwards`,
 
         // enemy animations
         "move-sprite-sheet-enemy-idle": "move-sprite-sheet-enemy-idle .5s steps(7) infinite",
         "move-sprite-sheet-enemy-run": `move-sprite-sheet-enemy-run .3s steps(6) infinite`,
 
         // blood spill
-        "blood-spill": `blood-spill ${BLOOD_ANIMATION_DURATION_SS}s steps(8)`,
+        "blood-spill": `blood-spill ${BLOOD_ANIMATION_DURATION_MS}ms steps(8)`,
 
         // skull
-        "skull-appear": `skull-appear ${SKULL_APPEAR_DURATIONS_SS}s steps(6) forwards`,
-        "skull-gone": `skull-gone ${SKULL_GONE_DURATIONS_SS}s steps(6) forwards`,
+        "skull-appear": `skull-appear ${SKULL_APPEAR_DURATIONS_MS}ms steps(6) forwards`,
+        "skull-gone": `skull-gone ${SKULL_GONE_DURATIONS_MS}ms steps(6) forwards`,
       },
     },
   },
