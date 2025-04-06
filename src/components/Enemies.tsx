@@ -343,10 +343,6 @@ function Enemy(props: EnemyProps) {
     }
   });
 
-  createEffect(() => {
-    console.log(props.enemy.rect.bottom, props.enemy.rect.left);
-  });
-
   return (
     <div
       ref={props.ref}
