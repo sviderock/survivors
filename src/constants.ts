@@ -17,7 +17,7 @@ export const ENEMY_ATTACK_COOLDOWN = 2_000;
 export const ENEMY_BASE_HEALTH = 1;
 export const ENEMY_COLLISION_OFFSET = 10;
 export const ENEMY_SPAWN_INTERVAL_MS = 10;
-export const ENEMY_LIMIT = 100;
+export const ENEMY_LIMIT = 0;
 export const ENEMY_DIED_HIDE_MODEL_DURATION_MS = 800;
 
 export const BLOOD_SIZE = { w: 110, h: 93 };
@@ -61,4 +61,4 @@ export const ARROW_COLLISIONS = true;
 export const GEMS_COLLISIONS = true;
 
 export const DEBUG = false;
-export const RAPID_MODE = true;
+export const RAPID_MODE = false;
