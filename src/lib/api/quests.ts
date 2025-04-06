@@ -1,8 +1,8 @@
-"use server";
-import { Quests, UserAddresses } from "@/schema";
-import { eq } from "drizzle-orm";
-import { getRequestEvent } from "solid-js/web";
-import { db } from "~/db";
+'use server';
+import { Quests, UserAddresses } from '@/schema';
+import { eq } from 'drizzle-orm';
+import { getRequestEvent } from 'solid-js/web';
+import { db } from '~/db';
 
 function groupBy<T extends object, K extends string>(arr: T[], cb: (item: T) => K): Record<K, T[]> {
   return arr.reduce(
@@ -12,7 +12,7 @@ function groupBy<T extends object, K extends string>(arr: T[], cb: (item: T) => 
       acc[key].push(item);
       return acc;
     },
-    {} as Record<K, T[]>
+    {} as Record<K, T[]>,
   );
 }
 
@@ -21,7 +21,7 @@ const QUEST_NUMBER = 3;
 export async function checkQuestsForUser() {
   const userId = getRequestEvent()?.locals.session?.userId;
   if (!userId) {
-    throw new Error("somehow request to start a game was sent without an active user");
+    throw new Error('somehow request to start a game was sent without an active user');
   }
 
   const activeQuests = await db
@@ -39,17 +39,17 @@ export async function checkQuestsForUser() {
         questData: {
           // TODO
         },
-      })
+      }),
     );
     await db.insert(Quests).values(newQuests);
   }
 
   // if there are active quests then check if the conditions are met
   if (grouped.picked_up?.length) {
-    const oldestPickedUpQuest = [...grouped.picked_up].sort(
-      (a, b) => a.Quests.pickedUpAt!.valueOf() - b.Quests.pickedUpAt!.valueOf()
+    const _oldestPickedUpQuest = [...grouped.picked_up].sort(
+      (a, b) => a.Quests.pickedUpAt!.valueOf() - b.Quests.pickedUpAt!.valueOf(),
     );
 
-    const address = grouped.picked_up[0]!.UserWallets!.address;
+    const _address = grouped.picked_up[0]!.UserWallets!.address;
   }
 }

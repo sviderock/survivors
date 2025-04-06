@@ -7,23 +7,23 @@ import { msToTime } from '~/utils';
 export const [stageTimer, setStageTimer] = createSignal(0);
 
 export function setupGameTimer() {
-	createTimer(
-		async () => {
-			if (!gameState.activeGame) return;
-			if (stageTimer() >= gameState.activeGame.timeLimit) {
-				setGameState('status', 'won');
-				sendWS({ type: 'game_won' });
-				return;
-			}
-			setStageTimer((p) => p + 500);
-		},
-		() => gameState.status === 'in_progress' && 500,
-		setInterval,
-	);
+  createTimer(
+    async () => {
+      if (!gameState.activeGame) return;
+      if (stageTimer() >= gameState.activeGame.timeLimit) {
+        setGameState('status', 'won');
+        sendWS({ type: 'game_won' });
+        return;
+      }
+      setStageTimer((p) => p + 500);
+    },
+    () => gameState.status === 'in_progress' && 500,
+    setInterval,
+  );
 }
 
 export default function StageTimer() {
-	const formattedTime = () => msToTime(stageTimer());
+  const formattedTime = () => msToTime(stageTimer());
 
-	return <span class="absolute left-1/2 top-6 -translate-x-1/2 text-4xl">{formattedTime()}</span>;
+  return <span class="-translate-x-1/2 absolute top-6 left-1/2 text-4xl">{formattedTime()}</span>;
 }

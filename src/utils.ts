@@ -1,7 +1,7 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { HEALTH_COLOR_FULL, HEALTH_COLOR_HALF, HEALTH_COLOR_NONE } from "~/constants";
-import type { GameServerEvent } from "~/ws";
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { HEALTH_COLOR_FULL, HEALTH_COLOR_HALF, HEALTH_COLOR_NONE } from '~/constants';
+import type { GameServerEvent } from '~/ws';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -11,7 +11,7 @@ export function parseJson(str: string) {
   try {
     return JSON.parse(str);
   } catch (error) {
-    console.error("issue parsing JSON", error);
+    console.error('issue parsing JSON', error);
     return {};
   }
 }
@@ -20,8 +20,8 @@ export function encodeJson<T extends object>(obj: T) {
   try {
     return JSON.stringify(obj);
   } catch (error) {
-    console.error("issue encoding JSON", error);
-    return "";
+    console.error('issue encoding JSON', error);
+    return '';
   }
 }
 
@@ -115,14 +115,14 @@ export function getInitialRect({ x, y, width, height }: GetInitialRectProps): Re
 }
 
 export type GetRotationDeg = ReturnType<typeof getRotationDeg>;
-export function getRotationDeg(comb: Player["attack"]["direction"]) {
-  if (comb === "north-east") return 45;
-  if (comb === "north") return 90;
-  if (comb === "north-west") return 135;
-  if (comb === "west") return 180;
-  if (comb === "south-west") return 225;
-  if (comb === "south") return 270;
-  if (comb === "south-east") return 315;
+export function getRotationDeg(comb: Player['attack']['direction']) {
+  if (comb === 'north-east') return 45;
+  if (comb === 'north') return 90;
+  if (comb === 'north-west') return 135;
+  if (comb === 'west') return 180;
+  if (comb === 'south-west') return 225;
+  if (comb === 'south') return 270;
+  if (comb === 'south-east') return 315;
   return 0;
 }
 
@@ -140,23 +140,23 @@ export function msToTime(ms: number) {
   const totalSeconds = (ms / 1000) | 0;
   const mm = (totalSeconds / 60) | 0;
   const ss = totalSeconds % 60;
-  return (mm < 10 ? "0" + mm : mm) + ":" + (ss < 10 ? "0" + ss : ss);
+  return (mm < 10 ? '0' + mm : mm) + ':' + (ss < 10 ? '0' + ss : ss);
 }
 
 function rgbToHex(c: RGB) {
-  const r = c.r.toString(16).padStart(2, "0");
-  const g = c.g.toString(16).padStart(2, "0");
-  const b = c.b.toString(16).padStart(2, "0");
+  const r = c.r.toString(16).padStart(2, '0');
+  const g = c.g.toString(16).padStart(2, '0');
+  const b = c.b.toString(16).padStart(2, '0');
   return `#${r}${g}${b}`.toUpperCase();
 }
 
 function _hexToRgb(hex: string) {
-  hex = hex.replace(/^#/, "");
+  hex = hex.replace(/^#/, '');
   if (hex.length === 3) {
     hex = hex
-      .split("")
+      .split('')
       .map((c) => c + c)
-      .join("");
+      .join('');
   }
   const num = parseInt(hex, 16);
   return {
@@ -172,9 +172,9 @@ export function lerp(a: number, b: number, t: number) {
 
 function getRGB(color: RGBStr) {
   const [r, g, b] = color
-    .replace("rgb(", "")
-    .replace(")", "")
-    .split(",")
+    .replace('rgb(', '')
+    .replace(')', '')
+    .split(',')
     .map((i) => +i);
   return { r, g, b } as RGB;
 }
@@ -204,7 +204,7 @@ export function getDirection(a: number, b: number) {
 }
 
 export function getWsUrl(location: Location) {
-  return `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/_ws/`;
+  return `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/_ws/`;
 }
 
 export function getMins(mm: number) {
@@ -213,9 +213,9 @@ export function getMins(mm: number) {
 
 export async function fetchPost<R extends object, T extends object = object>(
   url: string,
-  body?: T
+  body?: T,
 ) {
-  const resp = await fetch(url, { method: "POST", body: body ? encodeJson(body) : undefined });
+  const resp = await fetch(url, { method: 'POST', body: body ? encodeJson(body) : undefined });
   return (await resp.json()) as R;
 }
 
@@ -226,14 +226,14 @@ export async function fetchGet<
     string | number | boolean | null | undefined
   >,
 >(url: string, params?: T) {
-  let searchStr = "";
+  let searchStr = '';
   if (params) {
     const searchParams = new URLSearchParams();
     for (const key in params) {
       searchParams.append(key, `${params[key]}`);
     }
 
-    searchStr = searchParams.toString() ? `?${searchParams.toString()}` : "";
+    searchStr = searchParams.toString() ? `?${searchParams.toString()}` : '';
   }
 
   const resp = await fetch(`${url}${searchStr}`);
@@ -253,8 +253,8 @@ export function calculateRotatedPosition(args: {
   angle: number;
   startOffsetX: number;
   startOffsetY: number;
-  modelSize: Nums<"w" | "h">;
-  hitboxSize: Nums<"w" | "h">;
+  modelSize: Nums<'w' | 'h'>;
+  hitboxSize: Nums<'w' | 'h'>;
   shiftHitbox?: boolean;
 }) {
   const radians = ((args.angle * Math.PI) / 180) * -1;

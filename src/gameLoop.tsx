@@ -1,11 +1,12 @@
-import { batch } from "solid-js";
-import { produce } from "solid-js/store";
-import { moveEnemy, spawnEnemy } from "~/components/Enemies";
-import { destroyGem, spawnGem } from "~/components/Gems";
-import { movePlayer, player, playerRect, setPlayer } from "~/components/Player";
-import { destroyArrow } from "~/components/weapons/Arrows";
+import { batch } from 'solid-js';
+import { produce } from 'solid-js/store';
+import { moveEnemy, spawnEnemy } from '~/components/Enemies';
+import { destroyGem, spawnGem } from '~/components/Gems';
+import { movePlayer, player, playerRect, setPlayer } from '~/components/Player';
+import { destroyArrow } from '~/components/weapons/Arrows';
 import {
   ARROW_COLLISIONS,
+  ARROW_HITBOX_SIZE,
   ARROW_MODEL_SIZE,
   ARROW_SPEED,
   DEBUG,
@@ -17,22 +18,21 @@ import {
   GEMS_COLLISIONS,
   SPAWN_ENEMIES,
   SPAWN_GEMS,
-  ARROW_HITBOX_SIZE,
-} from "~/constants";
-import { gameState, setGameState } from "~/state";
+} from '~/constants';
+import { gameState, setGameState } from '~/state';
 import {
   calculateRotatedPosition,
   collisionDetected,
   getInitialRect,
   getNewPos,
   getRotationDeg,
-} from "~/utils";
+} from '~/utils';
 
 const TICK = 16.66666666; // 60 fps
 let tickTimer = 0;
 let enemySpawnTimer = 0;
 
-let stopSpawningEnemies = false;
+const stopSpawningEnemies = false;
 
 export let mainGameLoop: number | undefined;
 
@@ -48,7 +48,7 @@ async function gameLoop(timestamp: number) {
   }
   tickTimer += TICK;
 
-  if (gameState.status !== "in_progress" && !DEBUG_MECHANICS) {
+  if (gameState.status !== 'in_progress' && !DEBUG_MECHANICS) {
     enemySpawnTimer = 0;
     return;
   }
@@ -78,8 +78,8 @@ async function gameLoop(timestamp: number) {
     centerY: playerRect().top - newWorldY + playerRect().height / 2,
   };
 
-  if (player.attack.status === "ready") {
-    setPlayer("attack", "status", "started_attack");
+  if (player.attack.status === 'ready') {
+    setPlayer('attack', 'status', 'started_attack');
   }
 
   // move arrows
@@ -145,12 +145,12 @@ async function gameLoop(timestamp: number) {
       const hitboxTransformY = arrow.hitbox.top + newWorldY - GAME_WORLD_SIZE;
 
       setGameState(
-        "arrows",
+        'arrows',
         i,
         produce((arrow) => {
           arrow.rect = updatedRect;
           arrow.hitbox = hitboxRect;
-        })
+        }),
       );
       arrow.ref!.style.transform = `translate3d(${modelTransformX}px, ${modelTransformY}px, 0) rotate(${-arrowDirection}deg)`;
       arrow.hitboxRef!.style.transform = `translate3d(${hitboxTransformX}px, ${hitboxTransformY}px, 0)`;
@@ -163,7 +163,7 @@ async function gameLoop(timestamp: number) {
     moveEnemy(i, relativePlayerPos, newWorldX, newWorldY);
 
     // for each enemy detect collisions with arrows
-    if (ARROW_COLLISIONS && enemy.lifeStatus === "alive") {
+    if (ARROW_COLLISIONS && enemy.lifeStatus === 'alive') {
       for (let j = 0; j < gameState.arrows.length; j++) {
         const arrow = gameState.arrows[j]!;
 
@@ -178,31 +178,31 @@ async function gameLoop(timestamp: number) {
             setGameState(
               produce((state) => {
                 state.enemiesKilled++;
-                state.enemies[i]!.lifeStatus = "died";
-              })
+                state.enemies[i]!.lifeStatus = 'died';
+              }),
             );
             break;
           }
 
           setGameState(
-            "enemies",
+            'enemies',
             i,
             produce((e) => {
               e.health -= arrow.damage;
-              e.status = "hit";
-            })
+              e.status = 'hit';
+            }),
           );
         }
       }
     }
 
     // for each enemy detect collisions with player
-    if (ENEMY_COLLISIONS && enemy.lifeStatus === "alive") {
+    if (ENEMY_COLLISIONS && enemy.lifeStatus === 'alive') {
       if (collisionDetected(relativePlayerPos, enemy.rect)) {
-        if (enemy.attackStatus === "ready") {
+        if (enemy.attackStatus === 'ready') {
           batch(() => {
-            setGameState("enemies", i, "attackStatus", "hit");
-            setPlayer("health", player.health - enemy.attack);
+            setGameState('enemies', i, 'attackStatus', 'hit');
+            setPlayer('health', player.health - enemy.attack);
           });
         }
       }
@@ -220,14 +220,14 @@ async function gameLoop(timestamp: number) {
       if (collisionDetected(relativePlayerPos, gem.rect)) {
         batch(() => {
           destroyGem(i);
-          setGameState("experience", gameState.experience + 1);
+          setGameState('experience', gameState.experience + 1);
         });
       }
     }
   }
 
   if (player.health <= 0) {
-    setGameState("status", "lost");
+    setGameState('status', 'lost');
     clearGameLoop();
   }
 

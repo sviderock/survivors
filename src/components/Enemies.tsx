@@ -1,7 +1,7 @@
-import { For, Match, Switch, createEffect, onMount } from "solid-js";
-import { produce } from "solid-js/store";
-import { player, relativePlayerPos } from "~/components/Player";
-import { getTileInfoKey } from "~/components/Terrain";
+import { For, Match, Switch, createEffect, onMount } from 'solid-js';
+import { produce } from 'solid-js/store';
+import { player, relativePlayerPos } from '~/components/Player';
+import { getTileInfoKey } from '~/components/Terrain';
 import {
   BLOOD_ANIMATION_DURATION_MS,
   DEBUG,
@@ -13,9 +13,9 @@ import {
   SKULL_DESTROY_DELAY_MS,
   SKULL_GONE_DURATIONS_MS,
   TILE_SIZE,
-} from "~/constants";
-import { gameState, setGameState } from "~/state";
-import { bitwiseAbs, cn, getDirection, getInitialRect, getNewPos, getRandomBetween } from "~/utils";
+} from '~/constants';
+import { gameState, setGameState } from '~/state';
+import { bitwiseAbs, cn, getDirection, getInitialRect, getNewPos, getRandomBetween } from '~/utils';
 
 function createSingleEnemy(): Enemy {
   const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
@@ -25,16 +25,16 @@ function createSingleEnemy(): Enemy {
     rect: {} as Rect,
     ref: undefined,
     attack: 3,
-    attackStatus: "ready",
+    attackStatus: 'ready',
     health,
     maxHealth: health,
     blocked: { x: 0, y: 0 },
-    status: "moving",
-    lifeStatus: "alive",
+    status: 'moving',
+    lifeStatus: 'alive',
     dirX: 0,
     dirY: 0,
-    occupiedTile: {} as Enemy["occupiedTile"],
-    nextTile: {} as Enemy["nextTile"],
+    occupiedTile: {} as Enemy['occupiedTile'],
+    nextTile: {} as Enemy['nextTile'],
     playerReached: false,
   };
 }
@@ -44,7 +44,7 @@ export function spawnEnemy() {
     produce((state) => {
       const newEnemy = createSingleEnemy();
       state.enemies[state.enemies.length] = newEnemy;
-    })
+    }),
   );
 }
 
@@ -54,16 +54,16 @@ export function destroyEnemy(idx: number) {
       const lastOccupied = state.enemies[idx]!.occupiedTile;
       state.occupiedTile[getTileInfoKey(lastOccupied.row, lastOccupied.col)] = undefined;
       state.enemies = state.enemies.filter((_, i) => idx !== i);
-    })
+    }),
   );
 }
 
 function getMovingDirection(row: number, col: number) {
   return {
     horizontal:
-      player.occupiedTile.col > col ? "right" : player.occupiedTile.col < col ? "left" : "nowhere",
+      player.occupiedTile.col > col ? 'right' : player.occupiedTile.col < col ? 'left' : 'nowhere',
     vertical:
-      player.occupiedTile.row > row ? "bottom" : player.occupiedTile.row < row ? "top" : "nowhere",
+      player.occupiedTile.row > row ? 'bottom' : player.occupiedTile.row < row ? 'top' : 'nowhere',
   } as const;
 }
 
@@ -111,56 +111,56 @@ function getNextTile(row: number, col: number): Tile {
       break;
     }
 
-    case vertical === "top" && horizontal === "right": {
+    case vertical === 'top' && horizontal === 'right': {
       if (!tileTopRightOccupied) return { row: prevRow, col: nextCol };
       if (!tileRightOccupied) return { row: row, col: nextCol };
       if (!tileTopOccupied) return { row: prevRow, col: col };
       break;
     }
 
-    case vertical === "top" && horizontal === "left": {
+    case vertical === 'top' && horizontal === 'left': {
       if (!tileTopLeftOccupied) return { row: prevRow, col: prevCol };
       if (!tileLeftOccupied) return { row: row, col: prevCol };
       if (!tileTopOccupied) return { row: prevRow, col: col };
       break;
     }
 
-    case vertical === "top" && horizontal === "nowhere": {
+    case vertical === 'top' && horizontal === 'nowhere': {
       if (!tileTopOccupied) return { row: prevRow, col: col };
       if (!tileLeftOccupied) return { row: row, col: prevCol };
       if (!tileRightOccupied) return { row: row, col: nextCol };
       break;
     }
 
-    case vertical === "bottom" && horizontal === "right": {
+    case vertical === 'bottom' && horizontal === 'right': {
       if (!tileBottomRightOccupied) return { row: nextRow, col: nextCol };
       if (!tileRightOccupied) return { row: row, col: nextCol };
       if (!tileBottomOccupied) return { row: nextRow, col: col };
       break;
     }
 
-    case vertical === "bottom" && horizontal === "left": {
+    case vertical === 'bottom' && horizontal === 'left': {
       if (!tileBottomLeftOccupied) return { row: nextRow, col: prevCol };
       if (!tileLeftOccupied) return { row: row, col: prevCol };
       if (!tileBottomOccupied) return { row: nextRow, col: col };
       break;
     }
 
-    case vertical === "bottom" && horizontal === "nowhere": {
+    case vertical === 'bottom' && horizontal === 'nowhere': {
       if (!tileBottomOccupied) return { row: nextRow, col: col };
       if (!tileLeftOccupied) return { row: row, col: prevCol };
       if (!tileRightOccupied) return { row: row, col: nextCol };
       break;
     }
 
-    case vertical === "nowhere" && horizontal === "right": {
+    case vertical === 'nowhere' && horizontal === 'right': {
       if (!tileRightOccupied) return { row: row, col: nextCol };
       if (!tileTopOccupied) return { row: prevRow, col: col };
       if (!tileBottomOccupied) return { row: nextRow, col: col };
       break;
     }
 
-    case vertical === "nowhere" && horizontal === "left": {
+    case vertical === 'nowhere' && horizontal === 'left': {
       if (!tileLeftOccupied) return { row: row, col: prevCol };
       if (!tileTopOccupied) return { row: prevRow, col: col };
       if (!tileBottomOccupied) return { row: nextRow, col: col };
@@ -176,7 +176,7 @@ export function moveEnemy(
   idx: number,
   relativePlayerPos: RectSides & RectCenter,
   newWorldX: number,
-  newWorldY: number
+  newWorldY: number,
 ) {
   const enemy = gameState.enemies[idx]!;
   const dirX = getDirection(enemy.rect.centerX, relativePlayerPos.centerX);
@@ -195,7 +195,7 @@ export function moveEnemy(
   const projectedTile = updateOccupiedMatrix(enemy.rect);
   const nextTile = getNextTile(enemy.occupiedTile.row, enemy.occupiedTile.col);
 
-  if (enemy.lifeStatus === "alive") {
+  if (enemy.lifeStatus === 'alive') {
     x += ENEMY_SPEED * getDirection(enemy.occupiedTile.col, nextTile.col);
     y += ENEMY_SPEED * getDirection(enemy.occupiedTile.row, nextTile.row);
   }
@@ -228,7 +228,7 @@ export function moveEnemy(
       state.projectedTile[getTileInfoKey(enemy.nextTile.row, enemy.nextTile.col)] = undefined;
       state.projectedTile[getTileInfoKey(nextTile.row, nextTile.col)] = 1;
       state.enemies[idx]!.nextTile = nextTile;
-    })
+    }),
   );
 
   const newEnemyX = updatedRect.x + newWorldX;
@@ -236,7 +236,7 @@ export function moveEnemy(
   enemy.ref!.style.transform = `translate3d(${newEnemyX}px, ${newEnemyY}px, 0)`;
 }
 
-export function updateOccupiedMatrix(enemyRect: Enemy["rect"]) {
+export function updateOccupiedMatrix(enemyRect: Enemy['rect']) {
   const offsetTilesY = bitwiseAbs(gameState.terrainRect.y) / TILE_SIZE;
   const offsetEnemyY = (enemyRect.y / TILE_SIZE) * 2;
   const offsetWorldY = (enemyRect.y / TILE_SIZE) * -1;
@@ -254,7 +254,7 @@ export default function Enemies() {
   return (
     <For each={gameState.enemies}>
       {(enemy, idx) => (
-        <Enemy idx={idx()} enemy={enemy} ref={(el) => setGameState("enemies", idx(), "ref", el)} />
+        <Enemy idx={idx()} enemy={enemy} ref={(el) => setGameState('enemies', idx(), 'ref', el)} />
       )}
     </For>
   );
@@ -297,44 +297,44 @@ function Enemy(props: EnemyProps) {
         state.enemies[props.idx]!.nextTile = nextTile;
         state.occupiedTile[getTileInfoKey(occupiedTile.row, occupiedTile.col)] = 1;
         state.projectedTile[getTileInfoKey(nextTile.row, nextTile.col)] = 1;
-      })
+      }),
     );
   });
 
   createEffect(() => {
     switch (true) {
-      case props.enemy.attackStatus === "hit": {
-        setGameState("enemies", props.idx, "attackStatus", "cooldown");
+      case props.enemy.attackStatus === 'hit': {
+        setGameState('enemies', props.idx, 'attackStatus', 'cooldown');
         setTimeout(() => {
           if (gameState.enemies[props.idx]) {
-            setGameState("enemies", props.idx, "attackStatus", "ready");
+            setGameState('enemies', props.idx, 'attackStatus', 'ready');
           }
         }, ENEMY_ATTACK_COOLDOWN);
         break;
       }
 
-      case props.enemy.status === "hit": {
+      case props.enemy.status === 'hit': {
         setTimeout(() => {
-          setGameState("enemies", props.idx, "status", "moving");
+          setGameState('enemies', props.idx, 'status', 'moving');
         }, BLOOD_ANIMATION_DURATION_MS);
         break;
       }
 
-      case props.enemy.lifeStatus === "died": {
+      case props.enemy.lifeStatus === 'died': {
         setTimeout(() => {
-          setGameState("enemies", props.idx, "lifeStatus", "show_skull");
+          setGameState('enemies', props.idx, 'lifeStatus', 'show_skull');
         }, ENEMY_DIED_HIDE_MODEL_DURATION_MS / 3);
         break;
       }
 
-      case props.enemy.lifeStatus === "show_skull": {
+      case props.enemy.lifeStatus === 'show_skull': {
         setTimeout(() => {
-          setGameState("enemies", props.idx, "lifeStatus", "skull_gone");
+          setGameState('enemies', props.idx, 'lifeStatus', 'skull_gone');
         }, SKULL_DESTROY_DELAY_MS);
         break;
       }
 
-      case props.enemy.lifeStatus === "skull_gone": {
+      case props.enemy.lifeStatus === 'skull_gone': {
         setTimeout(() => {
           destroyEnemy(props.idx);
         }, SKULL_GONE_DURATIONS_MS);
@@ -347,55 +347,55 @@ function Enemy(props: EnemyProps) {
     <div
       ref={props.ref}
       class={cn(
-        "absolute h-enemy-hitbox w-enemy-hitbox",
-        DEBUG && "border-blue-700 border-4",
+        'absolute h-enemy-hitbox w-enemy-hitbox',
+        DEBUG && 'border-4 border-blue-700',
         DEBUG &&
           gameState.occupiedTile[
             getTileInfoKey(props.enemy.occupiedTile.row, props.enemy.occupiedTile.col + 1)
           ]! &&
-          "border-r-8 border-r-cyan-500",
+          'border-r-8 border-r-cyan-500',
         DEBUG &&
           gameState.occupiedTile[
             getTileInfoKey(props.enemy.occupiedTile.row, props.enemy.occupiedTile.col - 1)
           ]! &&
-          "border-l-8 border-l-cyan-500",
+          'border-l-8 border-l-cyan-500',
         DEBUG &&
           gameState.occupiedTile[
             getTileInfoKey(props.enemy.occupiedTile.row - 1, props.enemy.occupiedTile.col)
           ]! &&
-          "border-t-8 border-t-cyan-500",
+          'border-t-8 border-t-cyan-500',
         DEBUG &&
           gameState.occupiedTile[
             getTileInfoKey(props.enemy.occupiedTile.row + 1, props.enemy.occupiedTile.col)
           ]! &&
-          "border-b-8 border-b-cyan-500"
+          'border-b-8 border-b-cyan-500',
       )}
     >
       <div
         class={cn(
-          "relative left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated]",
-          props.enemy.lifeStatus === "alive" &&
-            props.enemy.status === "idle" &&
-            "animate-move-sprite-sheet-enemy-idle",
-          props.enemy.lifeStatus === "alive" &&
-            props.enemy.status === "moving" &&
-            "animate-move-sprite-sheet-enemy-run",
-          props.enemy.lifeStatus === "alive" && props.enemy.dirX === -1 && "-scale-x-100",
-          props.enemy.lifeStatus === "died" && "origin-[0_0] animate-hide-model rounded-full",
-          props.enemy.lifeStatus !== "alive" && "opacity-0"
+          '-translate-x-1/2 -translate-y-1/2 relative top-1/2 left-1/2 h-enemy w-enemy overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated]',
+          props.enemy.lifeStatus === 'alive' &&
+            props.enemy.status === 'idle' &&
+            'animate-move-sprite-sheet-enemy-idle',
+          props.enemy.lifeStatus === 'alive' &&
+            props.enemy.status === 'moving' &&
+            'animate-move-sprite-sheet-enemy-run',
+          props.enemy.lifeStatus === 'alive' && props.enemy.dirX === -1 && '-scale-x-100',
+          props.enemy.lifeStatus === 'died' && 'origin-[0_0] animate-hide-model rounded-full',
+          props.enemy.lifeStatus !== 'alive' && 'opacity-0',
         )}
       />
 
       <Switch>
-        <Match when={props.enemy.status === "hit" || props.enemy.lifeStatus === "died"}>
+        <Match when={props.enemy.status === 'hit' || props.enemy.lifeStatus === 'died'}>
           <BloodSpill dirX={props.enemy.dirX} dirY={props.enemy.dirY} />
         </Match>
 
-        <Match when={props.enemy.lifeStatus === "show_skull"}>
+        <Match when={props.enemy.lifeStatus === 'show_skull'}>
           <SkullAppear />
         </Match>
 
-        <Match when={props.enemy.lifeStatus === "skull_gone"}>
+        <Match when={props.enemy.lifeStatus === 'skull_gone'}>
           <SkullGone />
         </Match>
       </Switch>
@@ -403,17 +403,17 @@ function Enemy(props: EnemyProps) {
   );
 }
 
-function BloodSpill(props: Pick<Enemy, "dirX" | "dirY">) {
+function BloodSpill(props: Pick<Enemy, 'dirX' | 'dirY'>) {
   return (
     <div
       style={{
-        "--blood-scale": "1.2",
-        "--blood-translate-x": `calc(-50% - (var(--blood-scale) * 20px * ${props.dirX}))`,
-        "--blood-translate-y": `calc(-50% - (var(--blood-scale) * -20px * ${props.dirY}))`,
+        '--blood-scale': '1.2',
+        '--blood-translate-x': `calc(-50% - (var(--blood-scale) * 20px * ${props.dirX}))`,
+        '--blood-translate-y': `calc(-50% - (var(--blood-scale) * -20px * ${props.dirY}))`,
       }}
       class={cn(
-        "absolute will-change-bp left-1/2 top-1/2 w-blood h-blood [background-position:0px_0px] [image-rendering:pixelated] translate-x-(--blood-translate-x) translate-y-(--blood-translate-y) bg-blood animate-blood-spill scale-(--blood-scale)",
-        props.dirX === 1 && "-scale-x-(--blood-scale)"
+        'absolute top-1/2 left-1/2 h-blood w-blood translate-x-(--blood-translate-x) translate-y-(--blood-translate-y) scale-(--blood-scale) animate-blood-spill bg-blood will-change-bp [background-position:0px_0px] [image-rendering:pixelated]',
+        props.dirX === 1 && '-scale-x-(--blood-scale)',
       )}
     />
   );
@@ -423,7 +423,7 @@ function SkullAppear() {
   return (
     <div
       class={cn(
-        "absolute left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-skull will-change-bp [image-rendering:pixelated] animate-skull-appear z-0"
+        '-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-0 h-enemy w-enemy animate-skull-appear overflow-hidden bg-skull will-change-bp [image-rendering:pixelated]',
       )}
     />
   );
@@ -433,7 +433,7 @@ function SkullGone() {
   return (
     <div
       class={cn(
-        "absolute left-1/2 top-1/2 h-enemy w-enemy -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-skull will-change-bp [image-rendering:pixelated] animate-skull-gone z-0"
+        '-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-0 h-enemy w-enemy animate-skull-gone overflow-hidden bg-skull will-change-bp [image-rendering:pixelated]',
       )}
     />
   );

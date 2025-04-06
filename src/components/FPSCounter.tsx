@@ -1,4 +1,4 @@
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { createSignal, onCleanup, onMount } from 'solid-js';
 
 export default function FPSCounter() {
   const [fps, setFps] = createSignal(0);
@@ -30,5 +30,5 @@ export default function FPSCounter() {
     clearInterval(interval);
   });
 
-  return <span class="text-base fixed top-0 left-2">{fps()} FPS</span>;
+  return <span class="fixed top-0 left-2 text-base">{fps()} FPS</span>;
 }

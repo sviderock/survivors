@@ -41,13 +41,13 @@ export const GAME_WORLD_SIZE = 10_000;
 export const GAME_WORLD_HALFSIZE = GAME_WORLD_SIZE / 2;
 export const TILE_SIZE = 50;
 
-export const HEALTH_COLOR_FULL = "rgb(124,207,0)";
-export const HEALTH_COLOR_HALF = "rgb(240,177,0)";
-export const HEALTH_COLOR_NONE = "rgb(193,0,7)";
+export const HEALTH_COLOR_FULL = 'rgb(124,207,0)';
+export const HEALTH_COLOR_HALF = 'rgb(240,177,0)';
+export const HEALTH_COLOR_NONE = 'rgb(193,0,7)';
 
-export const ABRUPTLY_STOPPPED_GAME_LS_KEY = "abruptly_stopped_game";
+export const ABRUPTLY_STOPPPED_GAME_LS_KEY = 'abruptly_stopped_game';
 export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
-export const SUPPORTED_PROTOCOLS = ["celo"] as const;
+export const SUPPORTED_PROTOCOLS = ['celo'] as const;
 export const SHOOTING_ANIMATION_DURATION_MS = 200;
 
 export const DEBUG_MECHANICS = true;

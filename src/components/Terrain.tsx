@@ -1,8 +1,8 @@
-import { For, type ParentProps, Show, createMemo, onMount } from "solid-js";
-import { produce } from "solid-js/store";
-import { DEBUG, SPAWN_TERRAIN, TILE_SIZE } from "~/constants";
-import { gameState, setGameState, worldRect } from "~/state";
-import { cn, getNewPos, getRect } from "~/utils";
+import { For, type ParentProps, Show, createMemo, onMount } from 'solid-js';
+import { produce } from 'solid-js/store';
+import { DEBUG, SPAWN_TERRAIN, TILE_SIZE } from '~/constants';
+import { gameState, setGameState, worldRect } from '~/state';
+import { cn, getNewPos, getRect } from '~/utils';
 
 export function getTileInfoKey(row: number, col: number) {
   return `${row}-${col}`;
@@ -31,9 +31,9 @@ export default function Terrain(props: ParentProps) {
   function buildTiles(gridSize: {
     rows: number;
     columns: number;
-  }): Pick<GameState, "terrainRect" | "tileInfo"> {
+  }): Pick<GameState, 'terrainRect' | 'tileInfo'> {
     const terrainRect = getRect(worldRef!);
-    const tileInfo: GameState["tileInfo"] = {};
+    const tileInfo: GameState['tileInfo'] = {};
 
     for (let row = 0; row < gridSize.rows; row++) {
       for (let col = 0; col < gridSize.columns; col++) {
@@ -55,14 +55,14 @@ export default function Terrain(props: ParentProps) {
       produce((state) => {
         state.terrainRect = terrainRect;
         state.tileInfo = tileInfo;
-      })
+      }),
     );
   });
 
   return (
     <div
       ref={worldRef}
-      class={cn("h-world w-world", SPAWN_TERRAIN && "bg-forest [image-rendering:pixelated]")}
+      class={cn('h-world w-world', SPAWN_TERRAIN && 'bg-forest [image-rendering:pixelated]')}
       style={{
         transform: `translate3d(calc(-50% + ${worldRect.x}px), calc(-50% + ${worldRect.y}px), 0)`,
       }}
@@ -80,7 +80,7 @@ function TileGrid() {
   const projectedTiles = createMemo(() => Object.keys(gameState.projectedTile));
 
   return (
-    <div class="absolute bottom-0 left-1/2 right-0 top-1/2">
+    <div class="absolute top-1/2 right-0 bottom-0 left-1/2">
       <For each={occupiedTiles()}>
         {(key) => (
           <span

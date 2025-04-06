@@ -1,8 +1,8 @@
-import { batch, createEffect, createSignal, onCleanup, onMount } from "solid-js";
-import { createStore, produce } from "solid-js/store";
-import HealthBar from "~/components/HealthBar";
-import { getTileInfoKey } from "~/components/Terrain";
-import { spawnArrow } from "~/components/weapons/Arrows";
+import { batch, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
+import { createStore, produce } from 'solid-js/store';
+import HealthBar from '~/components/HealthBar';
+import { getTileInfoKey } from '~/components/Terrain';
+import { spawnArrow } from '~/components/weapons/Arrows';
 import {
   DIAGONAL_SPEED,
   GAME_WORLD_SIZE,
@@ -13,38 +13,38 @@ import {
   SHOOTING_ANIMATION_DURATION_MS,
   TILE_SIZE,
   XP_LVL_2,
-  XP_LVL_21_TO_40,
   XP_LVL_3_TO_20,
+  XP_LVL_21_TO_40,
   XP_LVL_41_AND_UP,
-} from "~/constants";
-import { keyPressed } from "~/lib/keyboardEvents";
-import { gameState, setGameState, setWorldRect, worldRect } from "~/state";
-import { bitwiseAbs, cn, getInitialRect, getNewPos, getRect } from "~/utils";
+} from '~/constants';
+import { keyPressed } from '~/lib/keyboardEvents';
+import { gameState, setGameState, setWorldRect, worldRect } from '~/state';
+import { bitwiseAbs, cn, getInitialRect, getNewPos, getRect } from '~/utils';
 
 const dirs: AttackingDirection[] = [
-  "east",
-  "south-east",
-  "south",
-  "south-west",
-  "west",
-  "north-west",
-  "north",
-  "north-east",
+  'east',
+  'south-east',
+  'south',
+  'south-west',
+  'west',
+  'north-west',
+  'north',
+  'north-east',
 ];
 
 export const [playerRect, setPlayerRect] = createSignal(
-  getInitialRect({ x: 0, y: 0, width: 0, height: 0 })
+  getInitialRect({ x: 0, y: 0, width: 0, height: 0 }),
 );
 export const [player, setPlayer] = createStore<Player>({
   ref: undefined,
   health: PLAYER_BASE_HEALTH,
   maxHealth: PLAYER_BASE_HEALTH,
-  movement: "idle",
-  direction: "east",
+  movement: 'idle',
+  direction: 'east',
   occupiedTile: { row: 0, col: 0 },
   attack: {
-    status: "ready",
-    direction: "east",
+    status: 'ready',
+    direction: 'east',
     cooldown: RAPID_MODE ? 300 : PLAYER_BASE_COOLDOWN,
   },
 });
@@ -116,19 +116,19 @@ export function movePlayer() {
 
   batch(() => {
     setWorldRect(
-      getNewPos({ x: newWorldX, y: newWorldY, width: GAME_WORLD_SIZE, height: GAME_WORLD_SIZE })
+      getNewPos({ x: newWorldX, y: newWorldY, width: GAME_WORLD_SIZE, height: GAME_WORLD_SIZE }),
     );
 
     if (player.occupiedTile.row !== row || player.occupiedTile.col !== col) {
       setGameState(
-        "occupiedTile",
+        'occupiedTile',
         produce((occupiedTile) => {
           occupiedTile[getTileInfoKey(player.occupiedTile.row, player.occupiedTile.col)] =
             undefined;
           occupiedTile[getTileInfoKey(row, col)] = 1;
-        })
+        }),
       );
-      setPlayer("occupiedTile", { row, col });
+      setPlayer('occupiedTile', { row, col });
     }
   });
 
@@ -155,13 +155,13 @@ export default function Player() {
     setPlayerRect(rect);
 
     const lastOccupied = updateOccupiedMatrix(rect.x + worldRect.x, rect.y + worldRect.y);
-    setPlayer("occupiedTile", lastOccupied);
-    setGameState("occupiedTile", getTileInfoKey(lastOccupied.row, lastOccupied.col), 1);
+    setPlayer('occupiedTile', lastOccupied);
+    setGameState('occupiedTile', getTileInfoKey(lastOccupied.row, lastOccupied.col), 1);
   });
 
   createEffect(() => {
     let attackTimeout: NodeJS.Timeout;
-    if (player.attack.status === "started_attack") {
+    if (player.attack.status === 'started_attack') {
       attackTimeout = setTimeout(
         () => {
           batch(() => {
@@ -170,10 +170,10 @@ export default function Player() {
             } else {
               spawnArrow(player.attack.direction);
             }
-            setPlayer("attack", "status", "cooldown");
+            setPlayer('attack', 'status', 'cooldown');
           });
         },
-        RAPID_MODE ? 100 : SHOOTING_ANIMATION_DURATION_MS
+        RAPID_MODE ? 100 : SHOOTING_ANIMATION_DURATION_MS,
       );
     }
 
@@ -184,9 +184,9 @@ export default function Player() {
 
   createEffect(() => {
     let cooldownTimeout: NodeJS.Timeout;
-    if (player.attack.status === "cooldown") {
+    if (player.attack.status === 'cooldown') {
       cooldownTimeout = setTimeout(() => {
-        setPlayer("attack", "status", "ready");
+        setPlayer('attack', 'status', 'ready');
       }, player.attack.cooldown);
     }
 
@@ -200,40 +200,40 @@ export default function Player() {
   // });
 
   return (
-    <div class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
+    <div class="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex flex-col items-center justify-center">
       <div
-        ref={(ref) => setPlayer("ref", ref)}
-        class="relative h-player-hitbox w-player-hitbox box-content border-2 border-amber-500"
+        ref={(ref) => setPlayer('ref', ref)}
+        class="relative box-content h-player-hitbox w-player-hitbox border-2 border-amber-500"
       >
         <div
           class={cn(
-            "relative left-1/2 top-1/2 h-player w-player -translate-x-1/2 -translate-y-1/2 animate-move-sprite-sheet-idle overflow-hidden bg-player will-change-bp [image-rendering:pixelated]",
-            player.direction === "west" && "-scale-x-100",
-            player.movement === "moving" && "animate-move-sprite-sheet-run",
-            player.attack.status === "started_attack" &&
-              player.attack.direction === "north-west" &&
-              "-scale-x-100 animate-move-sprite-sheet-shoot-north-east",
-            player.attack.status === "started_attack" &&
-              player.attack.direction === "north" &&
-              "animate-move-sprite-sheet-shoot-north",
-            player.attack.status === "started_attack" &&
-              player.attack.direction === "north-east" &&
-              "animate-move-sprite-sheet-shoot-north-east",
-            player.attack.status === "started_attack" &&
-              player.attack.direction === "east" &&
-              "animate-move-sprite-sheet-shoot-east",
-            player.attack.status === "started_attack" &&
-              player.attack.direction === "south-east" &&
-              "animate-move-sprite-sheet-shoot-south-east",
-            player.attack.status === "started_attack" &&
-              player.attack.direction === "south" &&
-              "animate-move-sprite-sheet-shoot-south",
-            player.attack.status === "started_attack" &&
-              player.attack.direction === "south-west" &&
-              "-scale-x-100 animate-move-sprite-sheet-shoot-south-east",
-            player.attack.status === "started_attack" &&
-              player.attack.direction === "west" &&
-              "-scale-x-100 animate-move-sprite-sheet-shoot-east"
+            '-translate-x-1/2 -translate-y-1/2 relative top-1/2 left-1/2 h-player w-player animate-move-sprite-sheet-idle overflow-hidden bg-player will-change-bp [image-rendering:pixelated]',
+            player.direction === 'west' && '-scale-x-100',
+            player.movement === 'moving' && 'animate-move-sprite-sheet-run',
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'north-west' &&
+              '-scale-x-100 animate-move-sprite-sheet-shoot-north-east',
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'north' &&
+              'animate-move-sprite-sheet-shoot-north',
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'north-east' &&
+              'animate-move-sprite-sheet-shoot-north-east',
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'east' &&
+              'animate-move-sprite-sheet-shoot-east',
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'south-east' &&
+              'animate-move-sprite-sheet-shoot-south-east',
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'south' &&
+              'animate-move-sprite-sheet-shoot-south',
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'south-west' &&
+              '-scale-x-100 animate-move-sprite-sheet-shoot-south-east',
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'west' &&
+              '-scale-x-100 animate-move-sprite-sheet-shoot-east',
           )}
         />
 
