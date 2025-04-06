@@ -412,8 +412,8 @@ function BloodSpill(props: Pick<Enemy, "dirX" | "dirY">) {
         "--blood-translate-y": `calc(-50% - (var(--blood-scale) * -20px * ${props.dirY}))`,
       }}
       class={cn(
-        "absolute will-change-bp left-1/2 top-1/2 w-blood h-blood [background-position:0px_0px] [image-rendering:pixelated] translate-x-[--blood-translate-x] translate-y-[--blood-translate-y] bg-blood animate-blood-spill scale-[--blood-scale]",
-        props.dirX === 1 && "-scale-x-[--blood-scale]"
+        "absolute will-change-bp left-1/2 top-1/2 w-blood h-blood [background-position:0px_0px] [image-rendering:pixelated] translate-x-(--blood-translate-x) translate-y-(--blood-translate-y) bg-blood animate-blood-spill scale-(--blood-scale)",
+        props.dirX === 1 && "-scale-x-(--blood-scale)"
       )}
     />
   );

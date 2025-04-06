@@ -1,5 +1,4 @@
 export const PLAYER_SPEED = 6;
-export const PLAYER_SIZE = 32;
 export const PLAYER_BASE_HEALTH = 100;
 export const PLAYER_BASE_DAMAGE = 3;
 export const PLAYER_BASE_COOLDOWN = 1_000;

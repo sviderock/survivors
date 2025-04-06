@@ -8,7 +8,6 @@ import {
   GAME_WORLD_SIZE,
   PLAYER_BASE_COOLDOWN,
   PLAYER_BASE_HEALTH,
-  PLAYER_SIZE,
   PLAYER_SPEED,
   RAPID_MODE,
   SHOOTING_ANIMATION_DURATION_MS,
@@ -34,7 +33,7 @@ const dirs: AttackingDirection[] = [
 ];
 
 export const [playerRect, setPlayerRect] = createSignal(
-  getInitialRect({ x: 0, y: 0, width: PLAYER_SIZE, height: PLAYER_SIZE })
+  getInitialRect({ x: 0, y: 0, width: 0, height: 0 })
 );
 export const [player, setPlayer] = createStore<Player>({
   ref: undefined,
@@ -152,7 +151,7 @@ function updateOccupiedMatrix(targetX: number, targetY: number) {
 
 export default function Player() {
   onMount(() => {
-    const rect = { ...getRect(player.ref!), width: PLAYER_SIZE, height: PLAYER_SIZE };
+    const rect = { ...getRect(player.ref!), width: 0, height: 0 };
     setPlayerRect(rect);
 
     const lastOccupied = updateOccupiedMatrix(rect.x + worldRect.x, rect.y + worldRect.y);
@@ -202,7 +201,10 @@ export default function Player() {
 
   return (
     <div class="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center">
-      <div ref={(ref) => setPlayer("ref", ref)} class="relative h-player-hitbox w-player-hitbox">
+      <div
+        ref={(ref) => setPlayer("ref", ref)}
+        class="relative h-player-hitbox w-player-hitbox box-content border-2 border-amber-500"
+      >
         <div
           class={cn(
             "relative left-1/2 top-1/2 h-player w-player -translate-x-1/2 -translate-y-1/2 animate-move-sprite-sheet-idle overflow-hidden bg-player will-change-bp [image-rendering:pixelated]",
