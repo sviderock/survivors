@@ -8,13 +8,13 @@ import {
   GAME_WORLD_SIZE,
   PLAYER_BASE_COOLDOWN,
   PLAYER_BASE_HEALTH,
+  PLAYER_SHOOTING_ANIMATION_DURATION_MS,
   PLAYER_SPEED,
   RAPID_MODE,
-  SHOOTING_ANIMATION_DURATION_MS,
   TILE_SIZE,
   XP_LVL_2,
-  XP_LVL_3_TO_20,
   XP_LVL_21_TO_40,
+  XP_LVL_3_TO_20,
   XP_LVL_41_AND_UP,
 } from '~/constants';
 import { keyPressed } from '~/lib/keyboardEvents';
@@ -173,7 +173,7 @@ export default function Player() {
             setPlayer('attack', 'status', 'cooldown');
           });
         },
-        RAPID_MODE ? 100 : SHOOTING_ANIMATION_DURATION_MS,
+        RAPID_MODE ? 100 : PLAYER_SHOOTING_ANIMATION_DURATION_MS,
       );
     }
 
@@ -196,48 +196,59 @@ export default function Player() {
   });
 
   // onMount(() => {
-  //   spawnArrow("east");
+  //   spawnArrow('south-west');
   // });
 
   return (
-    <div class="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex flex-col items-center justify-center">
+    <div
+      class="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex flex-col items-center justify-center"
+      style={{ '--player-shooting-duration': `${PLAYER_SHOOTING_ANIMATION_DURATION_MS}` }}
+    >
       <div
         ref={(ref) => setPlayer('ref', ref)}
-        class="relative box-content h-player-hitbox w-player-hitbox border-2 border-amber-500"
+        class="relative box-content h-(--player-hitbox-height) w-(--player-hitbox-width) border-amber-500 border-none"
       >
         <div
           class={cn(
-            '-translate-x-1/2 -translate-y-1/2 relative top-1/2 left-1/2 h-player w-player animate-move-sprite-sheet-idle overflow-hidden bg-player will-change-bp [image-rendering:pixelated]',
+            '-translate-x-1/2 -translate-y-1/2 bg-(image:--player-sprite) relative top-1/2 left-1/2 h-(--player-sprite-height) w-(--player-sprite-width) animate-player-idle overflow-hidden [image-rendering:pixelated]',
             player.direction === 'west' && '-scale-x-100',
-            player.movement === 'moving' && 'animate-move-sprite-sheet-run',
-            player.attack.status === 'started_attack' &&
-              player.attack.direction === 'north-west' &&
-              '-scale-x-100 animate-move-sprite-sheet-shoot-north-east',
+            player.movement === 'moving' && 'animate-player-run',
+
             player.attack.status === 'started_attack' &&
               player.attack.direction === 'north' &&
-              'animate-move-sprite-sheet-shoot-north',
+              'animate-player-shoot-north',
+
             player.attack.status === 'started_attack' &&
               player.attack.direction === 'north-east' &&
-              'animate-move-sprite-sheet-shoot-north-east',
+              'animate-player-shoot-north-east',
+
             player.attack.status === 'started_attack' &&
               player.attack.direction === 'east' &&
-              'animate-move-sprite-sheet-shoot-east',
+              'animate-player-shoot-east',
+
             player.attack.status === 'started_attack' &&
               player.attack.direction === 'south-east' &&
-              'animate-move-sprite-sheet-shoot-south-east',
+              'animate-player-shoot-south-east',
+
             player.attack.status === 'started_attack' &&
               player.attack.direction === 'south' &&
-              'animate-move-sprite-sheet-shoot-south',
+              'animate-player-shoot-south',
+
             player.attack.status === 'started_attack' &&
               player.attack.direction === 'south-west' &&
-              '-scale-x-100 animate-move-sprite-sheet-shoot-south-east',
+              '-scale-x-100 animate-player-shoot-south-east',
+
             player.attack.status === 'started_attack' &&
               player.attack.direction === 'west' &&
-              '-scale-x-100 animate-move-sprite-sheet-shoot-east',
+              '-scale-x-100 animate-player-shoot-east',
+
+            player.attack.status === 'started_attack' &&
+              player.attack.direction === 'north-west' &&
+              '-scale-x-100 animate-player-shoot-north-east',
           )}
         />
 
-        {/* <span class=" text-sm bg-white border-2 border-black absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center">
+        {/* <span class=" -translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-black bg-white text-sm">
           c
         </span> */}
       </div>

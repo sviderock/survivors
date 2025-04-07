@@ -1,6 +1,12 @@
 import { For } from 'solid-js';
 import { relativePlayerPos } from '~/components/Player';
-import { ARROW_DAMAGE, ARROW_DISTANCE, ARROW_HITBOX_SIZE, ARROW_MODEL_SIZE } from '~/constants';
+import {
+  ARROW_ACTUAL_SPRITE_SIZE,
+  ARROW_DAMAGE,
+  ARROW_DISTANCE,
+  ARROW_HITBOX_SIZE,
+  ARROW_SPRITE_SIZE,
+} from '~/constants';
 import { gameState, setGameState } from '~/state';
 import {
   calculateRotatedPosition,
@@ -30,18 +36,19 @@ function getArrowDistance(direction: Arrow['direction']) {
 
 export function createSingleArrow(direction: Arrow['direction']): Arrow {
   const arrowStartX = relativePlayerPos().centerX;
-  const arrowStartY = relativePlayerPos().centerY + ARROW_MODEL_SIZE.h * 1.5;
+  const arrowStartY =
+    relativePlayerPos().centerY + ARROW_SPRITE_SIZE.h / 2 + ARROW_ACTUAL_SPRITE_SIZE.h / 2;
   const rect = getInitialRect({
     x: arrowStartX,
     y: arrowStartY,
-    width: ARROW_MODEL_SIZE.w,
-    height: ARROW_MODEL_SIZE.h,
+    width: ARROW_ACTUAL_SPRITE_SIZE.w,
+    height: ARROW_ACTUAL_SPRITE_SIZE.h,
   });
   const hitboxTopLeft = calculateRotatedPosition({
     angle: getRotationDeg(direction),
     startOffsetX: arrowStartX,
     startOffsetY: arrowStartY,
-    modelSize: ARROW_MODEL_SIZE,
+    modelSize: ARROW_ACTUAL_SPRITE_SIZE,
     hitboxSize: ARROW_HITBOX_SIZE,
     shiftHitbox: true,
   });
@@ -84,18 +91,18 @@ export default function Arrows() {
           <>
             <div
               ref={(el) => setGameState('arrows', idx(), 'ref', el)}
-              class="absolute box-content h-arrow-model w-arrow-model border-yellow-500 border-none"
+              class="absolute box-content h-(--arrow-actual-sprite-height) w-(--arrow-actual-sprite-width) border-yellow-500 border-none"
             >
               <div
                 class={cn(
-                  'relative box-content h-arrow w-arrow border-blue-500 border-none bg-[position:-1px_-28px] bg-arrow bg-no-repeat [image-rendering:pixelated]',
+                  'bg-(image:--arrow-sprite) -translate-y-1/2 relative top-1 box-content h-(--arrow-sprite-height) w-(--arrow-sprite-width) border-blue-500 border-none bg-[position:-1px_0] bg-no-repeat [image-rendering:pixelated]',
                 )}
               />
             </div>
 
             <span
               ref={(el) => setGameState('arrows', idx(), 'hitboxRef', el)}
-              // class="bg-purple-500/80 w-arrow-hitbox h-arrow-hitbox absolute z-10 "
+              // class="absolute z-10 h-(--arrow-hitbox-height) w-(--arrow-hitbox-width) bg-purple-500/80 "
             />
           </>
         )}

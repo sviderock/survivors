@@ -5,9 +5,9 @@ import { destroyGem, spawnGem } from '~/components/Gems';
 import { movePlayer, player, playerRect, setPlayer } from '~/components/Player';
 import { destroyArrow } from '~/components/weapons/Arrows';
 import {
+  ARROW_ACTUAL_SPRITE_SIZE,
   ARROW_COLLISIONS,
   ARROW_HITBOX_SIZE,
-  ARROW_MODEL_SIZE,
   ARROW_SPEED,
   DEBUG,
   DEBUG_MECHANICS,
@@ -131,7 +131,7 @@ async function gameLoop(timestamp: number) {
         angle: arrowDirection,
         startOffsetX: updatedRect.x,
         startOffsetY: updatedRect.y,
-        modelSize: ARROW_MODEL_SIZE,
+        modelSize: ARROW_ACTUAL_SPRITE_SIZE,
         hitboxSize: ARROW_HITBOX_SIZE,
         shiftHitbox: true,
       });

@@ -28,7 +28,6 @@ declare global {
     arrows: Arrow[];
     gems: Gem[];
     terrainRect: Rect;
-    tileInfo: TileRecord<Rect>;
     occupiedTile: TileRecord<1 | undefined>;
     projectedTile: TileRecord<1 | undefined>;
   };

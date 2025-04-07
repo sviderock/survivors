@@ -23,7 +23,6 @@ function getInitialGameState(): GameState {
       width: GAME_WORLD_SIZE,
       height: GAME_WORLD_SIZE,
     }),
-    tileInfo: {},
     occupiedTile: {},
     projectedTile: {},
   };

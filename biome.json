@@ -29,7 +29,10 @@
         "noWith": "error"
       },
       "correctness": {
-        "noUnusedImports": "warn",
+        "noUnusedImports": {
+          "level": "warn",
+          "fix": "none"
+        },
         "noConstAssign": "error",
         "noConstantCondition": "error",
         "noEmptyCharacterClassInRegex": "error",
@@ -92,11 +95,11 @@
       },
       "nursery": {
         "useSortedClasses": {
-          "level": "error",
+          "level": "warn",
           "fix": "safe",
           "options": {
             "attributes": ["className"],
-            "functions": ["cn"]
+            "functions": ["cn", "cva"]
           }
         }
       }
@@ -118,7 +121,7 @@
   },
   "overrides": [
     {
-      "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+      "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.js"],
       "linter": {
         "rules": {
           "correctness": {

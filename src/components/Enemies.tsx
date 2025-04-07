@@ -18,8 +18,8 @@ import { gameState, setGameState } from '~/state';
 import { bitwiseAbs, cn, getDirection, getInitialRect, getNewPos, getRandomBetween } from '~/utils';
 
 function createSingleEnemy(): Enemy {
-  const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
-  // const health = 1;
+  // const health = getRandomBetween(1, ENEMY_BASE_HEALTH) + 10;
+  const health = 1;
 
   return {
     rect: {} as Rect,
@@ -29,7 +29,7 @@ function createSingleEnemy(): Enemy {
     health,
     maxHealth: health,
     blocked: { x: 0, y: 0 },
-    status: 'moving',
+    status: 'idle',
     lifeStatus: 'alive',
     dirX: 0,
     dirY: 0,
@@ -202,6 +202,9 @@ export function moveEnemy(
 
   const updatedRect = getNewPos({ x, y, width: enemy.rect.width, height: enemy.rect.height });
 
+  const playerReached =
+    projectedTile.row === player.occupiedTile.row && projectedTile.col === player.occupiedTile.col;
+
   setGameState(
     produce((state) => {
       state.enemies[idx]!.dirX = dirX;
@@ -221,9 +224,8 @@ export function moveEnemy(
         }
       }
 
-      state.enemies[idx]!.playerReached =
-        projectedTile.row === player.occupiedTile.row ||
-        projectedTile.col === player.occupiedTile.col;
+      state.enemies[idx]!.playerReached = playerReached;
+      state.enemies[idx]!.status = playerReached ? 'idle' : 'moving';
 
       state.projectedTile[getTileInfoKey(enemy.nextTile.row, enemy.nextTile.col)] = undefined;
       state.projectedTile[getTileInfoKey(nextTile.row, nextTile.col)] = 1;
@@ -347,7 +349,7 @@ function Enemy(props: EnemyProps) {
     <div
       ref={props.ref}
       class={cn(
-        'absolute h-enemy-hitbox w-enemy-hitbox',
+        'absolute box-content h-(--enemy-hitbox-height) w-(--enemy-hitbox-width)',
         DEBUG && 'border-4 border-blue-700',
         DEBUG &&
           gameState.occupiedTile[
@@ -373,15 +375,20 @@ function Enemy(props: EnemyProps) {
     >
       <div
         class={cn(
-          '-translate-x-1/2 -translate-y-1/2 relative top-1/2 left-1/2 h-enemy w-enemy overflow-hidden bg-enemy will-change-bp [image-rendering:pixelated]',
+          '-translate-x-1/2 -translate-y-1/2 bg-(image:--enemy-sprite) relative top-1/2 left-1/2 h-(--enemy-sprite-height) w-(--enemy-sprite-width) overflow-hidden [image-rendering:pixelated]',
+
           props.enemy.lifeStatus === 'alive' &&
             props.enemy.status === 'idle' &&
-            'animate-move-sprite-sheet-enemy-idle',
+            'animate-enemy-idle',
+
           props.enemy.lifeStatus === 'alive' &&
             props.enemy.status === 'moving' &&
-            'animate-move-sprite-sheet-enemy-run',
+            'animate-enemy-run',
+
           props.enemy.lifeStatus === 'alive' && props.enemy.dirX === -1 && '-scale-x-100',
-          props.enemy.lifeStatus === 'died' && 'origin-[0_0] animate-hide-model rounded-full',
+
+          props.enemy.lifeStatus === 'died' && 'animate-enemy-die rounded-full',
+
           props.enemy.lifeStatus !== 'alive' && 'opacity-0',
         )}
       />
@@ -407,13 +414,15 @@ function BloodSpill(props: Pick<Enemy, 'dirX' | 'dirY'>) {
   return (
     <div
       style={{
-        '--blood-scale': '1.2',
+        '--blood-scale': 1.2,
         '--blood-translate-x': `calc(-50% - (var(--blood-scale) * 20px * ${props.dirX}))`,
-        '--blood-translate-y': `calc(-50% - (var(--blood-scale) * -20px * ${props.dirY}))`,
+        '--blood-translate-y': `calc(-50% - (var(--blood-scale) * 20px * ${props.dirY}))`,
       }}
       class={cn(
-        'absolute top-1/2 left-1/2 h-blood w-blood translate-x-(--blood-translate-x) translate-y-(--blood-translate-y) scale-(--blood-scale) animate-blood-spill bg-blood will-change-bp [background-position:0px_0px] [image-rendering:pixelated]',
-        props.dirX === 1 && '-scale-x-(--blood-scale)',
+        'bg-(image:--blood-sprite) absolute top-1/2 left-1/2 h-(--blood-sprite-height) w-(--blood-sprite-width) translate-x-(--blood-translate-x) translate-y-(--blood-translate-y) animate-blood-spill [background-position:0px_0px] [image-rendering:pixelated]',
+        props.dirX === 1
+          ? '-scale-x-(--blood-scale) scale-y-(--blood-scale)'
+          : 'scale-x-(--blood-scale) scale-y-(--blood-scale)',
       )}
     />
   );
@@ -423,7 +432,7 @@ function SkullAppear() {
   return (
     <div
       class={cn(
-        '-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-0 h-enemy w-enemy animate-skull-appear overflow-hidden bg-skull will-change-bp [image-rendering:pixelated]',
+        '-translate-x-1/2 -translate-y-1/2 bg-(image:--skull-sprite) absolute top-1/2 left-1/2 z-0 h-(--skull-sprite-height) w-(--skull-sprite-width) animate-skull-appear overflow-hidden [image-rendering:pixelated]',
       )}
     />
   );
@@ -433,7 +442,7 @@ function SkullGone() {
   return (
     <div
       class={cn(
-        '-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 z-0 h-enemy w-enemy animate-skull-gone overflow-hidden bg-skull will-change-bp [image-rendering:pixelated]',
+        '-translate-x-1/2 -translate-y-1/2 bg-(image:--skull-sprite) absolute top-1/2 left-1/2 z-0 h-(--skull-sprite-height) w-(--skull-sprite-width) animate-skull-gone overflow-hidden [image-rendering:pixelated]',
       )}
     />
   );

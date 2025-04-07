@@ -1,19 +1,250 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@config '../tailwind.config.js';
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-}
-
 :root {
   --radius: 0.5rem;
   --pixel-size: 6;
-  --tile-size: 80px;
+
+  --forest-sprite: url("/game-assets/Terrain/Ground/Tiles/tile011.png");
+  --player-sprite: url("/game-assets/Factions/Knights/Troops/Archer/Blue/Archer_Blue.png");
+  --enemy-sprite: url("/game-assets/Factions/Goblins/Troops/Torch/Red/Torch_Red.png");
+  --arrow-sprite: url("/game-assets/Factions/Knights/Troops/Archer/Arrow/Arrow.png");
+  --blood-sprite: url("/game-assets/Effects/Blood.png");
+  --skull-sprite: url("/game-assets/Factions/Knights/Troops/Dead/Dead.png");
+}
+
+@theme {
+  /* shadcn */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-content-show: content-show 0.2s ease-out;
+  --animate-content-hide: content-hide 0.2s ease-out;
+  --animate-caret-blink: caret-blink .5s ease-out infinite;
 
   /* Player */
-  --player-sprite-width: 192px;
-  --player-sprite-height: 192px;
+  --animate-player-idle: player-idle 500ms steps(6) infinite;
+  --animate-player-run: player-run 300ms steps(6) infinite;
+  --animate-player-shoot-north: player-shoot-north var(--player-shooting-duration) steps(8);
+  --animate-player-shoot-north-east: player-shoot-north-east var(--player-shooting-duration)
+    steps(8);
+  --animate-player-shoot-east: player-shoot-east var(--player-shooting-duration) steps(8);
+  --animate-player-shoot-south-east: player-shoot-south-east var(--player-shooting-duration)
+    steps(8);
+  --animate-player-shoot-south: player-shoot-south var(--player-shooting-duration) steps(8);
+
+  /* Enemy */
+  --animate-enemy-idle: enemy-idle 500ms steps(7) infinite;
+  --animate-enemy-run: enemy-run 300ms steps(6) infinite;
+  --animate-enemy-die: enemy-die var(--enemy-die-duration) forwards;
+
+  /* Blood sprite */
+  --animate-blood-spill: blood-spill var(--blood-spill-duration) steps(8) infinite;
+
+  /* Skull sprite */
+  --animate-skull-appear: skull-appear var(--skull-appear-duration) steps(6) forwards;
+  --animate-skull-gone: skull-gone var(--skull-gone-duration) steps(6) forwards;
+
+  /* shadcn keyframes */
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--kb-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--kb-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  @keyframes content-show {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes content-hide {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  @keyframes caret-blink {
+    0%,
+    70%,
+    100% {
+      opacity: 1;
+    }
+    20%,
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  /* Player keyframes */
+  @keyframes player-idle {
+    0% {
+      background-position-x: 0;
+      background-position-y: 0;
+    }
+    100% {
+      background-position-x: calc(-1 * var(--player-sprite-width) * 6);
+      background-position-y: 0;
+    }
+  }
+
+  @keyframes player-run {
+    0% {
+      background-position-x: 0;
+      background-position-y: calc(-1 * var(--player-sprite-height));
+    }
+    100% {
+      background-position-x: calc(-1 * var(--player-sprite-width) * 6);
+      background-position-y: calc(-1 * var(--player-sprite-height));
+    }
+  }
+
+  @keyframes player-shoot-north {
+    0% {
+      background-position-x: 0;
+      background-position-y: calc(-1 * var(--player-sprite-height) * 2);
+    }
+    100% {
+      background-position-x: calc(-1 * var(--player-sprite-width) * 8);
+      background-position-y: calc(-1 * var(--player-sprite-height) * 2);
+    }
+  }
+
+  @keyframes player-shoot-north-east {
+    0% {
+      background-position-x: 0;
+      background-position-y: calc(-1 * var(--player-sprite-height) * 3);
+    }
+    100% {
+      background-position-x: calc(-1 * var(--player-sprite-width) * 8);
+      background-position-y: calc(-1 * var(--player-sprite-height) * 3);
+    }
+  }
+
+  @keyframes player-shoot-east {
+    0% {
+      background-position-x: 0;
+      background-position-y: calc(-1 * var(--player-sprite-height) * 4);
+    }
+    100% {
+      background-position-x: calc(-1 * var(--player-sprite-width) * 8);
+      background-position-y: calc(-1 * var(--player-sprite-height) * 4);
+    }
+  }
+
+  @keyframes player-shoot-south-east {
+    0% {
+      background-position-x: 0;
+      background-position-y: calc(-1 * var(--player-sprite-height) * 5);
+    }
+    100% {
+      background-position-x: calc(-1 * var(--player-sprite-width) * 8);
+      background-position-y: calc(-1 * var(--player-sprite-height) * 5);
+    }
+  }
+
+  @keyframes player-shoot-south {
+    0% {
+      background-position-x: 0;
+      background-position-y: calc(-1 * var(--player-sprite-height) * 6);
+    }
+    100% {
+      background-position-x: calc(-1 * var(--player-sprite-width) * 8);
+      background-position-y: calc(-1 * var(--player-sprite-height) * 6);
+    }
+  }
+
+  /* Enemy keyframes */
+  @keyframes enemy-idle {
+    0% {
+      background-position-x: 0;
+      background-position-y: 0;
+    }
+    100% {
+      background-position-x: calc(-1 * var(--enemy-sprite-width) * 7);
+      background-position-y: 0;
+    }
+  }
+
+  @keyframes enemy-run {
+    0% {
+      background-position-x: 0;
+      background-position-y: calc(-1 * var(--enemy-sprite-height));
+    }
+    100% {
+      background-position-x: calc(-1 * var(--enemy-sprite-width) * 6);
+      background-position-y: calc(-1 * var(--enemy-sprite-height));
+    }
+  }
+
+  @keyframes enemy-die {
+    0% {
+      opacity: 1;
+      scale: 1;
+      rotate: 0;
+    }
+    100% {
+      opacity: 0;
+      scale: 0;
+      rotate: 360deg;
+    }
+  }
+
+  /* Blood keyframes */
+  @keyframes blood-spill {
+    0% {
+      background-position-x: 0;
+      background-position-y: calc(-1 * var(--blood-sprite-height) * 5);
+    }
+    100% {
+      background-position-x: calc(-1 * var(--blood-sprite-width) * 8);
+      background-position-y: calc(-1 * var(--blood-sprite-height) * 5);
+      /* background-position-x: 0;
+      background-position-y: calc(-1 * var(--blood-sprite-height) * 5); */
+    }
+  }
+
+  /* Skull keyframes */
+  @keyframes skull-appear {
+    0% {
+      background-position-x: 0;
+      background-position-y: 0;
+    }
+    100% {
+      background-position-x: calc(-1 * var(--skull-sprite-width) * 6);
+      background-position-y: 0;
+    }
+  }
+
+  @keyframes skull-gone {
+    0% {
+      background-position-x: 0;
+      background-position-y: var(--skull-sprite-width);
+    }
+    100% {
+      background-position-x: calc(-1 * var(--skull-sprite-width) * 6);
+      background-position-y: var(--skull-sprite-width);
+    }
+  }
 }
