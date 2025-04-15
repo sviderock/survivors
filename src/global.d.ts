@@ -68,6 +68,7 @@ declare global {
       cooldown: number;
     };
     occupiedTile: Tile;
+    magnet: number;
   };
 
   type Direction = 1 | 0 | -1;
@@ -103,6 +104,7 @@ declare global {
     ref: HTMLSpanElement | undefined;
     rect: Rect;
     value: number;
+    status: 'not_picked_up' | 'flying' | 'picked_up';
   };
 
   type RGBStr = `rgb(${number},${'' | ' '}${number},${'' | ' '}${number})`;

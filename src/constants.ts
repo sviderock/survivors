@@ -5,6 +5,7 @@ export const PLAYER_BASE_HEALTH = 100;
 export const PLAYER_BASE_DAMAGE = 3;
 export const PLAYER_BASE_COOLDOWN = 1_000;
 export const PLAYER_SHOOTING_ANIMATION_DURATION_MS = 500;
+export const PLAYER_MAGNET_DIAMETER = 80;
 
 export const ARROW_SPEED = 15;
 export const ARROW_SPRITE_SIZE = { w: 64, h: 64 };
@@ -27,6 +28,8 @@ export const BLOOD_SPRITE_SIZE = { w: 110, h: 93 };
 export const BLOOD_ANIMATION_DURATION_MS = 400;
 
 export const GEM_HITBOX_SIZE = { w: 16, h: 24 };
+export const GEM_LIMIT = 10;
+export const GEM_FLYING_SPEED = 4;
 
 export const SKULL_SPRITE_SIZE = { w: 128, h: 128 };
 export const SKULL_APPEAR_DURATIONS_MS = 400;
@@ -45,22 +48,22 @@ export const GAME_WORLD_SIZE = 10_000;
 export const GAME_WORLD_HALFSIZE = GAME_WORLD_SIZE / 2;
 export const TILE_SIZE = 50;
 
-export const HEALTH_COLOR_FULL = 'rgb(124,207,0)';
-export const HEALTH_COLOR_HALF = 'rgb(240,177,0)';
-export const HEALTH_COLOR_NONE = 'rgb(193,0,7)';
+export const HEALTH_COLOR_FULL = "rgb(124,207,0)";
+export const HEALTH_COLOR_HALF = "rgb(240,177,0)";
+export const HEALTH_COLOR_NONE = "rgb(193,0,7)";
 
-export const ABRUPTLY_STOPPPED_GAME_LS_KEY = 'abruptly_stopped_game';
+export const ABRUPTLY_STOPPPED_GAME_LS_KEY = "abruptly_stopped_game";
 export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
-export const SUPPORTED_PROTOCOLS = ['celo'] as const;
+export const SUPPORTED_PROTOCOLS = ["celo"] as const;
 
 export const DEBUG_MECHANICS = true;
-export const SPAWN_ENEMIES = true;
+export const SPAWN_ENEMIES = false;
 export const SPAWN_GEMS = true;
-export const SPAWN_TERRAIN = true;
+export const SPAWN_TERRAIN = false;
 
 export const ENEMY_COLLISIONS = true;
 export const ARROW_COLLISIONS = true;
 export const GEMS_COLLISIONS = true;
 
 export const DEBUG = false;
-export const RAPID_MODE = true;
+export const RAPID_MODE = false;

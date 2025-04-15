@@ -1,40 +1,40 @@
-import { For } from 'solid-js';
-import { relativePlayerPos } from '~/components/Player';
+import { For } from "solid-js";
+import { relativePlayerPos } from "~/components/Player";
 import {
   ARROW_ACTUAL_SPRITE_SIZE,
   ARROW_DAMAGE,
   ARROW_DISTANCE,
   ARROW_HITBOX_SIZE,
   ARROW_SPRITE_SIZE,
-} from '~/constants';
-import { gameState, setGameState } from '~/state';
+} from "~/constants";
+import { gameState, setGameState } from "~/state";
 import {
   calculateRotatedPosition,
   cn,
   getDiagonalDistance,
   getInitialRect,
   getRotationDeg,
-} from '~/utils';
+} from "~/utils";
 
-function getArrowDistance(direction: Arrow['direction']) {
-  if (direction === 'north') return { x: 0, y: -ARROW_DISTANCE };
-  if (direction === 'south') return { x: 0, y: ARROW_DISTANCE };
-  if (direction === 'west') return { x: -ARROW_DISTANCE, y: 0 };
-  if (direction === 'east') return { x: ARROW_DISTANCE, y: 0 };
-  if (direction === 'north-west') {
+function getArrowDistance(direction: Arrow["direction"]) {
+  if (direction === "north") return { x: 0, y: -ARROW_DISTANCE };
+  if (direction === "south") return { x: 0, y: ARROW_DISTANCE };
+  if (direction === "west") return { x: -ARROW_DISTANCE, y: 0 };
+  if (direction === "east") return { x: ARROW_DISTANCE, y: 0 };
+  if (direction === "north-west") {
     return { x: -getDiagonalDistance(ARROW_DISTANCE), y: -getDiagonalDistance(ARROW_DISTANCE) };
   }
-  if (direction === 'north-east') {
+  if (direction === "north-east") {
     return { x: getDiagonalDistance(ARROW_DISTANCE), y: -getDiagonalDistance(ARROW_DISTANCE) };
   }
-  if (direction === 'south-west') {
+  if (direction === "south-west") {
     return { x: -getDiagonalDistance(ARROW_DISTANCE), y: getDiagonalDistance(ARROW_DISTANCE) };
   }
   // south-east
   return { x: getDiagonalDistance(ARROW_DISTANCE), y: getDiagonalDistance(ARROW_DISTANCE) };
 }
 
-export function createSingleArrow(direction: Arrow['direction']): Arrow {
+export function createSingleArrow(direction: Arrow["direction"]): Arrow {
   const arrowStartX = relativePlayerPos().centerX;
   const arrowStartY =
     relativePlayerPos().centerY + ARROW_SPRITE_SIZE.h / 2 + ARROW_ACTUAL_SPRITE_SIZE.h / 2;
@@ -72,14 +72,14 @@ export function createSingleArrow(direction: Arrow['direction']): Arrow {
   };
 }
 
-export function spawnArrow(direction: Arrow['direction']) {
-  setGameState('arrows', gameState.arrows.length, createSingleArrow(direction));
+export function spawnArrow(direction: Arrow["direction"]) {
+  setGameState("arrows", gameState.arrows.length, createSingleArrow(direction));
 }
 
 export function destroyArrow(idx: number) {
   setGameState(
-    'arrows',
-    gameState.arrows.filter((_, i) => idx !== i),
+    "arrows",
+    gameState.arrows.filter((_, i) => idx !== i)
   );
 }
 
@@ -90,18 +90,18 @@ export default function Arrows() {
         {(_arrow, idx) => (
           <>
             <div
-              ref={(el) => setGameState('arrows', idx(), 'ref', el)}
+              ref={(el) => setGameState("arrows", idx(), "ref", el)}
               class="absolute box-content h-(--arrow-actual-sprite-height) w-(--arrow-actual-sprite-width) border-yellow-500 border-none"
             >
               <div
                 class={cn(
-                  'bg-(image:--arrow-sprite) -translate-y-1/2 relative top-1 box-content h-(--arrow-sprite-height) w-(--arrow-sprite-width) border-blue-500 border-none bg-[position:-1px_0] bg-no-repeat [image-rendering:pixelated]',
+                  "bg-(image:--arrow-sprite) -translate-y-1/2 relative top-1 box-content h-(--arrow-sprite-height) w-(--arrow-sprite-width) border-blue-500 border-none bg-[position:-1px_0] bg-no-repeat [image-rendering:pixelated]"
                 )}
               />
             </div>
 
             <span
-              ref={(el) => setGameState('arrows', idx(), 'hitboxRef', el)}
+              ref={(el) => setGameState("arrows", idx(), "hitboxRef", el)}
               // class="absolute z-10 h-(--arrow-hitbox-height) w-(--arrow-hitbox-width) bg-purple-500/80 "
             />
           </>

@@ -1,9 +1,15 @@
-import { batch } from 'solid-js';
-import { produce } from 'solid-js/store';
-import { moveEnemy, spawnEnemy } from '~/components/Enemies';
-import { destroyGem, spawnGem } from '~/components/Gems';
-import { movePlayer, player, playerRect, setPlayer } from '~/components/Player';
-import { destroyArrow } from '~/components/weapons/Arrows';
+import { batch } from "solid-js";
+import { produce } from "solid-js/store";
+import { moveEnemy, spawnEnemy } from "~/components/Enemies";
+import { destroyGem, spawnGem } from "~/components/Gems";
+import {
+  movePlayer,
+  player,
+  playerMagnetDiameter,
+  playerRect,
+  setPlayer,
+} from "~/components/Player";
+import { destroyArrow } from "~/components/weapons/Arrows";
 import {
   ARROW_ACTUAL_SPRITE_SIZE,
   ARROW_COLLISIONS,
@@ -16,17 +22,19 @@ import {
   ENEMY_SPAWN_INTERVAL_MS,
   GAME_WORLD_SIZE,
   GEMS_COLLISIONS,
+  GEM_FLYING_SPEED,
   SPAWN_ENEMIES,
   SPAWN_GEMS,
-} from '~/constants';
-import { gameState, setGameState } from '~/state';
+} from "~/constants";
+import { gameState, setGameState } from "~/state";
 import {
   calculateRotatedPosition,
   collisionDetected,
+  getDirection,
   getInitialRect,
   getNewPos,
   getRotationDeg,
-} from '~/utils';
+} from "~/utils";
 
 const TICK = 16.66666666; // 60 fps
 let tickTimer = 0;
@@ -48,7 +56,7 @@ async function gameLoop(timestamp: number) {
   }
   tickTimer += TICK;
 
-  if (gameState.status !== 'in_progress' && !DEBUG_MECHANICS) {
+  if (gameState.status !== "in_progress" && !DEBUG_MECHANICS) {
     enemySpawnTimer = 0;
     return;
   }
@@ -78,8 +86,16 @@ async function gameLoop(timestamp: number) {
     centerY: playerRect().top - newWorldY + playerRect().height / 2,
   };
 
-  if (player.attack.status === 'ready') {
-    setPlayer('attack', 'status', 'started_attack');
+  const magnetRadius = playerMagnetDiameter() / 2;
+  const relativePlayerMagnetPos = {
+    left: relativePlayerPos.centerX - magnetRadius,
+    right: relativePlayerPos.centerX + magnetRadius,
+    top: relativePlayerPos.centerY - magnetRadius,
+    bottom: relativePlayerPos.centerY + magnetRadius,
+  };
+
+  if (player.attack.status === "ready") {
+    setPlayer("attack", "status", "started_attack");
   }
 
   // move arrows
@@ -145,12 +161,12 @@ async function gameLoop(timestamp: number) {
       const hitboxTransformY = arrow.hitbox.top + newWorldY - GAME_WORLD_SIZE;
 
       setGameState(
-        'arrows',
+        "arrows",
         i,
         produce((arrow) => {
           arrow.rect = updatedRect;
           arrow.hitbox = hitboxRect;
-        }),
+        })
       );
       arrow.ref!.style.transform = `translate3d(${modelTransformX}px, ${modelTransformY}px, 0) rotate(${-arrowDirection}deg)`;
       arrow.hitboxRef!.style.transform = `translate3d(${hitboxTransformX}px, ${hitboxTransformY}px, 0)`;
@@ -163,7 +179,7 @@ async function gameLoop(timestamp: number) {
     moveEnemy(i, relativePlayerPos, newWorldX, newWorldY);
 
     // for each enemy detect collisions with arrows
-    if (ARROW_COLLISIONS && enemy.lifeStatus === 'alive') {
+    if (ARROW_COLLISIONS && enemy.lifeStatus === "alive") {
       for (let j = 0; j < gameState.arrows.length; j++) {
         const arrow = gameState.arrows[j]!;
 
@@ -178,31 +194,31 @@ async function gameLoop(timestamp: number) {
             setGameState(
               produce((state) => {
                 state.enemiesKilled++;
-                state.enemies[i]!.lifeStatus = 'died';
-              }),
+                state.enemies[i]!.lifeStatus = "died";
+              })
             );
             break;
           }
 
           setGameState(
-            'enemies',
+            "enemies",
             i,
             produce((e) => {
               e.health -= arrow.damage;
-              e.status = 'hit';
-            }),
+              e.status = "hit";
+            })
           );
         }
       }
     }
 
     // for each enemy detect collisions with player
-    if (ENEMY_COLLISIONS && enemy.lifeStatus === 'alive') {
+    if (ENEMY_COLLISIONS && enemy.lifeStatus === "alive") {
       if (collisionDetected(relativePlayerPos, enemy.rect)) {
-        if (enemy.attackStatus === 'ready') {
+        if (enemy.attackStatus === "ready") {
           batch(() => {
-            setGameState('enemies', i, 'attackStatus', 'hit');
-            setPlayer('health', player.health - enemy.attack);
+            setGameState("enemies", i, "attackStatus", "hit");
+            setPlayer("health", player.health - enemy.attack);
           });
         }
       }
@@ -213,21 +229,42 @@ async function gameLoop(timestamp: number) {
   if (SPAWN_GEMS && GEMS_COLLISIONS) {
     for (let i = 0; i < gameState.gems.length; i++) {
       const gem = gameState.gems[i]!;
-      const transformX = gem.rect.x + newWorldX;
-      const transformY = gem.rect.y + newWorldY - GAME_WORLD_SIZE;
+      const dirX = GEM_FLYING_SPEED * getDirection(gem.rect.centerX, relativePlayerPos.centerX);
+      const dirY = GEM_FLYING_SPEED * getDirection(gem.rect.centerY, relativePlayerPos.centerY);
+      const newX = gem.rect.x + dirX;
+      const newY = gem.rect.y + dirY;
+      const transformX = newX + newWorldX;
+      const transformY = newY + newWorldY - GAME_WORLD_SIZE;
+
+      const newRect = getNewPos({
+        x: newX,
+        y: newY,
+        width: gem.rect.width,
+        height: gem.rect.height,
+      });
+
       gem.ref!.style.transform = `translate3d(${transformX}px, ${transformY}px, 0)`;
 
-      if (collisionDetected(relativePlayerPos, gem.rect)) {
-        batch(() => {
+      batch(() => {
+        if (gem.status === "flying") {
+          setGameState("gems", i, "rect", newRect);
+        }
+
+        if (collisionDetected(relativePlayerMagnetPos, gem.rect)) {
+          setGameState("gems", i, "status", "flying");
+        }
+
+        if (collisionDetected(relativePlayerPos, gem.rect)) {
           destroyGem(i);
-          setGameState('experience', gameState.experience + 1);
-        });
-      }
+          setGameState("experience", gameState.experience + 1);
+          return;
+        }
+      });
     }
   }
 
   if (player.health <= 0) {
-    setGameState('status', 'lost');
+    setGameState("status", "lost");
     clearGameLoop();
   }
 
