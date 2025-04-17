@@ -255,8 +255,8 @@ async function gameLoop(timestamp: number) {
         }
 
         if (collisionDetected(relativePlayerPos, gem.rect)) {
+          setGameState("experience", (exp) => exp + gem.value);
           destroyGem(i);
-          setGameState("experience", gameState.experience + 1);
           return;
         }
       });

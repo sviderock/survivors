@@ -35,9 +35,8 @@ function getArrowDistance(direction: Arrow["direction"]) {
 }
 
 export function createSingleArrow(direction: Arrow["direction"]): Arrow {
-  const arrowStartX = relativePlayerPos().centerX;
-  const arrowStartY =
-    relativePlayerPos().centerY + ARROW_SPRITE_SIZE.h / 2 + ARROW_ACTUAL_SPRITE_SIZE.h / 2;
+  const arrowStartX = relativePlayerPos().centerX - ARROW_SPRITE_SIZE.w / 2;
+  const arrowStartY = relativePlayerPos().centerY;
   const rect = getInitialRect({
     x: arrowStartX,
     y: arrowStartY,

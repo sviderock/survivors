@@ -4,10 +4,10 @@ export const PLAYER_SPEED = 6;
 export const PLAYER_BASE_HEALTH = 100;
 export const PLAYER_BASE_DAMAGE = 3;
 export const PLAYER_BASE_COOLDOWN = 1_000;
-export const PLAYER_SHOOTING_ANIMATION_DURATION_MS = 500;
+export const PLAYER_SHOOTING_ANIMATION_DURATION_MS = 300;
 export const PLAYER_MAGNET_DIAMETER = 80;
 
-export const ARROW_SPEED = 15;
+export const ARROW_SPEED = 20;
 export const ARROW_SPRITE_SIZE = { w: 64, h: 64 };
 export const ARROW_ACTUAL_SPRITE_SIZE = { w: 63, h: 14 };
 export const ARROW_HITBOX_SIZE = { w: 14, h: 14 };
@@ -28,8 +28,8 @@ export const BLOOD_SPRITE_SIZE = { w: 110, h: 93 };
 export const BLOOD_ANIMATION_DURATION_MS = 400;
 
 export const GEM_HITBOX_SIZE = { w: 16, h: 24 };
-export const GEM_LIMIT = 10;
-export const GEM_FLYING_SPEED = 4;
+export const GEM_LIMIT = 1;
+export const GEM_FLYING_SPEED = 6;
 
 export const SKULL_SPRITE_SIZE = { w: 128, h: 128 };
 export const SKULL_APPEAR_DURATIONS_MS = 400;
@@ -57,13 +57,13 @@ export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 export const SUPPORTED_PROTOCOLS = ["celo"] as const;
 
 export const DEBUG_MECHANICS = true;
-export const SPAWN_ENEMIES = false;
+export const SPAWN_ENEMIES = true;
 export const SPAWN_GEMS = true;
-export const SPAWN_TERRAIN = false;
+export const SPAWN_TERRAIN = true;
 
 export const ENEMY_COLLISIONS = true;
 export const ARROW_COLLISIONS = true;
 export const GEMS_COLLISIONS = true;
 
 export const DEBUG = false;
-export const RAPID_MODE = false;
+export const RAPID_MODE = true;

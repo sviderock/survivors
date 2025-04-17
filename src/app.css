@@ -19,7 +19,7 @@
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-content-show: content-show 0.2s ease-out;
   --animate-content-hide: content-hide 0.2s ease-out;
-  --animate-caret-blink: caret-blink .5s ease-out infinite;
+  --animate-caret-blink: caret-blink 0.5s ease-out infinite;
 
   /* Player */
   --animate-player-idle: player-idle 500ms steps(6) infinite;

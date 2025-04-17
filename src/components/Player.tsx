@@ -205,7 +205,7 @@ export default function Player() {
   });
 
   // onMount(() => {
-  //   spawnArrow('south-west');
+  //   spawnArrow("east");
   // });
 
   return (
