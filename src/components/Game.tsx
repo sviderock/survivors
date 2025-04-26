@@ -1,4 +1,4 @@
-import { Show, createEffect, onCleanup } from "solid-js";
+import { Show, createEffect, onCleanup, onMount } from "solid-js";
 import Banner from "~/components/Banner";
 import Enemies from "~/components/Enemies";
 import FPSCounter from "~/components/FPSCounter";
@@ -44,6 +44,8 @@ export default function Game() {
       return;
     }
   });
+
+  onMount(async () => {});
 
   return (
     <div class="relative h-lvh w-full overflow-hidden">

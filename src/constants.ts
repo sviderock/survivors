@@ -56,7 +56,7 @@ export const ABRUPTLY_STOPPPED_GAME_LS_KEY = "abruptly_stopped_game";
 export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 export const SUPPORTED_PROTOCOLS = ["celo"] as const;
 
-export const DEBUG_MECHANICS = true;
+export const DEBUG_MECHANICS = false;
 export const SPAWN_ENEMIES = true;
 export const SPAWN_GEMS = true;
 export const SPAWN_TERRAIN = true;
@@ -66,4 +66,4 @@ export const ARROW_COLLISIONS = true;
 export const GEMS_COLLISIONS = true;
 
 export const DEBUG = false;
-export const RAPID_MODE = true;
+export const RAPID_MODE = false;
