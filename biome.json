@@ -139,7 +139,7 @@
           "style": {
             "noArguments": "error",
             "noVar": "error",
-            "useConst": "error"
+            "useConst": "off"
           },
           "suspicious": {
             "noClassAssign": "off",

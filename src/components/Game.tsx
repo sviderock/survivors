@@ -1,4 +1,4 @@
-import { Show, createEffect, onCleanup, onMount } from "solid-js";
+import { Show, createEffect, createSignal, onCleanup, onMount } from "solid-js";
 import Banner from "~/components/Banner";
 import Enemies from "~/components/Enemies";
 import FPSCounter from "~/components/FPSCounter";
@@ -10,9 +10,17 @@ import UIStats from "~/components/UIStats";
 import Arrow from "~/components/weapons/Arrows";
 import { DEBUG_MECHANICS } from "~/constants";
 import { clearGameLoop, runGameLoop } from "~/gameLoop";
-import { sendWS, setupGameServerConnection } from "~/lib/gameServer";
+import { sendWS } from "~/lib/gameServer";
 import { setupKeyboardEvents } from "~/lib/keyboardEvents";
-import { gameState } from "~/state";
+import { trpc } from "~/lib/trpcClient";
+import { gameState, setWorldRect, worldRect } from "~/state";
+import { getNewPos, lerp } from "~/utils";
+
+let lastUpdateTime = performance.now();
+const [pos, setPos] = createSignal({
+  prev: { x: 0, y: 0 },
+  next: { x: 0, y: 0 },
+});
 
 function onBeforeUnload(_e: BeforeUnloadEvent) {
   // e.preventDefault();
@@ -20,10 +28,41 @@ function onBeforeUnload(_e: BeforeUnloadEvent) {
   // sendWS({ type: "pause_game", timePassedInMs: stageTimer() });
 }
 
+function renderMovement() {
+  let now = performance.now();
+  let t = Math.min((now - lastUpdateTime) / 100, 1);
+  console.log(t);
+  setWorldRect(
+    getNewPos({
+      x: lerp(pos().prev.x, pos().next.x, t),
+      y: lerp(pos().prev.y, pos().next.y, t),
+      width: worldRect.width,
+      height: worldRect.height,
+    })
+  );
+
+  requestAnimationFrame(renderMovement);
+}
+
 export default function Game() {
-  setupGameServerConnection();
+  trpc.worldState.subscribe(void 0, {
+    onData: ({ players }) => {
+      const player = players[0]!;
+      setPos((p) => ({ prev: p.next, next: player.pos }));
+      lastUpdateTime = performance.now();
+    },
+  });
+  // setupGameServerConnection();
   setupGameTimer();
   setupKeyboardEvents();
+
+  onMount(() => {
+    renderMovement();
+  });
+
+  createEffect(() => {
+    console.log(worldRect.x, worldRect.y);
+  });
 
   onCleanup(() => {
     clearGameLoop();
@@ -44,8 +83,6 @@ export default function Game() {
       return;
     }
   });
-
-  onMount(async () => {});
 
   return (
     <div class="relative h-lvh w-full overflow-hidden">

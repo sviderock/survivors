@@ -1,6 +1,7 @@
 export const PLAYER_SPRITE_SIZE = { w: 192, h: 192 };
 export const PLAYER_HITBOX_SIZE = { w: 80, h: 80 };
 export const PLAYER_SPEED = 6;
+export const PLAYER_SERVER_SPEED = 30;
 export const PLAYER_BASE_HEALTH = 100;
 export const PLAYER_BASE_DAMAGE = 3;
 export const PLAYER_BASE_COOLDOWN = 1_000;
@@ -56,7 +57,7 @@ export const ABRUPTLY_STOPPPED_GAME_LS_KEY = "abruptly_stopped_game";
 export const DIAGONAL_SPEED = +(Math.SQRT2 / 2).toPrecision(1);
 export const SUPPORTED_PROTOCOLS = ["celo"] as const;
 
-export const DEBUG_MECHANICS = false;
+export const DEBUG_MECHANICS = true;
 export const SPAWN_ENEMIES = true;
 export const SPAWN_GEMS = true;
 export const SPAWN_TERRAIN = true;
@@ -65,5 +66,8 @@ export const ENEMY_COLLISIONS = true;
 export const ARROW_COLLISIONS = true;
 export const GEMS_COLLISIONS = true;
 
-export const DEBUG = false;
+export const DEBUG = true;
 export const RAPID_MODE = false;
+
+export const GAME_UPDATE_RATE_PER_SECOND = 10;
+export const GAME_UPDATE_INTERVAL = 1000 / GAME_UPDATE_RATE_PER_SECOND;

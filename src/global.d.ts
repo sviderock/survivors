@@ -19,7 +19,12 @@ declare global {
 
   type TileRecord<T> = { [tileXY: string]: T };
 
-  type BaseGameStateProps = {
+  interface CommonGameStateProps {
+    occupiedTile: TileRecord<1 | undefined>;
+    projectedTile: TileRecord<1 | undefined>;
+  }
+
+  type BaseGameStateProps = CommonGameStateProps & {
     pingEnabled: boolean;
     enemySpawnInterval: number;
     experience: number;
@@ -28,8 +33,6 @@ declare global {
     arrows: Arrow[];
     gems: Gem[];
     terrainRect: Rect;
-    occupiedTile: TileRecord<1 | undefined>;
-    projectedTile: TileRecord<1 | undefined>;
   };
 
   type StatusBasedProps =
@@ -110,6 +113,13 @@ declare global {
 
   type RGBStr = `rgb(${number},${"" | " "}${number},${"" | " "}${number})`;
   type RGB = { r: number; g: number; b: number };
+
+  type KeyPressed = {
+    w: boolean;
+    s: boolean;
+    a: boolean;
+    d: boolean;
+  };
 
   namespace App {
     interface RequestEventLocals {

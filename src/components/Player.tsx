@@ -97,6 +97,10 @@ export const playerLevel = () => {
   return { level, xpToNextLevel, exp: accumulatedXP };
 };
 
+export function movePlayerFromServer({ x, y }: { x: number; y: number }) {
+  setWorldRect(getNewPos({ x, y, width: GAME_WORLD_SIZE, height: GAME_WORLD_SIZE }));
+}
+
 export function movePlayer() {
   if (!keyPressed.w && !keyPressed.s && !keyPressed.a && !keyPressed.d) {
     return { newWorldX: worldRect.x, newWorldY: worldRect.y };

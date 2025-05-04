@@ -1,12 +1,11 @@
-import { type ReconnectingWebSocket, createReconnectingWS } from "@solid-primitives/websocket";
+import { type ReconnectingWebSocket } from "@solid-primitives/websocket";
 import { createEffect, onCleanup, onMount } from "solid-js";
 import { produce } from "solid-js/store";
-import { isServer } from "solid-js/web";
 import { setStageTimer, stageTimer } from "~/components/StageTimer";
 import { ABRUPTLY_STOPPPED_GAME_LS_KEY } from "~/constants";
+import { type GameServerEvent } from "~/lib/trpc/ws";
 import { gameState, setGameState, setPing } from "~/state";
-import { encodeJson, getPersistedData, getWsUrl, parseEvent, persistData } from "~/utils";
-import { type GameServerEvent } from "~/ws";
+import { encodeJson, getPersistedData, parseEvent, persistData } from "~/utils";
 
 let pingInterval: NodeJS.Timeout | undefined;
 export let gameServer: ReconnectingWebSocket | null;
@@ -22,9 +21,8 @@ function resetPingInterval() {
 }
 
 export function setupGameServerConnection() {
-  gameServer = isServer ? null : createReconnectingWS(getWsUrl(location));
-
-  console.log(gameServer);
+  gameServer = null;
+  // gameServer = isServer ? null : createReconnectingWS(getWsUrl(location));
 
   createEffect(() => {
     if (gameState.pingEnabled && gameServer) {

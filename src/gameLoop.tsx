@@ -2,13 +2,7 @@ import { batch } from "solid-js";
 import { produce } from "solid-js/store";
 import { moveEnemy, spawnEnemy } from "~/components/Enemies";
 import { destroyGem, spawnGem } from "~/components/Gems";
-import {
-  movePlayer,
-  player,
-  playerMagnetDiameter,
-  playerRect,
-  setPlayer,
-} from "~/components/Player";
+import { player, playerMagnetDiameter, playerRect, setPlayer } from "~/components/Player";
 import { destroyArrow } from "~/components/weapons/Arrows";
 import {
   ARROW_ACTUAL_SPRITE_SIZE,
@@ -75,7 +69,7 @@ async function gameLoop(timestamp: number) {
   }
 
   // move player
-  const { newWorldX, newWorldY } = movePlayer();
+  // const { newWorldX, newWorldY } = movePlayer();
 
   const relativePlayerPos = {
     left: playerRect().left - newWorldX,

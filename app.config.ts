@@ -7,7 +7,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 dotenv.config();
 
 export default defineConfig({
-  middleware: "./src/middleware.ts",
+  // middleware: "./src/middleware.ts",
   solid: {
     babel: {
       compact: true,
