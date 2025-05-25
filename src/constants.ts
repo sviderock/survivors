@@ -7,6 +7,7 @@ export const PLAYER_BASE_DAMAGE = 3;
 export const PLAYER_BASE_COOLDOWN = 1_000;
 export const PLAYER_SHOOTING_ANIMATION_DURATION_MS = 300;
 export const PLAYER_MAGNET_DIAMETER = 80;
+export const PLAYER_NAME = "Slava";
 
 export const ARROW_SPEED = 20;
 export const ARROW_SPRITE_SIZE = { w: 64, h: 64 };

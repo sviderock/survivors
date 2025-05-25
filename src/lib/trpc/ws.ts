@@ -4,7 +4,9 @@ import { appRouter, createContext } from "./router";
 const websocket = createBunWSHandler({
   router: appRouter,
   createContext,
-  onError: console.error,
+  onError: (error: any) => {
+    console.error(JSON.stringify(error, null, 2));
+  },
   // batching: { enabled: true },
 });
 

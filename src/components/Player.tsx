@@ -264,7 +264,7 @@ export default function Player() {
           )}
         />
 
-        <span class=" -translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex size-(--player-magnet-radius) items-center justify-center border-2 border-blue-800/50 bg-blue-400/50 text-sm -z-1" />
+        <span class=" -translate-x-1/2 -translate-y-1/2 -z-1 absolute top-1/2 left-1/2 flex size-(--player-magnet-radius) items-center justify-center border-2 border-blue-800/50 bg-blue-400/50 text-sm" />
         {/* <span class=" -translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-black bg-white text-sm">
           c
         </span> */}

@@ -1,9 +1,12 @@
-import { initTRPC } from "@trpc/server";
+import { api } from "@/convex/_generated/api";
+import type { DataModel, Id } from "@/convex/_generated/dataModel";
+import { TRPCError, initTRPC } from "@trpc/server";
+import { z } from "@zod/mini";
 import { on } from "events";
 import SuperJSON from "superjson";
 import type { CreateBunContextOptions } from "trpc-bun-adapter";
-import { z } from "zod";
-import Game, { type GameServerState } from "~/lib/classes/Game";
+import Game, { type PublicGameState } from "~/lib/classes/Game";
+import convexClient from "~/lib/convexClient";
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
 export async function createContext(opts: Partial<CreateBunContextOptions>) {
@@ -11,37 +14,61 @@ export async function createContext(opts: Partial<CreateBunContextOptions>) {
 }
 
 const t = initTRPC.context<Context>().create({ transformer: SuperJSON });
-
 export type AppRouter = typeof appRouter;
 
-const game = new Game();
-// game.start();
+const ACTIVE_GAMES: Record<Id<"games">, Game> = {};
+
+const playerProcedure = t.procedure
+  .input(z.object({ playerName: z.string().check(z.minLength(1)) }))
+  .use(async ({ next, input }) => {
+    let currentGame: DataModel["games"]["document"] | null = null;
+    const [existingGame] = await convexClient.query(api.games.getGame, {});
+    if (!existingGame) {
+      currentGame = await convexClient.mutation(api.games.createGame, {
+        players: { [input.playerName]: { name: input.playerName, pos: { x: 0, y: 0 } } },
+      });
+      if (!currentGame) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Game error occured while creating the game",
+        });
+      }
+    } else {
+      currentGame = existingGame;
+    }
+
+    if (!ACTIVE_GAMES[currentGame._id]) {
+      ACTIVE_GAMES[currentGame._id] = new Game(currentGame);
+    }
+
+    const activeGame = ACTIVE_GAMES[currentGame._id]!;
+
+    return next({
+      ctx: {
+        currentGame: activeGame,
+        player: await activeGame.getPlayer(input.playerName),
+      },
+    });
+  });
 
 export const appRouter = t.router({
   player: {
-    keyPressed: t.procedure
+    initialPos: playerProcedure.query(({ ctx }) => ctx.player.pos),
+    keyPressed: playerProcedure
       .input(
         z.interface({
-          w: z.boolean(),
-          s: z.boolean(),
-          a: z.boolean(),
-          d: z.boolean(),
+          keys: z.interface({ w: z.boolean(), s: z.boolean(), a: z.boolean(), d: z.boolean() }),
         })
       )
-      .mutation(({ input }) => {
-        if (game.isPaused) {
-          game.start();
-        }
-
-        game.getPlayer(0).keyPressed = input;
+      .mutation(({ input, ctx }) => {
+        if (ctx.currentGame.isPaused) ctx.currentGame.start();
+        ctx.player.keyPressed = input.keys;
       }),
   },
 
-  worldState: t.procedure.subscription(async function* (opts) {
-    for await (const [data] of on(game.ee, "worldState", {
-      signal: opts.signal,
-    })) {
-      yield data as GameServerState;
+  worldState: playerProcedure.subscription(async function* ({ signal, ctx }) {
+    for await (const [data] of on(ctx.currentGame.ee, "worldState", { signal })) {
+      yield data as PublicGameState;
     }
   }),
 });

@@ -11,10 +11,10 @@ export const trpc = createTRPCClient<AppRouter>({
           console.log("open");
         },
         onError(evt) {
-          console.log(evt);
+          console.log("errror");
         },
         onClose(cause) {
-          console.log(cause);
+          console.log("close");
         },
       }),
       transformer: SuperJSON,

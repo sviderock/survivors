@@ -1,9 +1,7 @@
 import { batch, createEffect, onCleanup, onMount } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 import { setPlayer } from "~/components/Player";
-import { stageTimer } from "~/components/StageTimer";
-import { DEBUG_MECHANICS } from "~/constants";
-import { sendWS } from "~/lib/gameServer";
+import { DEBUG_MECHANICS, PLAYER_NAME } from "~/constants";
 import { trpc } from "~/lib/trpcClient";
 import { gameState, resetGameState, setGameState } from "~/state";
 
@@ -113,7 +111,7 @@ export function setupKeyboardEvents() {
   });
 
   createEffect(() => {
-    trpc.player.keyPressed.mutate(keyPressed);
+    trpc.player.keyPressed.mutate({ playerName: PLAYER_NAME, keys: keyPressed });
   });
 }
 
@@ -121,13 +119,11 @@ function onKeyDown(e: KeyboardEvent) {
   if (e.code === "Escape" || e.code === "KeyP") {
     if (gameState.status === "paused") {
       setGameState("status", "in_progress");
-      sendWS({ type: "continue_game" });
       return;
     }
 
     if (gameState.status === "in_progress") {
       setGameState("status", "paused");
-      sendWS({ type: "pause_game", timePassedInMs: stageTimer() });
       return;
     }
 
@@ -136,13 +132,11 @@ function onKeyDown(e: KeyboardEvent) {
 
   if (e.code === "Space") {
     if (gameState.status === "not_started") {
-      sendWS({ type: "init_game_start" });
       return;
     }
 
     if (gameState.status === "active_game_found") {
       setGameState("status", "in_progress");
-      sendWS({ type: "continue_game" });
       return;
     }
 

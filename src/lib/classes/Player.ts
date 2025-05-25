@@ -1,9 +1,15 @@
+import type { DataModel } from "@/convex/_generated/dataModel";
+
 export default class Player {
+  name: string;
   pos: Nums<"x" | "y">;
+  status: "connected" | "disconnected";
   #keyPressed: KeyPressed;
 
-  constructor() {
-    this.pos = { x: 0, y: 0 };
+  constructor(player: DataModel["games"]["document"]["players"][number]) {
+    this.name = player.name;
+    this.pos = player.pos;
+    this.status = "disconnected";
     this.#keyPressed = { w: false, s: false, a: false, d: false };
   }
 
@@ -13,5 +19,13 @@ export default class Player {
 
   set keyPressed(input: Partial<KeyPressed>) {
     this.#keyPressed = { ...this.#keyPressed, ...input };
+  }
+
+  disconnect() {
+    this.status = "disconnected";
+  }
+
+  connect() {
+    this.status = "connected";
   }
 }

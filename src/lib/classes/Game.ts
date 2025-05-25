@@ -1,52 +1,68 @@
+import { api } from "@/convex/_generated/api";
+import type { DataModel } from "@/convex/_generated/dataModel";
 import EventEmitter from "events";
 import { DIAGONAL_SPEED, GAME_UPDATE_INTERVAL, PLAYER_SERVER_SPEED } from "~/constants";
 import Player from "~/lib/classes/Player";
+import convexClient from "~/lib/convexClient";
 
-export interface GameServerState {
-  tick: number;
-  players: Array<Player>;
+export interface PublicGameState {
+  players: { [playerName: string]: { pos: Nums<"x" | "y"> } };
 }
 
 export default class Game {
   #interval: NodeJS.Timeout | undefined;
-  state: GameServerState;
-  ee: EventEmitter<{ worldState: [GameServerState] }>;
+  #id: DataModel["games"]["document"]["_id"];
+  status: DataModel["games"]["document"]["status"];
+  players: Player[];
+  playerByName: Map<string, Player>;
+  ee: EventEmitter<{ worldState: [PublicGameState] }>;
 
-  constructor() {
+  constructor(game: DataModel["games"]["document"]) {
     this.ee = new EventEmitter();
-    this.state = {
-      tick: 0,
-      players: [new Player()],
-    };
+    this.#id = game._id;
+    this.status = game.status;
+    this.players = Object.values(game.players).map((p) => new Player(p));
+    this.playerByName = new Map(this.players.map((p) => [p.name, p]));
   }
 
   get isPaused() {
-    return !this.#interval;
+    return this.status === "paused";
+  }
+
+  get #publicGameStateSerialized(): PublicGameState {
+    return {
+      players: this.players.reduce<PublicGameState["players"]>((acc, p) => {
+        acc[p.name] = { pos: p.pos };
+        return acc;
+      }, {}),
+    };
   }
 
   start() {
     clearInterval(this.#interval);
     this.#interval = setInterval(() => {
       this.#processdState();
-      this.ee.emit("worldState", this.state);
+      this.ee.emit("worldState", this.#publicGameStateSerialized);
     }, GAME_UPDATE_INTERVAL);
   }
 
-  stop() {
+  pause() {
     clearInterval(this.#interval);
+    this.status = "paused";
   }
 
-  addPlayer() {
-    this.state.players.push(new Player());
-  }
+  async getPlayer(playerName: string) {
+    const player = this.playerByName.get(playerName);
+    if (!player) {
+      await convexClient.mutation(api.games.addPlayer, { gameId: this.#id, playerName });
+    }
 
-  getPlayer(i: number) {
-    return this.state.players[i]!;
+    return this.playerByName.get(playerName)!;
   }
 
   #processPlayers() {
-    for (let i = 0; i < this.state.players.length; i++) {
-      const player = this.state.players[i]!;
+    for (let i = 0; i < this.players.length; i++) {
+      const player = this.players[i]!;
       const { keyPressed } = player;
       const playerSpeedModifier =
         (keyPressed.w && keyPressed.a) ||
@@ -64,7 +80,6 @@ export default class Game {
   }
 
   #processdState() {
-    this.state.tick++;
     this.#processPlayers();
   }
 }
